@@ -49,6 +49,19 @@ def update_price_history(market_data, history):
     history['last_market_timestamp'] = market_ts
     history['last_market_time'] = datetime.fromtimestamp(market_ts).isoformat()
     
+    # Track market update history (last 15 entries)
+    if 'update_history' not in history:
+        history['update_history'] = []
+    
+    if is_new_data:
+        history['update_history'].insert(0, {
+            'ts': market_ts,
+            'check_ts': now_ts,
+            'time': datetime.fromtimestamp(market_ts).isoformat()
+        })
+        # Keep only last 15
+        history['update_history'] = history['update_history'][:15]
+    
     if 'items' not in history:
         history['items'] = {}
     
@@ -108,14 +121,16 @@ def get_price_age_info(item_hrid, target_level, price_history, now_ts):
     data = items.get(key, {})
     
     if not data:
-        return {'price_since_ts': 0, 'price_direction': None}
+        return {'price_since_ts': 0, 'price_direction': None, 'last_price': None}
     
     price_since_ts = data.get('current_price_since_ts', 0)
     direction = data.get('price_direction')  # 'up', 'down', or None
+    last_price = data.get('last_price')
     
     return {
         'price_since_ts': price_since_ts,
-        'price_direction': direction
+        'price_direction': direction,
+        'last_price': last_price
     }
 
 
@@ -140,6 +155,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
     # Pass timestamps for dynamic JavaScript calculation
     last_check_ts = price_history_meta.get('last_check_ts', 0) if price_history_meta else 0
     last_market_ts = price_history_meta.get('last_market_ts', 0) if price_history_meta else 0
+    update_history = json.dumps(price_history_meta.get('update_history', [])) if price_history_meta else '[]'
     
     return f'''<!DOCTYPE html>
 <html lang="en">
@@ -230,6 +246,51 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             margin-bottom: 15px;
             font-size: 0.9rem;
         }}
+        .history-dropdown {{
+            position: relative;
+            display: inline-block;
+        }}
+        .history-trigger {{
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }}
+        .history-trigger:hover {{
+            background: rgba(255,255,255,0.1);
+        }}
+        .history-panel {{
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            background: #1a1a2e;
+            border: 1px solid rgba(238,179,87,0.3);
+            border-radius: 8px;
+            padding: 12px;
+            min-width: 280px;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            text-align: left;
+        }}
+        .history-panel.visible {{ display: block; }}
+        .history-panel h5 {{
+            color: #eeb357;
+            font-size: 0.75rem;
+            margin: 0 0 8px;
+            text-transform: uppercase;
+        }}
+        .history-entry {{
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+        }}
+        .history-entry:last-child {{ border-bottom: none; }}
+        .history-entry .time {{ color: #aaa; }}
+        .history-entry .ago {{ color: #eeb357; font-family: 'SF Mono', Monaco, monospace; }}
         .controls {{
             display: flex;
             justify-content: center;
@@ -429,6 +490,30 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         .mat-name {{ flex: 1; color: #ccc; }}
         .mat-count {{ color: #888; margin: 0 8px; font-size: 0.7rem; }}
         .mat-price {{ font-family: 'SF Mono', Monaco, monospace; color: #eeb357; }}
+        .craft-breakdown {{
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }}
+        .profit-bar-cell {{
+            position: relative;
+        }}
+        .profit-bar {{
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            opacity: 0.2;
+            border-radius: 2px;
+            z-index: 0;
+        }}
+        .profit-bar.positive {{ background: #4ade80; }}
+        .profit-bar.negative {{ background: #f87171; }}
+        .profit-bar-value {{
+            position: relative;
+            z-index: 1;
+        }}
         .price-note {{
             font-weight: normal;
             font-size: 0.65rem;
@@ -494,7 +579,12 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                 <div class="gear-panel" id="gear-panel"></div>
             </div>
         </div>
-        <p class="subtitle">MWI Enhancement Profit Tracker | Last check: <span id="time-check">-</span> | Market update: <span id="time-market">-</span></p>
+        <p class="subtitle">MWI Enhancement Profit Tracker | Last check: <span id="time-check">-</span> | 
+            <span class="history-dropdown">
+                <span class="history-trigger" onclick="toggleHistory()">Market update: <span id="time-market">-</span> &#9660;</span>
+                <div class="history-panel" id="history-panel"></div>
+            </span>
+        </p>
         
         <div class="controls">
             <div class="control-group">
@@ -577,6 +667,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         const playerStats = {stats_json};
         const lastCheckTs = {last_check_ts};
         const lastMarketTs = {last_market_ts};
+        const updateHistory = {update_history};
         let currentMode = 'pessimistic';
         let currentLevel = 'all';
         let sortCol = 10; // Default to $/day column
@@ -617,6 +708,27 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         function updateTimes() {{
             document.getElementById('time-check').textContent = formatTimeAgo(lastCheckTs);
             document.getElementById('time-market').textContent = formatTimeAgo(lastMarketTs);
+        }}
+        
+        let historyOpen = false;
+        function toggleHistory() {{
+            historyOpen = !historyOpen;
+            const panel = document.getElementById('history-panel');
+            panel.classList.toggle('visible', historyOpen);
+            if (historyOpen) renderHistoryPanel();
+        }}
+        
+        function renderHistoryPanel() {{
+            const entries = updateHistory.map(h => `
+                <div class="history-entry">
+                    <span class="time">${{new Date(h.ts * 1000).toLocaleString()}}</span>
+                    <span class="ago">${{formatTimeAgo(h.ts)}}</span>
+                </div>
+            `).join('');
+            document.getElementById('history-panel').innerHTML = `
+                <h5>Market Update History</h5>
+                ${{entries || '<div class="history-entry">No history yet</div>'}}
+            `;
         }}
         
         function formatCoins(value) {{
@@ -722,41 +834,70 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         function renderDetailRow(r) {{
             const priceLabel = currentMode === 'pessimistic' ? 'ask' : currentMode === 'optimistic' ? 'bid' : 'mid';
             
-            let matsHtml = '';
-            if (r.materials && r.materials.length > 0) {{
-                matsHtml = r.materials.map(m => 
+            // Craft materials under base item if source is craft
+            let craftMatsHtml = '';
+            if (r.base_source === 'craft' && r.craft_materials && r.craft_materials.length > 0) {{
+                craftMatsHtml = r.craft_materials.map(m => 
                     `<div class="mat-row">
                         <span class="mat-name">${{m.name}}</span>
-                        <span class="mat-count">${{m.count.toFixed(0)}}x</span>
-                        <span class="mat-price">${{formatCoins(m.price)}}</span>
+                        <span class="mat-count">${{m.count.toFixed(2)}}x @ ${{formatCoins(m.price)}}</span>
+                        <span class="mat-price">${{formatCoins(m.count * m.price)}}</span>
                     </div>`
                 ).join('');
-                if (r.coin_cost > 0) {{
-                    matsHtml += `<div class="mat-row">
-                        <span class="mat-name">Coins</span>
-                        <span class="mat-count">per attempt</span>
-                        <span class="mat-price">${{formatCoins(r.coin_cost)}}</span>
-                    </div>`;
-                }}
-            }}
-            
-            let craftHtml = '';
-            if (r.base_source === 'craft' && r.craft_materials && r.craft_materials.length > 0) {{
-                craftHtml = `<div class="detail-section">
-                    <h4>&#x1F528; Craft Materials <span class="price-note">(${{priceLabel}}, 11.2% artisan)</span></h4>
-                    ${{r.craft_materials.map(m => 
-                        `<div class="mat-row">
-                            <span class="mat-name">${{m.name}}${{m.is_upgrade ? ' (base, no reduction)' : ''}}</span>
-                            <span class="mat-count">${{m.count.toFixed(2)}}x</span>
-                            <span class="mat-price">${{formatCoins(m.price)}}</span>
-                        </div>`
-                    ).join('')}}
+                const craftTotal = r.craft_materials.reduce((sum, m) => sum + m.count * m.price, 0);
+                craftMatsHtml = `<div class="craft-breakdown">
+                    ${{craftMatsHtml}}
                     <div class="mat-row total-row">
-                        <span class="mat-name">Total craft cost</span>
+                        <span class="mat-name">Craft Total</span>
                         <span class="mat-count"></span>
-                        <span class="mat-price">${{formatCoins(r.craft_materials.reduce((sum, m) => sum + m.count * m.price, 0))}}</span>
+                        <span class="mat-price">${{formatCoins(craftTotal)}}</span>
                     </div>
                 </div>`;
+            }}
+            
+            // Enhancement materials per attempt
+            let matsPerAttempt = 0;
+            let matsHtml = '';
+            if (r.materials && r.materials.length > 0) {{
+                matsHtml = r.materials.map(m => {{
+                    const lineTotal = m.count * m.price;
+                    matsPerAttempt += lineTotal;
+                    return `<div class="mat-row">
+                        <span class="mat-name">${{m.name}}</span>
+                        <span class="mat-count">${{m.count.toFixed(0)}}x @ ${{formatCoins(m.price)}}</span>
+                        <span class="mat-price">${{formatCoins(lineTotal)}}</span>
+                    </div>`;
+                }}).join('');
+            }}
+            if (r.coin_cost > 0) {{
+                matsPerAttempt += r.coin_cost;
+                matsHtml += `<div class="mat-row">
+                    <span class="mat-name">Coins</span>
+                    <span class="mat-count"></span>
+                    <span class="mat-price">${{formatCoins(r.coin_cost)}}</span>
+                </div>`;
+            }}
+            const costPerAttempt = matsPerAttempt;
+            const totalEnhanceCost = costPerAttempt * r.actions;
+            const totalProtCost = r.protect_price * r.protect_count;
+            
+            // Price age detail
+            let priceAgeHtml = '';
+            if (r.price_since_ts) {{
+                const ageStr = formatAge(Math.floor(Date.now()/1000) - r.price_since_ts);
+                const sinceDate = new Date(r.price_since_ts * 1000).toLocaleString();
+                priceAgeHtml = `<div class="detail-line">
+                    <span class="label">Current price since</span>
+                    <span class="value">${{sinceDate}} (${{ageStr}})</span>
+                </div>`;
+                if (r.last_price) {{
+                    const pctChange = ((r.sell_price - r.last_price) / r.last_price * 100).toFixed(1);
+                    const pctClass = pctChange > 0 ? 'positive' : 'negative';
+                    priceAgeHtml += `<div class="detail-line">
+                        <span class="label">Previous price</span>
+                        <span class="value ${{pctClass}}">${{formatCoins(r.last_price)}} → ${{formatCoins(r.sell_price)}} (${{pctChange > 0 ? '+' : ''}}${{pctChange}}%)</span>
+                    </div>`;
+                }}
             }}
             
             const altLabel = r.base_source === 'craft' ? 'Market' : 'Craft';
@@ -766,38 +907,50 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                 <div class="detail-section">
                     <h4>&#x1F4E6; Base Item</h4>
                     <div class="detail-line">
-                        <span class="label">Price (${{r.base_source}}, ${{priceLabel}})</span>
+                        <span class="label">Source</span>
+                        <span class="value">${{r.base_source}} (${{priceLabel}})</span>
+                    </div>
+                    <div class="detail-line">
+                        <span class="label">Base price</span>
                         <span class="value">${{formatCoins(r.base_price)}}</span>
                     </div>
+                    ${{r.base_source === 'craft' ? craftMatsHtml : `<div class="detail-line"><span class="label">${{altLabel}} price</span><span class="value alt">${{altPrice}}</span></div>`}}
+                </div>
+                
+                <div class="detail-section">
+                    <h4>&#x1F527; Enhancement Costs</h4>
                     <div class="detail-line">
-                        <span class="label">${{altLabel}} price</span>
-                        <span class="value alt">${{altPrice}}</span>
+                        <span class="label">Materials/attempt</span>
+                        <span class="value">${{formatCoins(costPerAttempt)}}</span>
+                    </div>
+                    ${{matsHtml}}
+                    <div class="mat-row total-row">
+                        <span class="mat-name">Total enhance (${{r.actions.toFixed(0)}} attempts)</span>
+                        <span class="mat-count"></span>
+                        <span class="mat-price">${{formatCoins(totalEnhanceCost)}}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span class="label">Protection (${{r.protect_name}}, ${{r.protect_count.toFixed(1)}}x)</span>
+                        <span class="value">${{formatCoins(totalProtCost)}}</span>
+                    </div>
+                    <div class="mat-row total-row">
+                        <span class="mat-name">Grand Total (base + enhance + prot)</span>
+                        <span class="mat-count"></span>
+                        <span class="mat-price">${{formatCoins(r.total_cost)}}</span>
                     </div>
                 </div>
                 
                 <div class="detail-section">
-                    <h4>&#x1F527; Materials/Attempt <span class="price-note">(${{priceLabel}})</span></h4>
-                    ${{matsHtml || '<div class="detail-line"><span class="label">No materials</span></div>'}}
+                    <h4>&#x1F4B0; Sell Price</h4>
+                    <div class="detail-line">
+                        <span class="label">Sell at +${{r.target_level}}</span>
+                        <span class="value">${{formatCoins(r.sell_price)}}</span>
+                    </div>
+                    ${{priceAgeHtml}}
                 </div>
                 
                 <div class="detail-section">
-                    <h4>&#x1F6E1; Protection <span class="price-note">(${{priceLabel}})</span></h4>
-                    <div class="detail-line">
-                        <span class="label">${{r.protect_name || 'Unknown'}}</span>
-                        <span class="value">${{formatCoins(r.protect_price)}}</span>
-                    </div>
-                    <div class="detail-line">
-                        <span class="label">Protect at</span>
-                        <span class="value">+${{r.protect_at}}</span>
-                    </div>
-                    <div class="detail-line">
-                        <span class="label">Expected uses</span>
-                        <span class="value">${{r.protect_count.toFixed(1)}}</span>
-                    </div>
-                </div>
-                
-                <div class="detail-section">
-                    <h4>&#x23F1; Time & Actions</h4>
+                    <h4>&#x23F1; Time & XP</h4>
                     <div class="detail-line">
                         <span class="label">Expected attempts</span>
                         <span class="value">${{r.actions.toFixed(0)}}</span>
@@ -811,8 +964,6 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                         <span class="value">${{formatXP(r.total_xp)}}</span>
                     </div>
                 </div>
-                
-                ${{craftHtml}}
             </div>`;
         }}
         
@@ -867,7 +1018,12 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             const tbody = document.getElementById('table-body');
             let html = '';
             
-            filtered.slice(0, 400).forEach((r, i) => {{
+            // Calculate max profit/day for bar scaling (from displayed items)
+            const displayItems = filtered.slice(0, 400);
+            const maxProfitDay = Math.max(...displayItems.map(r => r._profit_day || 0), 1);
+            const minProfitDay = Math.min(...displayItems.map(r => r._profit_day || 0), 0);
+            
+            displayItems.forEach((r, i) => {{
                 const rowId = r.item_hrid + '_' + r.target_level;
                 const isExpanded = expandedRows.has(rowId);
                 const profit = r._profit;
@@ -875,6 +1031,16 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                 const roi = r._roi;
                 const profitClass = profit > 0 ? 'positive' : profit < 0 ? 'negative' : 'neutral';
                 const sourceClass = r.base_source === 'market' ? 'source-market' : r.base_source === 'craft' ? 'source-craft' : 'source-vendor';
+                
+                // Calculate bar width as % of max
+                let barWidth = 0;
+                let barClass = 'positive';
+                if (profitDay > 0) {{
+                    barWidth = (profitDay / maxProfitDay) * 100;
+                }} else if (profitDay < 0 && minProfitDay < 0) {{
+                    barWidth = (profitDay / minProfitDay) * 100;
+                    barClass = 'negative';
+                }}
                 
                 html += `<tr class="data-row ${{isExpanded ? 'expanded' : ''}}" onclick="toggleRow('${{rowId}}')" data-level="${{r.target_level}}">
                     <td class="item-name"><span class="expand-icon">&#9654;</span>${{r.item_name}}</td>
@@ -887,7 +1053,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                     <td class="number ${{profitClass}}">${{formatCoins(profit)}}</td>
                     <td class="number ${{profitClass}}">${{roi.toFixed(1)}}%</td>
                     <td class="number hide-mobile">${{r.time_days.toFixed(2)}}</td>
-                    <td class="number ${{profitClass}}">${{formatCoins(profitDay)}}</td>
+                    <td class="number profit-bar-cell ${{profitClass}}"><div class="profit-bar ${{barClass}}" style="width:${{barWidth.toFixed(1)}}%"></div><span class="profit-bar-value">${{formatCoins(profitDay)}}</span></td>
                     <td class="number hide-mobile">${{formatXP(r.xp_per_day)}}</td>
                 </tr>`;
                 
@@ -905,12 +1071,16 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             }});
         }}
         
-        // Close gear panel when clicking outside
+        // Close panels when clicking outside
         document.addEventListener('click', function(e) {{
             if (gearOpen && !e.target.closest('.gear-dropdown')) {{
                 gearOpen = false;
                 document.getElementById('gear-panel').classList.remove('visible');
                 document.getElementById('gear-arrow').innerHTML = '&#9660;';
+            }}
+            if (historyOpen && !e.target.closest('.history-dropdown')) {{
+                historyOpen = false;
+                document.getElementById('history-panel').classList.remove('visible');
             }}
         }});
         
@@ -959,6 +1129,7 @@ def main():
             age_info = get_price_age_info(item_hrid, target_level, price_history, now_ts)
             result['price_since_ts'] = age_info['price_since_ts']
             result['price_direction'] = age_info['price_direction']
+            result['last_price'] = age_info['last_price']
     
     profitable_count = len([r for r in all_modes['pessimistic'] if r['profit'] > MIN_PROFIT])
     print(f"Found {profitable_count} profitable opportunities (pessimistic)")
@@ -969,7 +1140,8 @@ def main():
     # Pass timestamps for dynamic JavaScript calculation
     price_history_meta = {
         'last_check_ts': price_history.get('last_check_ts', now_ts),
-        'last_market_ts': price_history.get('last_market_timestamp', now_ts)
+        'last_market_ts': price_history.get('last_market_timestamp', now_ts),
+        'update_history': price_history.get('update_history', [])
     }
     
     html = generate_html(
