@@ -1,6 +1,6 @@
 {
   "timestamp": 1770906762,
-  "generated": "2026-02-12T15:22:18.659956",
+  "generated": "2026-02-12T15:30:24.695899",
   "modes": {
     "pessimistic": [
       {
@@ -68,7 +68,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -154,7 +154,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -216,7 +216,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -278,7 +278,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -340,7 +340,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -402,7 +402,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -470,7 +470,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -532,7 +532,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -594,7 +594,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -668,7 +668,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -748,7 +748,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -809,7 +809,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -889,7 +889,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -956,7 +956,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1048,7 +1048,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1116,7 +1116,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1178,7 +1178,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1245,7 +1245,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1306,7 +1306,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1379,7 +1379,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1471,7 +1471,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1544,7 +1544,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1606,7 +1606,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1668,7 +1668,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1736,7 +1736,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1798,7 +1798,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1890,7 +1890,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -1958,7 +1958,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2026,7 +2026,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2168,7 +2168,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2242,7 +2242,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2304,7 +2304,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2366,7 +2366,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2428,7 +2428,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2490,7 +2490,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2575,7 +2575,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2637,7 +2637,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2723,7 +2723,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2791,7 +2791,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2853,7 +2853,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -2945,7 +2945,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3007,7 +3007,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3099,7 +3099,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3161,7 +3161,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3246,7 +3246,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3314,7 +3314,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3399,7 +3399,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3461,7 +3461,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3522,7 +3522,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3687,7 +3687,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3773,7 +3773,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3858,7 +3858,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -3925,7 +3925,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4017,7 +4017,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4079,7 +4079,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4141,7 +4141,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4226,7 +4226,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4293,7 +4293,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4378,7 +4378,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4464,7 +4464,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4532,7 +4532,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4617,7 +4617,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4684,7 +4684,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4752,7 +4752,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4813,7 +4813,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4898,7 +4898,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -4960,7 +4960,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5058,7 +5058,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5143,7 +5143,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5216,7 +5216,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5313,7 +5313,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5386,7 +5386,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5454,7 +5454,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5516,7 +5516,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5596,7 +5596,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5681,7 +5681,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5749,7 +5749,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5834,7 +5834,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5908,7 +5908,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -5982,7 +5982,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6074,7 +6074,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6142,7 +6142,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6209,7 +6209,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6271,7 +6271,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6356,7 +6356,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6424,7 +6424,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6504,7 +6504,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6596,7 +6596,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6681,7 +6681,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6761,7 +6761,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6841,7 +6841,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -6926,7 +6926,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7090,7 +7090,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7158,7 +7158,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7220,7 +7220,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7269,7 +7269,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7366,7 +7366,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       }
     ],
@@ -7442,7 +7442,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7504,7 +7504,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7589,7 +7589,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7674,7 +7674,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7759,7 +7759,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7833,7 +7833,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7895,7 +7895,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -7980,7 +7980,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8065,7 +8065,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8150,7 +8150,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8235,7 +8235,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8320,7 +8320,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8388,7 +8388,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8462,7 +8462,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8530,7 +8530,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8628,7 +8628,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8726,7 +8726,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8788,7 +8788,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8850,7 +8850,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -8942,7 +8942,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9004,7 +9004,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9096,7 +9096,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9170,7 +9170,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9232,7 +9232,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9300,7 +9300,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9386,7 +9386,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9471,7 +9471,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9557,7 +9557,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9618,7 +9618,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9710,7 +9710,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9772,7 +9772,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9846,7 +9846,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9908,7 +9908,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -9970,7 +9970,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10038,7 +10038,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10118,7 +10118,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10180,7 +10180,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10242,7 +10242,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10322,7 +10322,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10384,7 +10384,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10452,7 +10452,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10514,7 +10514,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10576,7 +10576,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10638,7 +10638,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10706,7 +10706,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10786,7 +10786,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10878,7 +10878,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -10970,7 +10970,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11032,7 +11032,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11094,7 +11094,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11156,7 +11156,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11229,7 +11229,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11296,7 +11296,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11358,7 +11358,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11419,7 +11419,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11486,7 +11486,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11554,7 +11554,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11646,7 +11646,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11731,7 +11731,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11799,7 +11799,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11873,7 +11873,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -11946,7 +11946,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12038,7 +12038,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12106,7 +12106,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12168,7 +12168,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12236,7 +12236,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12334,7 +12334,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12432,7 +12432,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12500,7 +12500,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12574,7 +12574,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12660,7 +12660,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12752,7 +12752,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12844,7 +12844,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12929,7 +12929,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -12991,7 +12991,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13065,7 +13065,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13150,7 +13150,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13212,7 +13212,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13274,7 +13274,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13433,7 +13433,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13495,7 +13495,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13592,7 +13592,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13660,7 +13660,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13728,7 +13728,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13825,7 +13825,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13892,7 +13892,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -13959,7 +13959,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14027,7 +14027,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14112,7 +14112,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14174,7 +14174,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14266,7 +14266,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14328,7 +14328,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14413,7 +14413,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14498,7 +14498,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14560,7 +14560,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14640,7 +14640,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14725,7 +14725,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14811,7 +14811,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -14896,7 +14896,7 @@
           }
         ],
         "mode": "midpoint",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       }
     ],
@@ -14966,7 +14966,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15034,7 +15034,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15102,7 +15102,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15170,7 +15170,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15238,7 +15238,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15312,7 +15312,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15380,7 +15380,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15448,7 +15448,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15522,7 +15522,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15596,7 +15596,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15670,7 +15670,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15738,7 +15738,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15812,7 +15812,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15874,7 +15874,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -15948,7 +15948,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16010,7 +16010,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16072,7 +16072,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16140,7 +16140,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16202,7 +16202,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16270,7 +16270,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16332,7 +16332,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16417,7 +16417,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16491,7 +16491,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16553,7 +16553,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16638,7 +16638,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16723,7 +16723,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16808,7 +16808,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16893,7 +16893,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -16955,7 +16955,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17017,7 +17017,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17079,7 +17079,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17141,7 +17141,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17226,7 +17226,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17288,7 +17288,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17373,7 +17373,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17465,7 +17465,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17550,7 +17550,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17635,7 +17635,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17720,7 +17720,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17805,7 +17805,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17903,7 +17903,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -17995,7 +17995,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -18093,7 +18093,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -18191,7 +18191,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -18276,7 +18276,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -18361,7 +18361,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -18446,7 +18446,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -18544,7 +18544,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -18618,7 +18618,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -18710,7 +18710,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -18802,7 +18802,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -18882,7 +18882,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -18944,7 +18944,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19005,7 +19005,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19067,7 +19067,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19129,7 +19129,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19197,7 +19197,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19289,7 +19289,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19381,7 +19381,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19479,7 +19479,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19565,7 +19565,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19663,7 +19663,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19725,7 +19725,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19811,7 +19811,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19873,7 +19873,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -19958,7 +19958,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20026,7 +20026,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20106,7 +20106,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20198,7 +20198,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20278,7 +20278,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20376,7 +20376,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20461,7 +20461,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20553,7 +20553,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20633,7 +20633,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20707,7 +20707,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20805,7 +20805,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20867,7 +20867,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20929,7 +20929,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -20991,7 +20991,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21058,7 +21058,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21150,7 +21150,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21223,7 +21223,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21321,7 +21321,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21419,7 +21419,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21481,7 +21481,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21561,7 +21561,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21653,7 +21653,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21745,7 +21745,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21807,7 +21807,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21905,7 +21905,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -21967,7 +21967,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -22059,7 +22059,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -22126,7 +22126,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -22211,7 +22211,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -22309,7 +22309,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -22376,7 +22376,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -22450,7 +22450,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -22518,7 +22518,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -22616,7 +22616,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       },
       {
@@ -22714,7 +22714,7 @@
           }
         ],
         "mode": "optimistic",
-        "price_age_seconds": 10,
+        "price_age_seconds": 496,
         "price_direction": null
       }
     ]
