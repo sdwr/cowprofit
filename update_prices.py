@@ -196,6 +196,38 @@ setTimeout(()=>location.reload(),5*60*1000);
     
     return html
 
+def git_push():
+    """Commit and push changes to GitHub."""
+    import subprocess
+    import os
+    
+    repo_dir = Path(__file__).parent
+    os.chdir(repo_dir)
+    
+    # Configure git
+    subprocess.run(['git', 'config', 'user.email', 'bot@mwi-tracker'], check=True)
+    subprocess.run(['git', 'config', 'user.name', 'MWI Tracker Bot'], check=True)
+    
+    # Add files
+    subprocess.run(['git', 'add', 'price_tracker.html', 'price_history.json'], check=True)
+    
+    # Commit (may fail if no changes)
+    result = subprocess.run(
+        ['git', 'commit', '-m', f'Price update {datetime.now().strftime("%Y-%m-%d %H:%M")}'],
+        capture_output=True, text=True
+    )
+    
+    if result.returncode == 0:
+        print("  Committed changes")
+        # Push
+        push_result = subprocess.run(['git', 'push', 'origin', 'main'], capture_output=True, text=True)
+        if push_result.returncode == 0:
+            print("  Pushed to GitHub")
+        else:
+            print(f"  Push failed: {push_result.stderr}")
+    else:
+        print("  No changes to commit")
+
 def main():
     print(f"[{datetime.now().isoformat()}] Updating prices...")
     
@@ -211,6 +243,9 @@ def main():
         with open(HTML_FILE, 'w', encoding='utf-8') as f:
             f.write(html)
         print(f"  Generated {HTML_FILE}")
+        
+        # Push to GitHub Pages
+        git_push()
         
     except Exception as e:
         print(f"  Error: {e}")
