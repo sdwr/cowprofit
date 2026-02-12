@@ -216,7 +216,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             border-radius: 12px;
             padding: 16px;
             min-width: 320px;
-            z-index: 100;
+            z-index: 1000;
             box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }}
         .gear-panel.visible {{ display: block; }}
@@ -270,7 +270,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             border-radius: 8px;
             padding: 12px;
             min-width: 280px;
-            z-index: 100;
+            z-index: 1000;
             box-shadow: 0 8px 32px rgba(0,0,0,0.4);
             text-align: left;
         }}
@@ -327,8 +327,14 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             display: flex;
             justify-content: center;
             gap: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
+            align-items: center;
+        }}
+        .filter-label {{
+            color: #888;
+            font-size: 0.8rem;
+            margin-right: 4px;
         }}
         .filter-btn, .mode-btn {{
             background: rgba(255,255,255,0.1);
@@ -596,6 +602,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             </div>
             <div class="control-group">
                 <button class="toggle-btn active" onclick="toggleFee()" id="btn-fee">-2% Fee</button>
+                <button class="toggle-btn" onclick="toggleSuperPessimistic()" id="btn-super" title="Include loss from selling 33% leftover materials at market buy price">-Mat Loss</button>
             </div>
         </div>
         <p class="mode-info" id="mode-info">Buy at Ask, Sell at Bid (safest estimate)</p>
@@ -630,11 +637,20 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         </div>
         
         <div class="filters">
+            <span class="filter-label">Level:</span>
             <button class="filter-btn active" onclick="filterLevel('all')">All</button>
             <button class="filter-btn" onclick="filterLevel(8)">+8</button>
             <button class="filter-btn" onclick="filterLevel(10)">+10</button>
             <button class="filter-btn" onclick="filterLevel(12)">+12</button>
             <button class="filter-btn" onclick="filterLevel(14)">+14</button>
+        </div>
+        <div class="filters">
+            <span class="filter-label">Cost:</span>
+            <button class="filter-btn cost-filter active" data-cost="100m" onclick="toggleCostFilter('100m')">&lt;100M</button>
+            <button class="filter-btn cost-filter active" data-cost="500m" onclick="toggleCostFilter('500m')">100-500M</button>
+            <button class="filter-btn cost-filter active" data-cost="1b" onclick="toggleCostFilter('1b')">500M-1B</button>
+            <button class="filter-btn cost-filter active" data-cost="2b" onclick="toggleCostFilter('2b')">1-2B</button>
+            <button class="filter-btn cost-filter active" data-cost="over2b" onclick="toggleCostFilter('over2b')">&gt;2B</button>
         </div>
         
         <table id="results">
@@ -674,7 +690,9 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         let sortCol = 10; // Default to $/day column
         let sortAsc = false;
         let showFee = true; // Fee toggle on by default
+        let showSuperPessimistic = false; // Include mat loss toggle
         let expandedRows = new Set();
+        let costFilters = {{ '100m': true, '500m': true, '1b': true, '2b': true, 'over2b': true }};
         let gearOpen = false;
         
         const modeInfo = {{
@@ -795,6 +813,26 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             showFee = !showFee;
             document.getElementById('btn-fee').classList.toggle('active', showFee);
             renderTable();
+        }}
+        
+        function toggleSuperPessimistic() {{
+            showSuperPessimistic = !showSuperPessimistic;
+            document.getElementById('btn-super').classList.toggle('active', showSuperPessimistic);
+            renderTable();
+        }}
+        
+        function toggleCostFilter(cost) {{
+            costFilters[cost] = !costFilters[cost];
+            document.querySelector(`.cost-filter[data-cost="${{cost}}"]`).classList.toggle('active', costFilters[cost]);
+            renderTable();
+        }}
+        
+        function getCostBucket(totalCost) {{
+            if (totalCost < 100e6) return '100m';
+            if (totalCost < 500e6) return '500m';
+            if (totalCost < 1e9) return '1b';
+            if (totalCost < 2e9) return '2b';
+            return 'over2b';
         }}
         
         function setMode(mode) {{
@@ -972,20 +1010,36 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         function renderTable() {{
             const data = allData[currentMode] || [];
             
+            // Filter by level
             let filtered = currentLevel === 'all' ? data : 
                 data.filter(r => r.target_level == currentLevel);
+            
+            // Filter by cost buckets
+            filtered = filtered.filter(r => costFilters[getCostBucket(r.total_cost)]);
             
             const profitKey = showFee ? 'profit_after_fee' : 'profit';
             const profitDayKey = showFee ? 'profit_per_day_after_fee' : 'profit_per_day';
             const roiKey = showFee ? 'roi_after_fee' : 'roi';
             
-            // Add computed fields
+            // Add computed fields with super pessimistic adjustment
             filtered = filtered.map((r, i) => {{
+                let profit = r[profitKey];
+                let profitDay = r[profitDayKey];
                 const roi = r[roiKey] || r.roi;
-                const profitDay = r[profitDayKey];
+                
+                // Super pessimistic: subtract loss from selling 33% leftover mats
+                // Assume mats sell at 90% of buy price, less 2% fee = 88.2% recovery
+                if (showSuperPessimistic) {{
+                    const matLoss = r.mat_cost * 0.33 * (1 - 0.882); // 11.8% loss on 33% of mats
+                    const protLoss = (r.protect_price * r.protect_count) * 0.33 * (1 - 0.882);
+                    const totalLoss = matLoss + protLoss;
+                    profit -= totalLoss;
+                    profitDay = r.time_days > 0 ? profit / r.time_days : 0;
+                }}
+                
                 return {{
                     ...r, 
-                    _profit: r[profitKey], 
+                    _profit: profit, 
                     _profit_day: profitDay,
                     _roi: roi
                 }};
