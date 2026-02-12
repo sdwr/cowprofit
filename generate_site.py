@@ -387,7 +387,7 @@ def generate_html(timestamp, data_by_mode):
         <div class="footer">
             <p>Data from <a href="https://www.milkywayidle.com" target="_blank">Milky Way Idle</a> | Math from <a href="https://doh-nuts.github.io/Enhancelator/" target="_blank">Enhancelator</a></p>
             <p>Celestial +14 | Gloves +10 | Pouch +8 | Top/Bot +8 | Neck +7 | Adv Charm +6 | Skill 125 | Observatory +8</p>
-            <p>Teas: Ultra Enhancing, Blessed, Wisdom, Artisan (11.2% mat reduction)</p>
+            <p>Teas: Ultra Enhancing, Blessed, Wisdom, Artisan (11.2% craft reduction) | Achievement: 0.2% enhance mat reduction</p>
         </div>
     </div>
     
@@ -522,7 +522,7 @@ def generate_html(timestamp, data_by_mode):
                 </div>
                 
                 <div class="detail-section">
-                    <h4>&#x1F527; Materials/Attempt <span class="price-note">(${{priceLabel}}, 11.2% artisan)</span></h4>
+                    <h4>&#x1F527; Materials/Attempt <span class="price-note">(${{priceLabel}}, 0.2% achieve)</span></h4>
                     ${{matsHtml || '<div class="detail-line"><span class="label">No materials</span></div>'}}
                 </div>
                 

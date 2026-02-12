@@ -61,8 +61,11 @@ USER_CONFIG = {
     'tea_blessed': True,  # 1% chance to gain +2 levels on success
     'tea_wisdom': True,  # +12% enhancing XP
     
-    # Artisan tea - affects crafting material costs
+    # Artisan tea - affects CRAFTING material costs only (not enhancement)
     'artisan_tea': True,  # 10% material reduction (affected by guzzling)
+    
+    # Achievement bonus - affects enhancement material costs
+    'achievement_mat_reduction': 0.002,  # 0.2% from achievements
 }
 
 
@@ -397,6 +400,11 @@ class EnhancementCalculator:
         price, _ = self.get_item_price(hrid, 0, market_data, mode)
         return price
     
+    def get_enhance_mat_multiplier(self):
+        """Get enhancement material cost multiplier from achievements."""
+        reduction = USER_CONFIG.get('achievement_mat_reduction', 0)
+        return 1.0 - reduction
+    
     def calculate_enhancement_cost(self, item_hrid, target_level, market_data, mode=PriceMode.MIDPOINT):
         """Calculate expected enhancement cost using Markov chain."""
         item = self.item_detail_map.get(item_hrid, {})
@@ -409,7 +417,8 @@ class EnhancementCalculator:
         # Parse enhancement costs
         mat_costs = []
         coin_cost = 0
-        artisan_mult = self.get_artisan_tea_multiplier()
+        # Enhancement materials use achievement bonus only (NOT artisan tea)
+        enhance_mat_mult = self.get_enhance_mat_multiplier()
         
         # Build detailed materials list
         materials_detail = []
@@ -417,9 +426,10 @@ class EnhancementCalculator:
             if cost['itemHrid'] == '/items/coin':
                 coin_cost = cost['count']
             else:
-                # Materials are affected by artisan tea
+                # Enhancement materials only reduced by achievement bonus (0.2%)
+                # Artisan tea does NOT affect enhancement materials
                 mat_hrid = cost['itemHrid']
-                mat_count = cost['count'] * artisan_mult
+                mat_count = cost['count'] * enhance_mat_mult
                 mat_costs.append((mat_hrid, mat_count))
         
         # Get material prices and build detail
