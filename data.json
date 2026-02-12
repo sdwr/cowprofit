@@ -1,6 +1,6 @@
 {
   "timestamp": 1770916813,
-  "generated": "2026-02-12T18:00:31.145481",
+  "generated": "2026-02-12T18:10:48.359105",
   "modes": {
     "pessimistic": [
       {
@@ -69,7 +69,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chaotic_flail",
@@ -155,7 +156,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_fire_robe_bottoms_refined",
@@ -217,7 +219,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/acrobatic_hood_refined",
@@ -279,7 +282,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/magicians_hat_refined",
@@ -341,7 +345,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/dodocamel_gauntlets_refined",
@@ -403,7 +408,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/anchorbound_plate_body_refined",
@@ -465,7 +471,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cursed_bow_refined",
@@ -533,7 +540,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_nature_robe_bottoms_refined",
@@ -595,7 +603,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/furious_spear_refined",
@@ -669,7 +678,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 3000000000
       },
       {
         "item_hrid": "/items/sundering_crossbow",
@@ -749,7 +759,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/acrobatic_hood",
@@ -810,7 +821,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 1050000000
       },
       {
         "item_hrid": "/items/magicians_hat",
@@ -871,7 +883,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cursed_bow",
@@ -951,7 +964,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/furious_spear",
@@ -1043,7 +1057,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1900000000
       },
       {
         "item_hrid": "/items/bishops_codex_refined",
@@ -1111,7 +1126,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_fire_robe_bottoms",
@@ -1178,7 +1194,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_fire_robe_top_refined",
@@ -1240,7 +1257,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/marksman_bracers",
@@ -1307,7 +1325,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/dodocamel_gauntlets",
@@ -1380,7 +1399,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blooming_trident",
@@ -1460,7 +1480,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/bishops_codex",
@@ -1552,7 +1573,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/knights_aegis",
@@ -1625,7 +1647,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_nature_robe_top",
@@ -1693,7 +1716,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_tunic_refined",
@@ -1755,7 +1779,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/marksman_bracers_refined",
@@ -1817,7 +1842,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1450000000
       },
       {
         "item_hrid": "/items/kraken_chaps",
@@ -1885,7 +1911,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1250000000
       },
       {
         "item_hrid": "/items/anchorbound_plate_legs_refined",
@@ -1947,7 +1974,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blooming_trident_refined",
@@ -2015,7 +2043,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_pot",
@@ -2107,7 +2136,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_tunic",
@@ -2175,7 +2205,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1350000000
       },
       {
         "item_hrid": "/items/anchorbound_plate_legs",
@@ -2249,7 +2280,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 0,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/corsair_helmet",
@@ -2323,7 +2355,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/manticore_shield",
@@ -2385,7 +2418,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 450000000
       },
       {
         "item_hrid": "/items/royal_water_robe_top_refined",
@@ -2447,7 +2481,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/bishops_codex_refined",
@@ -2515,7 +2550,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/maelstrom_plate_body",
@@ -2583,7 +2619,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_hatchet",
@@ -2681,7 +2718,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770915617,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 860000000
       },
       {
         "item_hrid": "/items/chefs_bottoms",
@@ -2766,7 +2804,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770911948,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 520000000
       },
       {
         "item_hrid": "/items/acrobatic_hood_refined",
@@ -2828,7 +2867,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/maelstrom_plate_legs_refined",
@@ -2890,7 +2930,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770915617,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 760000000
       },
       {
         "item_hrid": "/items/chaotic_flail",
@@ -2976,7 +3017,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770915617,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 640000000
       },
       {
         "item_hrid": "/items/centaur_boots",
@@ -3038,7 +3080,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blazing_trident_refined",
@@ -3106,7 +3149,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/bishops_codex",
@@ -3198,7 +3242,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/anchorbound_plate_body_refined",
@@ -3260,7 +3305,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chrono_gloves",
@@ -3322,7 +3368,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_fire_robe_bottoms_refined",
@@ -3384,7 +3431,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770911948,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 740000000
       },
       {
         "item_hrid": "/items/blazing_trident_refined",
@@ -3452,7 +3500,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_tunic_refined",
@@ -3514,7 +3563,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/alchemists_bottoms",
@@ -3599,7 +3649,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cheesemakers_bottoms",
@@ -3684,7 +3735,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 0,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/foragers_bottoms",
@@ -3769,7 +3821,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cursed_bow",
@@ -3849,7 +3902,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/tailors_top",
@@ -3934,7 +3988,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/marksman_bracers",
@@ -4001,7 +4056,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/marksman_bracers_refined",
@@ -4063,7 +4119,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/magicians_hat_refined",
@@ -4125,7 +4182,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 580000000
       },
       {
         "item_hrid": "/items/acrobatic_hood",
@@ -4186,7 +4244,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770915617,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 280000000
       },
       {
         "item_hrid": "/items/royal_water_robe_top",
@@ -4253,7 +4312,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/lumberjacks_top",
@@ -4338,7 +4398,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chefs_top",
@@ -4423,7 +4484,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/dodocamel_gauntlets",
@@ -4496,7 +4558,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/magicians_hat",
@@ -4557,7 +4620,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/maelstrom_plate_legs",
@@ -4625,7 +4689,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/black_bear_shoes",
@@ -4687,7 +4752,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/foragers_top",
@@ -4772,7 +4838,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/red_culinary_hat",
@@ -4869,7 +4936,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_fire_robe_bottoms",
@@ -4936,7 +5004,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/knights_aegis",
@@ -5009,7 +5078,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/dairyhands_bottoms",
@@ -5094,7 +5164,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/brewers_bottoms",
@@ -5179,7 +5250,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_tunic",
@@ -5247,7 +5319,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_shears",
@@ -5345,7 +5418,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blooming_trident",
@@ -5425,7 +5499,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/enhancers_top",
@@ -5510,7 +5585,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/anchorbound_plate_legs",
@@ -5584,7 +5660,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 360000000
       },
       {
         "item_hrid": "/items/furious_spear",
@@ -5676,7 +5753,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_nature_robe_top",
@@ -5744,7 +5822,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 390000000
       },
       {
         "item_hrid": "/items/royal_fire_robe_top",
@@ -5811,7 +5890,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/maelstrom_plate_legs",
@@ -5879,7 +5959,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/corsair_helmet",
@@ -5953,7 +6034,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_chaps_refined",
@@ -6015,7 +6097,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_chaps",
@@ -6083,7 +6166,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770915617,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 360000000
       },
       {
         "item_hrid": "/items/sundering_crossbow",
@@ -6163,7 +6247,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 660000000
       },
       {
         "item_hrid": "/items/rippling_trident",
@@ -6243,7 +6328,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blazing_trident",
@@ -6323,7 +6409,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_water_robe_bottoms",
@@ -6390,7 +6477,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/tailors_bottoms",
@@ -6475,7 +6563,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_nature_robe_bottoms",
@@ -6543,7 +6632,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/lumberjacks_bottoms",
@@ -6628,7 +6718,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/collectors_boots",
@@ -6725,7 +6816,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 0,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/manticore_shield",
@@ -6787,7 +6879,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/enchanted_gloves",
@@ -6884,7 +6977,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cheese_boots",
@@ -6933,7 +7027,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_pot",
@@ -7025,7 +7120,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cheese_gauntlets",
@@ -7074,7 +7170,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/sorcerer_boots",
@@ -7136,7 +7233,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/griffin_bulwark",
@@ -7222,7 +7320,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/anchorbound_plate_body",
@@ -7296,7 +7395,8 @@
         ],
         "mode": "pessimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       }
     ],
     "midpoint": [
@@ -7372,7 +7472,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/colossus_plate_body",
@@ -7434,7 +7535,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/crafters_bottoms",
@@ -7519,7 +7621,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chefs_bottoms",
@@ -7604,7 +7707,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chefs_top",
@@ -7689,7 +7793,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/furious_spear_refined",
@@ -7763,7 +7868,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/maelstrom_plate_body_refined",
@@ -7825,7 +7931,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/tailors_bottoms",
@@ -7910,7 +8017,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/brewers_top",
@@ -7995,7 +8103,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cheesemakers_bottoms",
@@ -8080,7 +8189,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/lumberjacks_bottoms",
@@ -8165,7 +8275,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blooming_trident_refined",
@@ -8233,7 +8344,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chaotic_flail_refined",
@@ -8307,7 +8419,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/sundering_crossbow_refined",
@@ -8375,7 +8488,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/anchorbound_plate_body",
@@ -8449,7 +8563,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1450000000
       },
       {
         "item_hrid": "/items/celestial_spatula",
@@ -8541,7 +8656,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 2300000000
       },
       {
         "item_hrid": "/items/furious_spear_refined",
@@ -8615,7 +8731,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 3000000000
       },
       {
         "item_hrid": "/items/celestial_chisel",
@@ -8713,7 +8830,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/anchorbound_plate_body_refined",
@@ -8775,7 +8893,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/maelstrom_plate_body_refined",
@@ -8837,7 +8956,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/crafters_top",
@@ -8922,7 +9042,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/acrobatic_hood_refined",
@@ -8984,7 +9105,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/magicians_hat_refined",
@@ -9046,7 +9168,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cursed_bow_refined",
@@ -9114,7 +9237,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chaotic_flail",
@@ -9200,7 +9324,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_fire_robe_bottoms_refined",
@@ -9262,7 +9387,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/regal_sword",
@@ -9348,7 +9474,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_chaps_refined",
@@ -9410,7 +9537,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_pot",
@@ -9502,7 +9630,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_alembic",
@@ -9594,7 +9723,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770919221,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 2500000000
       },
       {
         "item_hrid": "/items/royal_water_robe_top_refined",
@@ -9656,7 +9786,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/marksman_bracers_refined",
@@ -9718,7 +9849,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1450000000
       },
       {
         "item_hrid": "/items/blazing_trident_refined",
@@ -9786,7 +9918,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/rippling_trident",
@@ -9866,7 +9999,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/furious_spear",
@@ -9958,7 +10092,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1900000000
       },
       {
         "item_hrid": "/items/corsair_helmet_refined",
@@ -10020,7 +10155,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/dodocamel_gauntlets_refined",
@@ -10082,7 +10218,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/sundering_crossbow",
@@ -10162,7 +10299,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_nature_robe_top_refined",
@@ -10224,7 +10362,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/bishops_codex_refined",
@@ -10292,7 +10431,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/knights_aegis_refined",
@@ -10354,7 +10494,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_nature_robe_bottoms_refined",
@@ -10416,7 +10557,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cursed_bow",
@@ -10496,7 +10638,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_fire_robe_top_refined",
@@ -10558,7 +10701,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/bishops_codex",
@@ -10650,7 +10794,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_tunic_refined",
@@ -10712,7 +10857,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blooming_trident",
@@ -10792,7 +10938,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/knights_aegis",
@@ -10865,7 +11012,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/anchorbound_plate_legs_refined",
@@ -10927,7 +11075,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_water_robe_bottoms_refined",
@@ -10989,7 +11138,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/magicians_hat",
@@ -11050,7 +11200,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_fire_robe_bottoms",
@@ -11117,7 +11268,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/marksman_bracers",
@@ -11184,7 +11336,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_chaps",
@@ -11252,7 +11405,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1250000000
       },
       {
         "item_hrid": "/items/kraken_tunic",
@@ -11320,7 +11474,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1350000000
       },
       {
         "item_hrid": "/items/acrobatic_hood",
@@ -11381,7 +11536,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770919221,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 1050000000
       },
       {
         "item_hrid": "/items/dodocamel_gauntlets",
@@ -11454,7 +11610,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_nature_robe_top",
@@ -11522,7 +11679,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blooming_trident_refined",
@@ -11590,7 +11748,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_spatula",
@@ -11682,7 +11841,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/corsair_helmet",
@@ -11756,7 +11916,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/maelstrom_plate_body",
@@ -11824,7 +11985,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_spatula",
@@ -11916,7 +12078,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/maelstrom_plate_legs_refined",
@@ -11978,7 +12141,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blazing_trident_refined",
@@ -12046,7 +12210,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_shears",
@@ -12144,7 +12309,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/sundering_crossbow_refined",
@@ -12212,7 +12378,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_shears",
@@ -12310,7 +12477,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/griffin_chaps",
@@ -12384,7 +12552,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/griffin_bulwark",
@@ -12470,7 +12639,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_needle",
@@ -12562,7 +12732,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_needle",
@@ -12654,7 +12825,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/medium_pouch",
@@ -12728,7 +12900,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/enhancers_bottoms",
@@ -12813,7 +12986,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_hatchet",
@@ -12911,7 +13085,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770915617,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 860000000
       },
       {
         "item_hrid": "/items/anchorbound_plate_legs",
@@ -12985,7 +13160,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 0,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/manticore_shield",
@@ -13047,7 +13223,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770919221,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 450000000
       },
       {
         "item_hrid": "/items/maelstrom_plate_legs",
@@ -13115,7 +13292,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_water_robe_top",
@@ -13182,7 +13360,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chaotic_flail",
@@ -13268,7 +13447,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770915617,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 640000000
       },
       {
         "item_hrid": "/items/centaur_boots",
@@ -13330,7 +13510,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/bishops_codex_refined",
@@ -13398,7 +13579,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/collectors_boots",
@@ -13495,7 +13677,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_water_robe_bottoms",
@@ -13562,7 +13745,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chefs_top",
@@ -13647,7 +13831,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_nature_robe_bottoms",
@@ -13715,7 +13900,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/maelstrom_plate_legs_refined",
@@ -13777,7 +13963,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770915617,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 760000000
       },
       {
         "item_hrid": "/items/anchorbound_plate_body_refined",
@@ -13839,7 +14026,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/crafters_bottoms",
@@ -13924,7 +14112,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770919221,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 490000000
       },
       {
         "item_hrid": "/items/celestial_hammer",
@@ -14022,7 +14211,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chefs_bottoms",
@@ -14107,7 +14297,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770911948,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 520000000
       },
       {
         "item_hrid": "/items/chrono_gloves",
@@ -14169,7 +14360,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/tailors_top",
@@ -14254,7 +14446,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/tailors_bottoms",
@@ -14339,7 +14532,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cursed_bow",
@@ -14419,7 +14613,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/lumberjacks_bottoms",
@@ -14504,7 +14699,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/acrobatic_hood_refined",
@@ -14566,7 +14762,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_fire_robe_bottoms_refined",
@@ -14628,7 +14825,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770911948,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 740000000
       },
       {
         "item_hrid": "/items/lumberjacks_top",
@@ -14713,7 +14911,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/magicians_hat_refined",
@@ -14775,7 +14974,8 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 580000000
       }
     ],
     "optimistic": [
@@ -14845,7 +15045,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blooming_trident_refined",
@@ -14913,7 +15114,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/rippling_trident_refined",
@@ -14981,7 +15183,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blazing_trident_refined",
@@ -15049,7 +15252,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/regal_sword_refined",
@@ -15123,7 +15327,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/rippling_trident_refined",
@@ -15191,7 +15396,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blooming_trident_refined",
@@ -15259,7 +15465,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/sundering_crossbow_refined",
@@ -15327,7 +15534,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chaotic_flail_refined",
@@ -15401,7 +15609,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chaotic_flail_refined",
@@ -15475,7 +15684,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/regal_sword_refined",
@@ -15549,7 +15759,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/sundering_crossbow_refined",
@@ -15617,7 +15828,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chaotic_flail_refined",
@@ -15691,7 +15903,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/anchorbound_plate_body_refined",
@@ -15753,7 +15966,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/corsair_helmet",
@@ -15827,7 +16041,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/griffin_bulwark_refined",
@@ -15895,7 +16110,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 2100000000
       },
       {
         "item_hrid": "/items/maelstrom_plate_body_refined",
@@ -15957,7 +16173,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_chaps_refined",
@@ -16019,7 +16236,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_tunic_refined",
@@ -16081,7 +16299,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/griffin_bulwark_refined",
@@ -16149,7 +16368,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/knights_aegis_refined",
@@ -16211,7 +16431,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chefs_bottoms",
@@ -16296,7 +16517,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/furious_spear_refined",
@@ -16370,7 +16592,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/colossus_plate_body",
@@ -16432,7 +16655,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/crafters_bottoms",
@@ -16517,7 +16741,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/alchemists_top",
@@ -16602,7 +16827,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/alchemists_bottoms",
@@ -16687,7 +16913,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chefs_top",
@@ -16772,7 +16999,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/anchorbound_plate_body_refined",
@@ -16834,7 +17062,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/maelstrom_plate_body_refined",
@@ -16896,7 +17125,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_tunic_refined",
@@ -16958,7 +17188,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_chaps_refined",
@@ -17020,7 +17251,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/knights_aegis_refined",
@@ -17082,7 +17314,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/brewers_bottoms",
@@ -17167,7 +17400,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/brewers_top",
@@ -17252,7 +17486,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/tailors_bottoms",
@@ -17337,7 +17572,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/lumberjacks_bottoms",
@@ -17422,7 +17658,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cheesemakers_bottoms",
@@ -17507,7 +17744,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/furious_spear_refined",
@@ -17581,7 +17819,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 3000000000
       },
       {
         "item_hrid": "/items/celestial_alembic",
@@ -17673,7 +17912,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "down"
+        "price_direction": "down",
+        "last_price": 2500000000
       },
       {
         "item_hrid": "/items/celestial_pot",
@@ -17765,7 +18005,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_chisel",
@@ -17863,7 +18104,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_hammer",
@@ -17961,7 +18203,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_brush",
@@ -18059,7 +18302,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/enhancers_bottoms",
@@ -18144,7 +18388,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_spatula",
@@ -18236,7 +18481,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 2300000000
       },
       {
         "item_hrid": "/items/enhancers_bottoms",
@@ -18321,7 +18567,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_hatchet",
@@ -18419,7 +18666,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/guzzling_pouch",
@@ -18499,7 +18747,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_needle",
@@ -18591,7 +18840,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_water_robe_top_refined",
@@ -18653,7 +18903,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/acrobatic_hood_refined",
@@ -18715,7 +18966,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/magicians_hat_refined",
@@ -18777,7 +19029,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_alembic",
@@ -18869,7 +19122,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 940000000
       },
       {
         "item_hrid": "/items/cursed_bow_refined",
@@ -18937,7 +19191,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/anchorbound_plate_body",
@@ -19011,7 +19266,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1450000000
       },
       {
         "item_hrid": "/items/marksman_bracers_refined",
@@ -19073,7 +19329,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1450000000
       },
       {
         "item_hrid": "/items/crafters_top",
@@ -19158,7 +19415,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_alembic",
@@ -19250,7 +19508,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_shears",
@@ -19348,7 +19607,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/chaotic_flail",
@@ -19434,7 +19694,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/furious_spear",
@@ -19526,7 +19787,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1900000000
       },
       {
         "item_hrid": "/items/royal_fire_robe_bottoms_refined",
@@ -19588,7 +19850,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_hammer",
@@ -19686,7 +19949,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/regal_sword",
@@ -19772,7 +20036,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/bishops_codex_refined",
@@ -19840,7 +20105,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/sundering_crossbow",
@@ -19920,7 +20186,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_spatula",
@@ -20012,7 +20279,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/cursed_bow",
@@ -20092,7 +20360,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_shears",
@@ -20190,7 +20459,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/foragers_bottoms",
@@ -20275,7 +20545,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/dodocamel_gauntlets_refined",
@@ -20337,7 +20608,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/rippling_trident",
@@ -20417,7 +20689,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/anchorbound_plate_legs_refined",
@@ -20479,7 +20752,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_nature_robe_bottoms_refined",
@@ -20541,7 +20815,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_hammer",
@@ -20639,7 +20914,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_water_robe_top",
@@ -20706,7 +20982,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/bishops_codex",
@@ -20798,7 +21075,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/knights_aegis",
@@ -20871,7 +21149,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_hatchet",
@@ -20969,7 +21248,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770915617,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 860000000
       },
       {
         "item_hrid": "/items/corsair_helmet_refined",
@@ -21031,7 +21311,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_chaps",
@@ -21099,7 +21380,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770911948,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1250000000
       },
       {
         "item_hrid": "/items/celestial_chisel",
@@ -21197,7 +21479,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/blooming_trident",
@@ -21277,7 +21560,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_brush",
@@ -21375,7 +21659,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_spatula",
@@ -21467,7 +21752,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/kraken_tunic",
@@ -21535,7 +21821,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770919221,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 1350000000
       },
       {
         "item_hrid": "/items/royal_nature_robe_top_refined",
@@ -21597,7 +21884,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_fire_robe_top_refined",
@@ -21659,7 +21947,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_shears",
@@ -21757,7 +22046,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_pot",
@@ -21849,7 +22139,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_needle",
@@ -21941,7 +22232,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/marksman_bracers",
@@ -22008,7 +22300,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/royal_fire_robe_bottoms",
@@ -22075,7 +22368,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/corsair_helmet",
@@ -22149,7 +22443,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/maelstrom_plate_body",
@@ -22217,7 +22512,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_needle",
@@ -22309,7 +22605,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770915617,
-        "price_direction": "up"
+        "price_direction": "up",
+        "last_price": 820000000
       },
       {
         "item_hrid": "/items/magicians_hat",
@@ -22370,7 +22667,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/celestial_chisel",
@@ -22468,7 +22766,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/foragers_bottoms",
@@ -22553,7 +22852,8 @@
         ],
         "mode": "optimistic",
         "price_since_ts": 1770909728,
-        "price_direction": null
+        "price_direction": null,
+        "last_price": null
       }
     ]
   }
