@@ -64,8 +64,8 @@ USER_CONFIG = {
     # Artisan tea - affects CRAFTING material costs only (not enhancement)
     'artisan_tea': True,  # 10% material reduction (affected by guzzling)
     
-    # Achievement bonus - affects enhancement material costs
-    'achievement_mat_reduction': 0.002,  # 0.2% from achievements
+    # Achievement bonus - adds to enhancing success rate (stacks with enhancer)
+    'achievement_success_bonus': 0.2,  # 0.2% from achievements
 }
 
 
@@ -141,14 +141,16 @@ class EnhancementCalculator:
     def get_total_bonus(self, item_level):
         """Calculate total success rate multiplier for an item level."""
         enhancer_bonus = self.get_enhancer_bonus()
+        achievement_bonus = USER_CONFIG.get('achievement_success_bonus', 0)
+        total_tool_bonus = enhancer_bonus + achievement_bonus
         
         effective_level = self.get_effective_level()
         observatory = USER_CONFIG['observatory_level']
         
         if effective_level >= item_level:
-            bonus = 1 + (0.05 * (effective_level + observatory - item_level) + enhancer_bonus) / 100
+            bonus = 1 + (0.05 * (effective_level + observatory - item_level) + total_tool_bonus) / 100
         else:
-            bonus = (1 - (0.5 * (1 - effective_level / item_level))) + (0.05 * observatory + enhancer_bonus) / 100
+            bonus = (1 - (0.5 * (1 - effective_level / item_level))) + (0.05 * observatory + total_tool_bonus) / 100
         
         return bonus
     
@@ -400,10 +402,67 @@ class EnhancementCalculator:
         price, _ = self.get_item_price(hrid, 0, market_data, mode)
         return price
     
-    def get_enhance_mat_multiplier(self):
-        """Get enhancement material cost multiplier from achievements."""
-        reduction = USER_CONFIG.get('achievement_mat_reduction', 0)
-        return 1.0 - reduction
+    def get_player_stats(self):
+        """Get all computed player stats for display."""
+        guzzling = self.get_guzzling_bonus()
+        enhancer_bonus = self.get_enhancer_bonus()
+        achievement_bonus = USER_CONFIG.get('achievement_success_bonus', 0)
+        
+        # Tea speed
+        tea_speed = 0
+        tea_name = None
+        if USER_CONFIG.get('tea_ultra_enhancing'):
+            tea_speed = 6 * guzzling
+            tea_name = 'Ultra Enhancing'
+        elif USER_CONFIG.get('tea_super_enhancing'):
+            tea_speed = 4 * guzzling
+            tea_name = 'Super Enhancing'
+        elif USER_CONFIG.get('tea_enhancing'):
+            tea_speed = 2 * guzzling
+            tea_name = 'Enhancing'
+        
+        # Gear speed bonuses
+        gloves_speed = self._get_noncombat_stat('/items/enchanted_gloves', 'enhancingSpeed') * 100 * ENHANCE_BONUS[USER_CONFIG.get('enchanted_gloves_level', 0)] if USER_CONFIG.get('enchanted_gloves_level') else 0
+        top_speed = self._get_noncombat_stat('/items/enhancers_top', 'enhancingSpeed') * 100 * ENHANCE_BONUS[USER_CONFIG.get('enhancer_top_level', 0)] if USER_CONFIG.get('enhancer_top_level') else 0
+        bot_speed = self._get_noncombat_stat('/items/enhancers_bottoms', 'enhancingSpeed') * 100 * ENHANCE_BONUS[USER_CONFIG.get('enhancer_bot_level', 0)] if USER_CONFIG.get('enhancer_bot_level') else 0
+        neck_speed = 0
+        if USER_CONFIG.get('philo_neck_level'):
+            base = self._get_noncombat_stat('/items/philosophers_necklace', 'skillingSpeed')
+            neck_speed = base * 100 * (((ENHANCE_BONUS[USER_CONFIG['philo_neck_level']] - 1) * 5) + 1)
+        
+        buff_speed = 19.5 + USER_CONFIG.get('enhancing_buff_level', 0) * 0.5 if USER_CONFIG.get('enhancing_buff_level') else 0
+        
+        artisan_reduction = (1 - self.get_artisan_tea_multiplier()) * 100
+        
+        return {
+            'enhancing_level': USER_CONFIG['enhancing_level'],
+            'effective_level': self.get_effective_level(),
+            'observatory': USER_CONFIG['observatory_level'],
+            'guzzling_bonus': guzzling,
+            'enhancer': USER_CONFIG['enhancer'].replace('_', ' ').title(),
+            'enhancer_level': USER_CONFIG['enhancer_level'],
+            'enhancer_success': enhancer_bonus,
+            'achievement_success': achievement_bonus,
+            'total_success_bonus': enhancer_bonus + achievement_bonus,
+            'gloves_level': USER_CONFIG.get('enchanted_gloves_level', 0),
+            'gloves_speed': gloves_speed,
+            'top_level': USER_CONFIG.get('enhancer_top_level', 0),
+            'top_speed': top_speed,
+            'bot_level': USER_CONFIG.get('enhancer_bot_level', 0),
+            'bot_speed': bot_speed,
+            'neck_level': USER_CONFIG.get('philo_neck_level', 0),
+            'neck_speed': neck_speed,
+            'charm_level': USER_CONFIG.get('charm_level', 0),
+            'charm_tier': USER_CONFIG.get('charm_tier', ''),
+            'buff_level': USER_CONFIG.get('enhancing_buff_level', 0),
+            'buff_speed': buff_speed,
+            'tea_name': tea_name,
+            'tea_speed': tea_speed,
+            'tea_blessed': USER_CONFIG.get('tea_blessed', False),
+            'tea_wisdom': USER_CONFIG.get('tea_wisdom', False),
+            'artisan_tea': USER_CONFIG.get('artisan_tea', False),
+            'artisan_reduction': artisan_reduction,
+        }
     
     def calculate_enhancement_cost(self, item_hrid, target_level, market_data, mode=PriceMode.MIDPOINT):
         """Calculate expected enhancement cost using Markov chain."""
@@ -414,11 +473,9 @@ class EnhancementCalculator:
         item_level = item.get('itemLevel', 1)
         enhancement_costs = item.get('enhancementCosts', [])
         
-        # Parse enhancement costs
+        # Parse enhancement costs - NO reduction on enhancement materials
         mat_costs = []
         coin_cost = 0
-        # Enhancement materials use achievement bonus only (NOT artisan tea)
-        enhance_mat_mult = self.get_enhance_mat_multiplier()
         
         # Build detailed materials list
         materials_detail = []
@@ -426,10 +483,9 @@ class EnhancementCalculator:
             if cost['itemHrid'] == '/items/coin':
                 coin_cost = cost['count']
             else:
-                # Enhancement materials only reduced by achievement bonus (0.2%)
-                # Artisan tea does NOT affect enhancement materials
+                # Enhancement materials have NO reduction (artisan tea only affects crafting)
                 mat_hrid = cost['itemHrid']
-                mat_count = cost['count'] * enhance_mat_mult
+                mat_count = cost['count']
                 mat_costs.append((mat_hrid, mat_count))
         
         # Get material prices and build detail

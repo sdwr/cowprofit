@@ -25,10 +25,11 @@ def format_coins(value):
         return f"{value:.0f}"
 
 
-def generate_html(timestamp, data_by_mode):
+def generate_html(timestamp, data_by_mode, player_stats):
     """Generate the full HTML page."""
     
     json_data = json.dumps(data_by_mode)
+    stats_json = json.dumps(player_stats)
     
     return f'''<!DOCTYPE html>
 <html lang="en">
@@ -46,12 +47,73 @@ def generate_html(timestamp, data_by_mode):
             padding: 20px;
         }}
         .container {{ max-width: 1800px; margin: 0 auto; }}
-        h1 {{
-            text-align: center;
-            color: #eeb357;
+        .header-row {{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
             margin-bottom: 5px;
-            font-size: 2rem;
+            position: relative;
         }}
+        h1 {{
+            color: #eeb357;
+            font-size: 2rem;
+            margin: 0;
+        }}
+        .gear-dropdown {{
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }}
+        .gear-btn {{
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #eeb357;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }}
+        .gear-btn:hover {{ background: rgba(238,179,87,0.2); }}
+        .gear-panel {{
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: #1a1a2e;
+            border: 1px solid rgba(238,179,87,0.3);
+            border-radius: 12px;
+            padding: 16px;
+            min-width: 320px;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }}
+        .gear-panel.visible {{ display: block; }}
+        .gear-section {{
+            margin-bottom: 12px;
+        }}
+        .gear-section:last-child {{ margin-bottom: 0; }}
+        .gear-section h5 {{
+            color: #eeb357;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }}
+        .gear-row {{
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            padding: 2px 0;
+        }}
+        .gear-row .label {{ color: #888; }}
+        .gear-row .value {{ color: #e8e8e8; font-family: 'SF Mono', Monaco, monospace; }}
+        .gear-row .value.highlight {{ color: #4ade80; }}
         .subtitle {{
             text-align: center;
             color: #888;
@@ -266,6 +328,7 @@ def generate_html(timestamp, data_by_mode):
             width: 16px;
             color: #666;
             transition: transform 0.2s;
+            margin-right: 4px;
         }}
         tr.data-row.expanded .expand-icon {{
             transform: rotate(90deg);
@@ -305,12 +368,20 @@ def generate_html(timestamp, data_by_mode):
             th, td {{ padding: 5px 3px; }}
             .hide-mobile {{ display: none; }}
             .detail-content {{ grid-template-columns: 1fr; }}
+            .gear-dropdown {{ position: static; transform: none; margin-top: 10px; }}
+            .header-row {{ flex-wrap: wrap; }}
         }}
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>&#x1F404; CowProfit</h1>
+        <div class="header-row">
+            <h1>&#x1F404; CowProfit</h1>
+            <div class="gear-dropdown">
+                <button class="gear-btn" onclick="toggleGear()">&#x2699; Gear <span id="gear-arrow">&#9660;</span></button>
+                <div class="gear-panel" id="gear-panel"></div>
+            </div>
+        </div>
         <p class="subtitle">MWI Enhancement Profit Tracker | Market data: {timestamp} (updates ~15 min)</p>
         
         <div class="controls">
@@ -366,18 +437,18 @@ def generate_html(timestamp, data_by_mode):
         <table id="results">
             <thead>
                 <tr>
-                    <th onclick="sortTable(0, 'num')">#<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(1, 'str')">Item<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(2, 'num')">Lvl<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(3, 'num')" class="number">Buy<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(4, 'num')" class="number hide-mobile">Enhance<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(5, 'num')" class="number hide-mobile">Total<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(6, 'num')" class="number">Sell<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(7, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(8, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(9, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(10, 'num')" class="number">$/day<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(11, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(0, 'str')">Item<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(1, 'num')">Lvl<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(2, 'num')" class="number">Buy<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(3, 'num')" class="number hide-mobile">Enhance<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(4, 'num')" class="number hide-mobile">Total<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(5, 'num')" class="number">Sell<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(6, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(7, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(8, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(9, 'num')" class="number">$/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(10, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(11, 'num')" class="number">Score<span class="sort-arrow">&#9650;</span></th>
                 </tr>
             </thead>
             <tbody id="table-body">
@@ -386,19 +457,20 @@ def generate_html(timestamp, data_by_mode):
         
         <div class="footer">
             <p>Data from <a href="https://www.milkywayidle.com" target="_blank">Milky Way Idle</a> | Math from <a href="https://doh-nuts.github.io/Enhancelator/" target="_blank">Enhancelator</a></p>
-            <p>Celestial +14 | Gloves +10 | Pouch +8 | Top/Bot +8 | Neck +7 | Adv Charm +6 | Skill 125 | Observatory +8</p>
-            <p>Teas: Ultra Enhancing, Blessed, Wisdom, Artisan (11.2% craft reduction) | Achievement: 0.2% enhance mat reduction</p>
+            <p>Score = sqrt(ROI% * $/day) — balances return rate with daily profit</p>
         </div>
     </div>
     
     <script>
         const allData = {json_data};
+        const playerStats = {stats_json};
         let currentMode = 'pessimistic';
         let currentLevel = 'all';
-        let sortCol = 7;
+        let sortCol = 11; // Default to Score column
         let sortAsc = false;
         let showFee = false;
         let expandedRows = new Set();
+        let gearOpen = false;
         
         const modeInfo = {{
             'pessimistic': 'Buy at Ask, Sell at Bid (safest estimate)',
@@ -418,6 +490,51 @@ def generate_html(timestamp, data_by_mode):
             if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(1) + 'M';
             if (Math.abs(value) >= 1e3) return (value/1e3).toFixed(1) + 'K';
             return value.toFixed(0);
+        }}
+        
+        function toggleGear() {{
+            gearOpen = !gearOpen;
+            document.getElementById('gear-panel').classList.toggle('visible', gearOpen);
+            document.getElementById('gear-arrow').innerHTML = gearOpen ? '&#9650;' : '&#9660;';
+            if (gearOpen) renderGearPanel();
+        }}
+        
+        function renderGearPanel() {{
+            const s = playerStats;
+            document.getElementById('gear-panel').innerHTML = `
+                <div class="gear-section">
+                    <h5>&#x1F3AF; Enhancing</h5>
+                    <div class="gear-row"><span class="label">Base Level</span><span class="value">${{s.enhancing_level}}</span></div>
+                    <div class="gear-row"><span class="label">Effective Level</span><span class="value highlight">${{s.effective_level.toFixed(1)}}</span></div>
+                    <div class="gear-row"><span class="label">Observatory</span><span class="value">+${{s.observatory}}</span></div>
+                </div>
+                <div class="gear-section">
+                    <h5>&#x1F527; Tool & Success</h5>
+                    <div class="gear-row"><span class="label">${{s.enhancer}} +${{s.enhancer_level}}</span><span class="value">+${{s.enhancer_success.toFixed(2)}}%</span></div>
+                    <div class="gear-row"><span class="label">Achievement Bonus</span><span class="value">+${{s.achievement_success.toFixed(2)}}%</span></div>
+                    <div class="gear-row"><span class="label">Total Success Bonus</span><span class="value highlight">+${{s.total_success_bonus.toFixed(2)}}%</span></div>
+                </div>
+                <div class="gear-section">
+                    <h5>&#x26A1; Speed Bonuses</h5>
+                    <div class="gear-row"><span class="label">Gloves +${{s.gloves_level}}</span><span class="value">+${{s.gloves_speed.toFixed(2)}}%</span></div>
+                    <div class="gear-row"><span class="label">Top +${{s.top_level}}</span><span class="value">+${{s.top_speed.toFixed(2)}}%</span></div>
+                    <div class="gear-row"><span class="label">Bot +${{s.bot_level}}</span><span class="value">+${{s.bot_speed.toFixed(2)}}%</span></div>
+                    <div class="gear-row"><span class="label">Neck +${{s.neck_level}} (5x)</span><span class="value">+${{s.neck_speed.toFixed(2)}}%</span></div>
+                    <div class="gear-row"><span class="label">Buff Lvl ${{s.buff_level}}</span><span class="value">+${{s.buff_speed.toFixed(2)}}%</span></div>
+                    <div class="gear-row"><span class="label">${{s.tea_name || 'No'}} Tea</span><span class="value">+${{s.tea_speed.toFixed(2)}}%</span></div>
+                </div>
+                <div class="gear-section">
+                    <h5>&#x1F375; Active Teas</h5>
+                    <div class="gear-row"><span class="label">Blessed Tea</span><span class="value">${{s.tea_blessed ? '✓' : '✗'}}</span></div>
+                    <div class="gear-row"><span class="label">Wisdom Tea</span><span class="value">${{s.tea_wisdom ? '✓' : '✗'}}</span></div>
+                    <div class="gear-row"><span class="label">Artisan Tea</span><span class="value">${{s.artisan_tea ? s.artisan_reduction.toFixed(2) + '% craft red.' : '✗'}}</span></div>
+                    <div class="gear-row"><span class="label">Guzzling Bonus</span><span class="value highlight">${{s.guzzling_bonus.toFixed(4)}}x</span></div>
+                </div>
+                <div class="gear-section">
+                    <h5>&#x1F48E; Charm</h5>
+                    <div class="gear-row"><span class="label">${{s.charm_tier.charAt(0).toUpperCase() + s.charm_tier.slice(1)}} +${{s.charm_level}}</span><span class="value">XP bonus</span></div>
+                </div>
+            `;
         }}
         
         function toggleFee() {{
@@ -447,7 +564,7 @@ def generate_html(timestamp, data_by_mode):
                 sortAsc = !sortAsc;
             }} else {{
                 sortCol = col;
-                sortAsc = (col <= 2);
+                sortAsc = (col === 0); // Only item name sorts ascending by default
             }}
             renderTable();
         }}
@@ -461,17 +578,22 @@ def generate_html(timestamp, data_by_mode):
             renderTable();
         }}
         
+        // Calculate smart score: sqrt(ROI * profit_per_day)
+        // This balances high ROI with high daily profit
+        function calcScore(roi, profitPerDay) {{
+            if (roi <= 0 || profitPerDay <= 0) return 0;
+            return Math.sqrt(roi * profitPerDay);
+        }}
+        
         function renderDetailRow(r) {{
-            // Price mode label
             const priceLabel = currentMode === 'pessimistic' ? 'ask' : currentMode === 'optimistic' ? 'bid' : 'mid';
             
-            // Build materials section
             let matsHtml = '';
             if (r.materials && r.materials.length > 0) {{
                 matsHtml = r.materials.map(m => 
                     `<div class="mat-row">
                         <span class="mat-name">${{m.name}}</span>
-                        <span class="mat-count">${{m.count.toFixed(2)}}x</span>
+                        <span class="mat-count">${{m.count.toFixed(0)}}x</span>
                         <span class="mat-price">${{formatCoins(m.price)}}</span>
                     </div>`
                 ).join('');
@@ -484,11 +606,10 @@ def generate_html(timestamp, data_by_mode):
                 }}
             }}
             
-            // Build craft materials section (if base is crafted)
             let craftHtml = '';
             if (r.base_source === 'craft' && r.craft_materials && r.craft_materials.length > 0) {{
                 craftHtml = `<div class="detail-section">
-                    <h4>&#x1F528; Craft Materials <span class="price-note">(${{priceLabel}} prices, 11.2% artisan)</span></h4>
+                    <h4>&#x1F528; Craft Materials <span class="price-note">(${{priceLabel}}, 11.2% artisan)</span></h4>
                     ${{r.craft_materials.map(m => 
                         `<div class="mat-row">
                             <span class="mat-name">${{m.name}}${{m.is_upgrade ? ' (base, no reduction)' : ''}}</span>
@@ -504,7 +625,6 @@ def generate_html(timestamp, data_by_mode):
                 </div>`;
             }}
             
-            // Alt price display
             const altLabel = r.base_source === 'craft' ? 'Market' : 'Craft';
             const altPrice = r.alt_price > 0 ? formatCoins(r.alt_price) : 'N/A';
             
@@ -522,7 +642,7 @@ def generate_html(timestamp, data_by_mode):
                 </div>
                 
                 <div class="detail-section">
-                    <h4>&#x1F527; Materials/Attempt <span class="price-note">(${{priceLabel}}, 0.2% achieve)</span></h4>
+                    <h4>&#x1F527; Materials/Attempt <span class="price-note">(${{priceLabel}})</span></h4>
                     ${{matsHtml || '<div class="detail-line"><span class="label">No materials</span></div>'}}
                 </div>
                 
@@ -568,23 +688,35 @@ def generate_html(timestamp, data_by_mode):
             let filtered = currentLevel === 'all' ? data : 
                 data.filter(r => r.target_level == currentLevel);
             
-            // Choose profit/roi fields based on fee toggle
             const profitKey = showFee ? 'profit_after_fee' : 'profit';
             const profitDayKey = showFee ? 'profit_per_day_after_fee' : 'profit_per_day';
             const roiKey = showFee ? 'roi_after_fee' : 'roi';
             
-            const sortKeys = ['_idx', 'item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', profitKey, roiKey, 'time_days', profitDayKey, 'xp_per_day'];
-            filtered = filtered.map((r, i) => ({{...r, _idx: i + 1, _profit: r[profitKey], _profit_day: r[profitDayKey], _roi: r[roiKey] || r.roi}}));
+            // Add computed fields
+            filtered = filtered.map((r, i) => {{
+                const roi = r[roiKey] || r.roi;
+                const profitDay = r[profitDayKey];
+                return {{
+                    ...r, 
+                    _profit: r[profitKey], 
+                    _profit_day: profitDay,
+                    _roi: roi,
+                    _score: calcScore(roi, profitDay)
+                }};
+            }});
+            
+            // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, profit, roi, time_days, profit_day, xp_per_day, score
+            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day', '_score'];
             filtered.sort((a, b) => {{
-                let va = a[sortKeys[sortCol]] ?? a['_profit'];
-                let vb = b[sortKeys[sortCol]] ?? b['_profit'];
+                let va = a[sortKeys[sortCol]];
+                let vb = b[sortKeys[sortCol]];
                 if (typeof va === 'string') {{
                     return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
                 }}
                 return sortAsc ? va - vb : vb - va;
             }});
             
-            const profitable = data.filter(r => r[profitKey] > 1000000 && r[roiKey] < 1000);
+            const profitable = data.filter(r => r[profitKey] > 1000000 && (r[roiKey] || r.roi) < 1000);
             const bestProfit = profitable.length ? Math.max(...profitable.map(r => r[profitKey])) : 0;
             const bestRoi = profitable.length ? Math.max(...profitable.map(r => r[roiKey] || r.roi)) : 0;
             const bestProfitDay = profitable.length ? Math.max(...profitable.map(r => r[profitDayKey])) : 0;
@@ -602,15 +734,15 @@ def generate_html(timestamp, data_by_mode):
             filtered.slice(0, 400).forEach((r, i) => {{
                 const rowId = r.item_hrid + '_' + r.target_level;
                 const isExpanded = expandedRows.has(rowId);
-                const profit = showFee ? r.profit_after_fee : r.profit;
-                const profitDay = showFee ? r.profit_per_day_after_fee : r.profit_per_day;
-                const roi = showFee ? (r.roi_after_fee || r.roi) : r.roi;
+                const profit = r._profit;
+                const profitDay = r._profit_day;
+                const roi = r._roi;
+                const score = r._score;
                 const profitClass = profit > 0 ? 'positive' : profit < 0 ? 'negative' : 'neutral';
                 const sourceClass = r.base_source === 'market' ? 'source-market' : r.base_source === 'craft' ? 'source-craft' : 'source-vendor';
                 
                 html += `<tr class="data-row ${{isExpanded ? 'expanded' : ''}}" onclick="toggleRow('${{rowId}}')" data-level="${{r.target_level}}">
-                    <td><span class="expand-icon">&#9654;</span>${{i + 1}}</td>
-                    <td class="item-name">${{r.item_name}}</td>
+                    <td class="item-name"><span class="expand-icon">&#9654;</span>${{r.item_name}}</td>
                     <td><span class="level-badge">+${{r.target_level}}</span></td>
                     <td class="number"><span class="price-source ${{sourceClass}}"></span>${{formatCoins(r.base_price)}}</td>
                     <td class="number hide-mobile">${{formatCoins(r.mat_cost)}}</td>
@@ -621,6 +753,7 @@ def generate_html(timestamp, data_by_mode):
                     <td class="number hide-mobile">${{r.time_days.toFixed(2)}}</td>
                     <td class="number ${{profitClass}}">${{formatCoins(profitDay)}}</td>
                     <td class="number hide-mobile">${{formatXP(r.xp_per_day)}}</td>
+                    <td class="number ${{profitClass}}">${{formatCoins(score)}}</td>
                 </tr>`;
                 
                 html += `<tr class="detail-row ${{isExpanded ? 'visible' : ''}}">
@@ -636,6 +769,15 @@ def generate_html(timestamp, data_by_mode):
                 if (arrow) arrow.innerHTML = (i === sortCol && sortAsc) ? '&#9650;' : '&#9660;';
             }});
         }}
+        
+        // Close gear panel when clicking outside
+        document.addEventListener('click', function(e) {{
+            if (gearOpen && !e.target.closest('.gear-dropdown')) {{
+                gearOpen = false;
+                document.getElementById('gear-panel').classList.remove('visible');
+                document.getElementById('gear-arrow').innerHTML = '&#9660;';
+            }}
+        }});
         
         renderTable();
     </script>
@@ -663,9 +805,13 @@ def main():
     profitable_count = len([r for r in all_modes['pessimistic'] if r['profit'] > MIN_PROFIT])
     print(f"Found {profitable_count} profitable opportunities (pessimistic)")
     
+    # Get player stats for the gear dropdown
+    player_stats = calc.get_player_stats()
+    
     html = generate_html(
         timestamp=timestamp.strftime('%Y-%m-%d %H:%M UTC'),
-        data_by_mode=all_modes
+        data_by_mode=all_modes,
+        player_stats=player_stats
     )
     
     with open('index.html', 'w', encoding='utf-8') as f:
@@ -683,9 +829,12 @@ def main():
     for mode_name in ['pessimistic']:
         results = all_modes[mode_name]
         profitable = [r for r in results if r['profit'] > MIN_PROFIT]
-        print(f"\n=== Top 5 {mode_name.upper()} ===")
-        for i, r in enumerate(profitable[:5], 1):
-            print(f"{i}. {r['item_name']} +{r['target_level']}: {format_coins(r['profit'])} ({r['roi']:.1f}%) - {format_coins(r['profit_per_day'])}/day - {format_coins(r['xp_per_day'])} XP/day")
+        print(f"\n=== Top 5 {mode_name.upper()} (by score) ===")
+        # Sort by score
+        scored = [(r, (r['roi'] * r['profit_per_day']) ** 0.5) for r in profitable]
+        scored.sort(key=lambda x: x[1], reverse=True)
+        for i, (r, score) in enumerate(scored[:5], 1):
+            print(f"{i}. {r['item_name']} +{r['target_level']}: {format_coins(r['profit'])} ({r['roi']:.1f}%) - {format_coins(r['profit_per_day'])}/day - Score: {format_coins(score)}")
 
 
 if __name__ == '__main__':
