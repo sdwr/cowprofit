@@ -160,7 +160,9 @@ def generate_html(timestamp, data_by_mode):
             border-bottom: 1px solid rgba(255,255,255,0.05);
             font-size: 0.8rem;
         }}
-        tr:hover {{ background: rgba(255,255,255,0.05); }}
+        tr.data-row {{ cursor: pointer; }}
+        tr.data-row:hover {{ background: rgba(255,255,255,0.05); }}
+        tr.data-row.expanded {{ background: rgba(238,179,87,0.1); }}
         .positive {{ color: #4ade80; }}
         .negative {{ color: #f87171; }}
         .neutral {{ color: #888; }}
@@ -185,6 +187,79 @@ def generate_html(timestamp, data_by_mode):
         .source-market {{ background: #60a5fa; }}
         .source-craft {{ background: #f59e0b; }}
         .source-vendor {{ background: #9ca3af; }}
+        
+        /* Detail row styles */
+        tr.detail-row {{
+            display: none;
+        }}
+        tr.detail-row.visible {{
+            display: table-row;
+        }}
+        tr.detail-row td {{
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 2px solid rgba(238,179,87,0.3);
+        }}
+        .detail-content {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            font-size: 0.8rem;
+        }}
+        .detail-section {{
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: 8px;
+        }}
+        .detail-section h4 {{
+            color: #eeb357;
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }}
+        .detail-line {{
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }}
+        .detail-line:last-child {{
+            border-bottom: none;
+        }}
+        .detail-line .label {{
+            color: #aaa;
+        }}
+        .detail-line .value {{
+            font-family: 'SF Mono', Monaco, monospace;
+            color: #e8e8e8;
+        }}
+        .detail-line .value.alt {{
+            color: #888;
+            font-size: 0.7rem;
+        }}
+        .mat-row {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }}
+        .mat-row:last-child {{ border-bottom: none; }}
+        .mat-name {{ flex: 1; color: #ccc; }}
+        .mat-count {{ color: #888; margin: 0 8px; font-size: 0.7rem; }}
+        .mat-price {{ font-family: 'SF Mono', Monaco, monospace; color: #eeb357; }}
+        .expand-icon {{
+            display: inline-block;
+            width: 16px;
+            color: #666;
+            transition: transform 0.2s;
+        }}
+        tr.data-row.expanded .expand-icon {{
+            transform: rotate(90deg);
+            color: #eeb357;
+        }}
+        
         .footer {{
             text-align: center;
             margin-top: 25px;
@@ -217,6 +292,7 @@ def generate_html(timestamp, data_by_mode):
             table {{ font-size: 0.65rem; }}
             th, td {{ padding: 5px 3px; }}
             .hide-mobile {{ display: none; }}
+            .detail-content {{ grid-template-columns: 1fr; }}
         }}
     </style>
 </head>
@@ -310,6 +386,7 @@ def generate_html(timestamp, data_by_mode):
         let sortCol = 7;
         let sortAsc = false;
         let showFee = false;
+        let expandedRows = new Set();
         
         const modeInfo = {{
             'pessimistic': 'Buy at Ask, Sell at Bid (safest estimate)',
@@ -318,6 +395,7 @@ def generate_html(timestamp, data_by_mode):
         }};
         
         function formatCoins(value) {{
+            if (value === 0 || value === null || value === undefined) return '-';
             if (Math.abs(value) >= 1e9) return (value/1e9).toFixed(2) + 'B';
             if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(2) + 'M';
             if (Math.abs(value) >= 1e3) return (value/1e3).toFixed(2) + 'K';
@@ -341,6 +419,7 @@ def generate_html(timestamp, data_by_mode):
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + mode).classList.add('active');
             document.getElementById('mode-info').textContent = modeInfo[mode];
+            expandedRows.clear();
             renderTable();
         }}
         
@@ -361,18 +440,121 @@ def generate_html(timestamp, data_by_mode):
             renderTable();
         }}
         
+        function toggleRow(rowId) {{
+            if (expandedRows.has(rowId)) {{
+                expandedRows.delete(rowId);
+            }} else {{
+                expandedRows.add(rowId);
+            }}
+            renderTable();
+        }}
+        
+        function renderDetailRow(r) {{
+            // Build materials section
+            let matsHtml = '';
+            if (r.materials && r.materials.length > 0) {{
+                matsHtml = r.materials.map(m => 
+                    `<div class="mat-row">
+                        <span class="mat-name">${{m.name}}</span>
+                        <span class="mat-count">${{m.count.toFixed(1)}}x</span>
+                        <span class="mat-price">${{formatCoins(m.price)}}</span>
+                    </div>`
+                ).join('');
+                if (r.coin_cost > 0) {{
+                    matsHtml += `<div class="mat-row">
+                        <span class="mat-name">Coins</span>
+                        <span class="mat-count">per attempt</span>
+                        <span class="mat-price">${{formatCoins(r.coin_cost)}}</span>
+                    </div>`;
+                }}
+            }}
+            
+            // Build craft materials section (if base is crafted)
+            let craftHtml = '';
+            if (r.base_source === 'craft' && r.craft_materials && r.craft_materials.length > 0) {{
+                craftHtml = `<div class="detail-section">
+                    <h4>&#x1F528; Craft Materials</h4>
+                    ${{r.craft_materials.map(m => 
+                        `<div class="mat-row">
+                            <span class="mat-name">${{m.name}}${{m.is_upgrade ? ' (base)' : ''}}</span>
+                            <span class="mat-count">${{m.count.toFixed(1)}}x</span>
+                            <span class="mat-price">${{formatCoins(m.price)}}</span>
+                        </div>`
+                    ).join('')}}
+                </div>`;
+            }}
+            
+            // Alt price display
+            const altLabel = r.base_source === 'craft' ? 'Market' : 'Craft';
+            const altPrice = r.alt_price > 0 ? formatCoins(r.alt_price) : 'N/A';
+            
+            return `<div class="detail-content">
+                <div class="detail-section">
+                    <h4>&#x1F4E6; Base Item</h4>
+                    <div class="detail-line">
+                        <span class="label">Price (${{r.base_source}})</span>
+                        <span class="value">${{formatCoins(r.base_price)}}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span class="label">${{altLabel}} price</span>
+                        <span class="value alt">${{altPrice}}</span>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>&#x1F527; Materials/Attempt</h4>
+                    ${{matsHtml || '<div class="detail-line"><span class="label">No materials</span></div>'}}
+                </div>
+                
+                <div class="detail-section">
+                    <h4>&#x1F6E1; Protection</h4>
+                    <div class="detail-line">
+                        <span class="label">${{r.protect_name || 'Unknown'}}</span>
+                        <span class="value">${{formatCoins(r.protect_price)}}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span class="label">Protect at</span>
+                        <span class="value">+${{r.protect_at}}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span class="label">Expected uses</span>
+                        <span class="value">${{r.protect_count.toFixed(1)}}</span>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>&#x23F1; Time & Actions</h4>
+                    <div class="detail-line">
+                        <span class="label">Expected attempts</span>
+                        <span class="value">${{r.actions.toFixed(0)}}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span class="label">Time</span>
+                        <span class="value">${{r.time_hours.toFixed(1)}}h (${{r.time_days.toFixed(2)}}d)</span>
+                    </div>
+                    <div class="detail-line">
+                        <span class="label">Total XP</span>
+                        <span class="value">${{formatXP(r.total_xp)}}</span>
+                    </div>
+                </div>
+                
+                ${{craftHtml}}
+            </div>`;
+        }}
+        
         function renderTable() {{
             const data = allData[currentMode] || [];
             
             let filtered = currentLevel === 'all' ? data : 
                 data.filter(r => r.target_level == currentLevel);
             
-            // Choose profit field based on fee toggle
+            // Choose profit/roi fields based on fee toggle
             const profitKey = showFee ? 'profit_after_fee' : 'profit';
             const profitDayKey = showFee ? 'profit_per_day_after_fee' : 'profit_per_day';
+            const roiKey = showFee ? 'roi_after_fee' : 'roi';
             
-            const sortKeys = ['_idx', 'item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', profitKey, 'roi', 'time_days', profitDayKey, 'xp_per_day'];
-            filtered = filtered.map((r, i) => ({{...r, _idx: i + 1, _profit: r[profitKey], _profit_day: r[profitDayKey]}}));
+            const sortKeys = ['_idx', 'item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', profitKey, roiKey, 'time_days', profitDayKey, 'xp_per_day'];
+            filtered = filtered.map((r, i) => ({{...r, _idx: i + 1, _profit: r[profitKey], _profit_day: r[profitDayKey], _roi: r[roiKey] || r.roi}}));
             filtered.sort((a, b) => {{
                 let va = a[sortKeys[sortCol]] ?? a['_profit'];
                 let vb = b[sortKeys[sortCol]] ?? b['_profit'];
@@ -382,9 +564,9 @@ def generate_html(timestamp, data_by_mode):
                 return sortAsc ? va - vb : vb - va;
             }});
             
-            const profitable = data.filter(r => r[profitKey] > 1000000 && r.roi < 1000);
+            const profitable = data.filter(r => r[profitKey] > 1000000 && r[roiKey] < 1000);
             const bestProfit = profitable.length ? Math.max(...profitable.map(r => r[profitKey])) : 0;
-            const bestRoi = profitable.length ? Math.max(...profitable.map(r => r.roi)) : 0;
+            const bestRoi = profitable.length ? Math.max(...profitable.map(r => r[roiKey] || r.roi)) : 0;
             const bestProfitDay = profitable.length ? Math.max(...profitable.map(r => r[profitDayKey])) : 0;
             const bestXpDay = data.length ? Math.max(...data.map(r => r.xp_per_day)) : 0;
             
@@ -395,13 +577,19 @@ def generate_html(timestamp, data_by_mode):
             document.getElementById('stat-xpday').textContent = formatXP(bestXpDay);
             
             const tbody = document.getElementById('table-body');
-            tbody.innerHTML = filtered.slice(0, 400).map((r, i) => {{
+            let html = '';
+            
+            filtered.slice(0, 400).forEach((r, i) => {{
+                const rowId = r.item_hrid + '_' + r.target_level;
+                const isExpanded = expandedRows.has(rowId);
                 const profit = showFee ? r.profit_after_fee : r.profit;
                 const profitDay = showFee ? r.profit_per_day_after_fee : r.profit_per_day;
+                const roi = showFee ? (r.roi_after_fee || r.roi) : r.roi;
                 const profitClass = profit > 0 ? 'positive' : profit < 0 ? 'negative' : 'neutral';
                 const sourceClass = r.base_source === 'market' ? 'source-market' : r.base_source === 'craft' ? 'source-craft' : 'source-vendor';
-                return `<tr data-level="${{r.target_level}}">
-                    <td>${{i + 1}}</td>
+                
+                html += `<tr class="data-row ${{isExpanded ? 'expanded' : ''}}" onclick="toggleRow('${{rowId}}')" data-level="${{r.target_level}}">
+                    <td><span class="expand-icon">&#9654;</span>${{i + 1}}</td>
                     <td class="item-name">${{r.item_name}}</td>
                     <td><span class="level-badge">+${{r.target_level}}</span></td>
                     <td class="number"><span class="price-source ${{sourceClass}}"></span>${{formatCoins(r.base_price)}}</td>
@@ -409,12 +597,18 @@ def generate_html(timestamp, data_by_mode):
                     <td class="number hide-mobile">${{formatCoins(r.total_cost)}}</td>
                     <td class="number">${{formatCoins(r.sell_price)}}</td>
                     <td class="number ${{profitClass}}">${{formatCoins(profit)}}</td>
-                    <td class="number ${{profitClass}}">${{r.roi.toFixed(1)}}%</td>
+                    <td class="number ${{profitClass}}">${{roi.toFixed(1)}}%</td>
                     <td class="number hide-mobile">${{r.time_days.toFixed(2)}}</td>
                     <td class="number ${{profitClass}}">${{formatCoins(profitDay)}}</td>
                     <td class="number hide-mobile">${{formatXP(r.xp_per_day)}}</td>
                 </tr>`;
-            }}).join('');
+                
+                html += `<tr class="detail-row ${{isExpanded ? 'visible' : ''}}">
+                    <td colspan="12">${{renderDetailRow(r)}}</td>
+                </tr>`;
+            }});
+            
+            tbody.innerHTML = html;
             
             document.querySelectorAll('th').forEach((th, i) => {{
                 th.classList.toggle('sorted', i === sortCol);

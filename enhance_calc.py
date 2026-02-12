@@ -411,22 +411,51 @@ class EnhancementCalculator:
         coin_cost = 0
         artisan_mult = self.get_artisan_tea_multiplier()
         
+        # Build detailed materials list
+        materials_detail = []
         for cost in enhancement_costs:
             if cost['itemHrid'] == '/items/coin':
                 coin_cost = cost['count']
             else:
                 # Materials are affected by artisan tea
+                mat_hrid = cost['itemHrid']
                 mat_count = cost['count'] * artisan_mult
-                mat_costs.append((cost['itemHrid'], mat_count))
+                mat_costs.append((mat_hrid, mat_count))
         
-        # Get material prices
+        # Get material prices and build detail
         mat_prices = []
         for hrid, count in mat_costs:
             price = self.get_full_item_price(hrid, market_data, mode)
             mat_prices.append((count, price))
+            mat_name = self.item_detail_map.get(hrid, {}).get('name', hrid.split('/')[-1])
+            materials_detail.append({
+                'hrid': hrid,
+                'name': mat_name,
+                'count': count,
+                'price': price,
+            })
         
-        # Get base item price
+        # Get base item price and alternative
         base_price, base_source = self.get_item_price(item_hrid, 0, market_data, mode)
+        
+        # Get alternative price (market if craft, craft if market)
+        market_price = self._get_buy_price(item_hrid, 0, market_data, mode)
+        craft_price = self.get_crafting_cost(item_hrid, market_data, mode)
+        
+        if base_source == 'craft':
+            alt_price = market_price if market_price > 0 else 0
+            alt_source = 'market'
+        elif base_source == 'market':
+            alt_price = craft_price if craft_price > 0 else 0
+            alt_source = 'craft'
+        else:
+            alt_price = market_price if market_price > 0 else craft_price
+            alt_source = 'market' if market_price > 0 else 'craft'
+        
+        # Get crafting materials if it's craftable
+        craft_materials = []
+        if craft_price > 0:
+            craft_materials = self._get_crafting_materials(item_hrid, market_data, mode)
         
         # Get protection options
         mirror_price = self.get_full_item_price('/items/mirror_of_protection', market_data, mode)
@@ -447,7 +476,9 @@ class EnhancementCalculator:
             return None
         
         cheapest_protect = min(valid_protects, key=lambda x: x[1])
+        protect_hrid = cheapest_protect[0]
         protect_price = cheapest_protect[1]
+        protect_name = self.item_detail_map.get(protect_hrid, {}).get('name', protect_hrid.split('/')[-1])
         
         total_bonus = self.get_total_bonus(item_level)
         attempt_time = self.get_attempt_time(item_level)
@@ -476,11 +507,72 @@ class EnhancementCalculator:
             best_result['item_hrid'] = item_hrid
             best_result['item_level'] = item_level
             best_result['protect_price'] = protect_price
+            best_result['protect_hrid'] = protect_hrid
+            best_result['protect_name'] = protect_name
             best_result['base_price'] = base_price
             best_result['base_source'] = base_source
+            best_result['alt_price'] = alt_price
+            best_result['alt_source'] = alt_source
             best_result['attempt_time'] = attempt_time
+            best_result['materials'] = materials_detail
+            best_result['coin_cost'] = coin_cost
+            best_result['craft_materials'] = craft_materials
         
         return best_result
+    
+    def _get_crafting_materials(self, hrid, market_data, mode=PriceMode.MIDPOINT):
+        """Get the list of crafting materials for an item."""
+        item = self.item_detail_map.get(hrid, {})
+        category = item.get('categoryHrid', '')
+        
+        if category != '/item_categories/equipment' and hrid != '/items/philosophers_mirror':
+            return []
+        
+        # Find the crafting action for this item
+        action = None
+        for act in self.action_detail_map.values():
+            if (act.get('function') == '/action_functions/production' and
+                act.get('outputItems') and
+                act['outputItems'][0].get('itemHrid') == hrid):
+                action = act
+                break
+        
+        if not action:
+            return []
+        
+        materials = []
+        artisan_mult = self.get_artisan_tea_multiplier()
+        
+        for input_item in action.get('inputItems', []):
+            input_hrid = input_item['itemHrid']
+            count = input_item['count'] * artisan_mult
+            price = self._get_buy_price(input_hrid, 0, market_data, mode)
+            if price <= 0:
+                price = self.get_vendor_price(input_hrid)
+            mat_name = self.item_detail_map.get(input_hrid, {}).get('name', input_hrid.split('/')[-1])
+            materials.append({
+                'hrid': input_hrid,
+                'name': mat_name,
+                'count': count,
+                'price': price,
+            })
+        
+        # Add upgrade item if present
+        upgrade_hrid = action.get('upgradeItemHrid', '')
+        if upgrade_hrid:
+            upgrade_price = self._get_buy_price(upgrade_hrid, 0, market_data, mode)
+            if upgrade_price <= 0:
+                upgrade_price = self.get_vendor_price(upgrade_hrid)
+            upgrade_name = self.item_detail_map.get(upgrade_hrid, {}).get('name', upgrade_hrid.split('/')[-1])
+            materials.append({
+                'hrid': upgrade_hrid,
+                'name': upgrade_name,
+                'count': 1,
+                'price': upgrade_price,
+                'is_upgrade': True,
+            })
+        
+        return materials
     
     def _markov_enhance(self, stop_at, protect_at, total_bonus, mat_prices, coin_cost, protect_price, base_price, use_blessed=False, guzzling=1, item_level=1):
         """Use Markov chain to calculate expected enhancement attempts."""
@@ -566,6 +658,7 @@ class EnhancementCalculator:
         profit = sell_price - result['total_cost']
         profit_after_fee = profit - market_fee
         roi = (profit / result['total_cost']) * 100 if result['total_cost'] > 0 else 0
+        roi_after_fee = (profit_after_fee / result['total_cost']) * 100 if result['total_cost'] > 0 else 0
         
         # Calculate per day metrics
         total_time_hours = result['actions'] * result['attempt_time'] / 3600
@@ -581,6 +674,8 @@ class EnhancementCalculator:
             'target_level': target_level,
             'base_price': result['base_price'],
             'base_source': result['base_source'],
+            'alt_price': result['alt_price'],
+            'alt_source': result['alt_source'],
             'mat_cost': result['mat_cost'],
             'total_cost': result['total_cost'],
             'sell_price': sell_price,
@@ -588,8 +683,9 @@ class EnhancementCalculator:
             'profit': profit,
             'profit_after_fee': profit_after_fee,
             'roi': roi,
+            'roi_after_fee': roi_after_fee,
             'profit_per_day': profit_per_day,
-            'profit_per_day_after_fee': profit_per_day_after_fee,
+            'profit_per_day_after_fee': profit_after_fee / total_time_days if total_time_days > 0 else 0,
             'xp_per_day': xp_per_day,
             'total_xp': result['total_xp'],
             'actions': result['actions'],
@@ -597,6 +693,12 @@ class EnhancementCalculator:
             'time_days': total_time_days,
             'protect_count': result['protect_count'],
             'protect_at': result['protect_at'],
+            'protect_hrid': result['protect_hrid'],
+            'protect_name': result['protect_name'],
+            'protect_price': result['protect_price'],
+            'materials': result['materials'],
+            'coin_cost': result['coin_cost'],
+            'craft_materials': result['craft_materials'],
             'mode': mode.value,
         }
     
