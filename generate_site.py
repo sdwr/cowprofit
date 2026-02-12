@@ -336,6 +336,10 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             font-size: 0.8rem;
             margin-right: 4px;
         }}
+        .filter-divider {{
+            color: #444;
+            margin: 0 10px;
+        }}
         .filter-btn, .mode-btn {{
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
@@ -346,8 +350,11 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             transition: all 0.2s;
             font-size: 0.85rem;
         }}
-        .filter-btn:hover, .filter-btn.active,
-        .mode-btn:hover, .mode-btn.active {{
+        .filter-btn:hover, .mode-btn:hover {{
+            background: rgba(238,179,87,0.3);
+            border-color: rgba(238,179,87,0.5);
+        }}
+        .filter-btn.active, .mode-btn.active {{
             background: #eeb357;
             color: #1a1a2e;
             border-color: #eeb357;
@@ -643,8 +650,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             <button class="filter-btn" onclick="filterLevel(10)">+10</button>
             <button class="filter-btn" onclick="filterLevel(12)">+12</button>
             <button class="filter-btn" onclick="filterLevel(14)">+14</button>
-        </div>
-        <div class="filters">
+            <span class="filter-divider">|</span>
             <span class="filter-label">Cost:</span>
             <button class="filter-btn cost-filter active" data-cost="100m" onclick="toggleCostFilter('100m')">&lt;100M</button>
             <button class="filter-btn cost-filter active" data-cost="500m" onclick="toggleCostFilter('500m')">100-500M</button>
