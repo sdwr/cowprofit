@@ -12,6 +12,34 @@ TARGET_LEVELS = [8, 10, 12, 14]
 MIN_PROFIT = 1_000_000
 MAX_ROI = 1000
 
+PRICE_HISTORY_FILE = Path(__file__).parent / 'price_history.json'
+
+
+def load_price_history():
+    """Load price history for price age tracking."""
+    if PRICE_HISTORY_FILE.exists():
+        with open(PRICE_HISTORY_FILE, encoding='utf-8') as f:
+            return json.load(f)
+    return {'items': {}}
+
+
+def get_price_age_info(item_hrid, price_history, now_ts):
+    """Get price age and direction for an item."""
+    items = price_history.get('items', {})
+    data = items.get(item_hrid, {})
+    
+    if not data:
+        return {'price_age_seconds': 0, 'price_direction': None}
+    
+    price_since_ts = data.get('current_price_since_ts', now_ts)
+    age_seconds = max(0, now_ts - price_since_ts)
+    direction = data.get('price_direction')  # 'up', 'down', or None
+    
+    return {
+        'price_age_seconds': age_seconds,
+        'price_direction': direction
+    }
+
 
 def format_coins(value):
     """Format coin value with K/M/B suffix and 2 decimal places."""
@@ -228,6 +256,8 @@ def generate_html(timestamp, data_by_mode, player_stats):
         .positive {{ color: #4ade80; }}
         .negative {{ color: #f87171; }}
         .neutral {{ color: #888; }}
+        .price-up {{ color: #4ade80; font-weight: bold; }}
+        .price-down {{ color: #f87171; font-weight: bold; }}
         .item-name {{ font-weight: 500; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }}
         .level-badge {{
             background: rgba(238,179,87,0.3);
@@ -443,11 +473,12 @@ def generate_html(timestamp, data_by_mode, player_stats):
                     <th onclick="sortTable(3, 'num')" class="number hide-mobile">Enhance<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(4, 'num')" class="number hide-mobile">Total<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(5, 'num')" class="number">Sell<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(6, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(7, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(8, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(9, 'num')" class="number">$/day<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(10, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(6, 'num')" class="number" title="Time since sell price changed">Age<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(7, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(8, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(9, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(10, 'num')" class="number">$/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(11, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
                 </tr>
             </thead>
             <tbody id="table-body">
@@ -464,7 +495,7 @@ def generate_html(timestamp, data_by_mode, player_stats):
         const playerStats = {stats_json};
         let currentMode = 'pessimistic';
         let currentLevel = 'all';
-        let sortCol = 9; // Default to $/day column
+        let sortCol = 10; // Default to $/day column
         let sortAsc = false;
         let showFee = true; // Fee toggle on by default
         let expandedRows = new Set();
@@ -475,6 +506,20 @@ def generate_html(timestamp, data_by_mode, player_stats):
             'midpoint': 'Buy/Sell at midpoint of Ask and Bid',
             'optimistic': 'Buy at Bid, Sell at Ask (best case)'
         }};
+        
+        function formatAge(seconds) {{
+            if (!seconds || seconds <= 0) return '-';
+            if (seconds < 60) return Math.floor(seconds) + 's';
+            if (seconds < 3600) return Math.floor(seconds / 60) + 'm';
+            if (seconds < 86400) return (seconds / 3600).toFixed(1) + 'h';
+            return (seconds / 86400).toFixed(1) + 'd';
+        }}
+        
+        function getAgeArrow(direction) {{
+            if (direction === 'up') return '<span class="price-up">↑</span>';
+            if (direction === 'down') return '<span class="price-down">↓</span>';
+            return '-';
+        }}
         
         function formatCoins(value) {{
             if (value === 0 || value === null || value === undefined) return '-';
@@ -695,8 +740,8 @@ def generate_html(timestamp, data_by_mode, player_stats):
                 }};
             }});
             
-            // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, profit, roi, time_days, profit_day, xp_per_day
-            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day'];
+            // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, price_age_seconds, profit, roi, time_days, profit_day, xp_per_day
+            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', 'price_age_seconds', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day'];
             filtered.sort((a, b) => {{
                 let va = a[sortKeys[sortCol]];
                 let vb = b[sortKeys[sortCol]];
@@ -737,6 +782,7 @@ def generate_html(timestamp, data_by_mode, player_stats):
                     <td class="number hide-mobile">${{formatCoins(r.mat_cost)}}</td>
                     <td class="number hide-mobile">${{formatCoins(r.total_cost)}}</td>
                     <td class="number">${{formatCoins(r.sell_price)}}</td>
+                    <td class="number">${{formatAge(r.price_age_seconds)}} ${{getAgeArrow(r.price_direction)}}</td>
                     <td class="number ${{profitClass}}">${{formatCoins(profit)}}</td>
                     <td class="number ${{profitClass}}">${{roi.toFixed(1)}}%</td>
                     <td class="number hide-mobile">${{r.time_days.toFixed(2)}}</td>
@@ -745,7 +791,7 @@ def generate_html(timestamp, data_by_mode, player_stats):
                 </tr>`;
                 
                 html += `<tr class="detail-row ${{isExpanded ? 'visible' : ''}}">
-                    <td colspan="11">${{renderDetailRow(r)}}</td>
+                    <td colspan="12">${{renderDetailRow(r)}}</td>
                 </tr>`;
             }});
             
@@ -789,6 +835,18 @@ def main():
     
     for mode in all_modes:
         all_modes[mode] = [r for r in all_modes[mode] if r['roi'] < MAX_ROI]
+    
+    # Enrich with price age data
+    print("Loading price history...")
+    price_history = load_price_history()
+    now_ts = int(datetime.now().timestamp())
+    
+    for mode in all_modes:
+        for result in all_modes[mode]:
+            item_hrid = result.get('item_hrid', '')
+            age_info = get_price_age_info(item_hrid, price_history, now_ts)
+            result['price_age_seconds'] = age_info['price_age_seconds']
+            result['price_direction'] = age_info['price_direction']
     
     profitable_count = len([r for r in all_modes['pessimistic'] if r['profit'] > MIN_PROFIT])
     print(f"Found {profitable_count} profitable opportunities (pessimistic)")
