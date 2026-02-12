@@ -498,6 +498,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         }}
         .profit-bar-cell {{
             position: relative;
+            text-align: center;
         }}
         .profit-bar {{
             position: absolute;
@@ -881,23 +882,28 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             const totalEnhanceCost = costPerAttempt * r.actions;
             const totalProtCost = r.protect_price * r.protect_count;
             
-            // Price age detail
-            let priceAgeHtml = '';
+            // Price display - 2 lines max
+            let priceHtml = '';
+            if (r.last_price && r.price_since_ts) {{
+                const pctChange = ((r.sell_price - r.last_price) / r.last_price * 100).toFixed(1);
+                const pctClass = pctChange > 0 ? 'positive' : 'negative';
+                priceHtml = `<div class="detail-line">
+                    <span class="label">Price</span>
+                    <span class="value ${{pctClass}}">${{formatCoins(r.last_price)}} → ${{formatCoins(r.sell_price)}} (${{pctChange > 0 ? '+' : ''}}${{pctChange}}%)</span>
+                </div>`;
+            }} else {{
+                priceHtml = `<div class="detail-line">
+                    <span class="label">Sell price (+${{r.target_level}})</span>
+                    <span class="value">${{formatCoins(r.sell_price)}}</span>
+                </div>`;
+            }}
             if (r.price_since_ts) {{
                 const ageStr = formatAge(Math.floor(Date.now()/1000) - r.price_since_ts);
                 const sinceDate = new Date(r.price_since_ts * 1000).toLocaleString();
-                priceAgeHtml = `<div class="detail-line">
-                    <span class="label">Current price since</span>
+                priceHtml += `<div class="detail-line">
+                    <span class="label">Since</span>
                     <span class="value">${{sinceDate}} (${{ageStr}})</span>
                 </div>`;
-                if (r.last_price) {{
-                    const pctChange = ((r.sell_price - r.last_price) / r.last_price * 100).toFixed(1);
-                    const pctClass = pctChange > 0 ? 'positive' : 'negative';
-                    priceAgeHtml += `<div class="detail-line">
-                        <span class="label">Previous price</span>
-                        <span class="value ${{pctClass}}">${{formatCoins(r.last_price)}} → ${{formatCoins(r.sell_price)}} (${{pctChange > 0 ? '+' : ''}}${{pctChange}}%)</span>
-                    </div>`;
-                }}
             }}
             
             const altLabel = r.base_source === 'craft' ? 'Market' : 'Craft';
@@ -918,49 +924,45 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                 </div>
                 
                 <div class="detail-section">
-                    <h4>&#x1F527; Enhancement Costs</h4>
-                    <div class="detail-line">
-                        <span class="label">Materials/attempt</span>
-                        <span class="value">${{formatCoins(costPerAttempt)}}</span>
-                    </div>
-                    ${{matsHtml}}
+                    <h4>&#x1F527; Materials</h4>
+                    ${{matsHtml || '<div class="detail-line"><span class="label">None</span></div>'}}
                     <div class="mat-row total-row">
-                        <span class="mat-name">Total enhance (${{r.actions.toFixed(0)}} attempts)</span>
+                        <span class="mat-name">Total (${{formatCoins(costPerAttempt)}}/attempt × ${{r.actions.toFixed(0)}})</span>
                         <span class="mat-count"></span>
                         <span class="mat-price">${{formatCoins(totalEnhanceCost)}}</span>
                     </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>&#x1F4B0; Cost Summary</h4>
                     <div class="detail-line">
-                        <span class="label">Protection (${{r.protect_name}}, ${{r.protect_count.toFixed(1)}}x)</span>
+                        <span class="label">Base item</span>
+                        <span class="value">${{formatCoins(r.base_price)}}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span class="label">Materials (${{r.actions.toFixed(0)}} attempts)</span>
+                        <span class="value">${{formatCoins(totalEnhanceCost)}}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span class="label">Protection (${{formatCoins(r.protect_price)}} × ${{r.protect_count.toFixed(1)}})</span>
                         <span class="value">${{formatCoins(totalProtCost)}}</span>
                     </div>
                     <div class="mat-row total-row">
-                        <span class="mat-name">Grand Total (base + enhance + prot)</span>
+                        <span class="mat-name">Total Cost</span>
                         <span class="mat-count"></span>
                         <span class="mat-price">${{formatCoins(r.total_cost)}}</span>
                     </div>
                 </div>
                 
                 <div class="detail-section">
-                    <h4>&#x1F4B0; Sell Price</h4>
+                    <h4>&#x1F4C8; Sell & Time</h4>
+                    ${{priceHtml}}
                     <div class="detail-line">
-                        <span class="label">Sell at +${{r.target_level}}</span>
-                        <span class="value">${{formatCoins(r.sell_price)}}</span>
-                    </div>
-                    ${{priceAgeHtml}}
-                </div>
-                
-                <div class="detail-section">
-                    <h4>&#x23F1; Time & XP</h4>
-                    <div class="detail-line">
-                        <span class="label">Expected attempts</span>
-                        <span class="value">${{r.actions.toFixed(0)}}</span>
-                    </div>
-                    <div class="detail-line">
-                        <span class="label">Time</span>
+                        <span class="label">Time (${{r.actions.toFixed(0)}} attempts)</span>
                         <span class="value">${{r.time_hours.toFixed(1)}}h (${{r.time_days.toFixed(2)}}d)</span>
                     </div>
                     <div class="detail-line">
-                        <span class="label">Total XP</span>
+                        <span class="label">XP earned</span>
                         <span class="value">${{formatXP(r.total_xp)}}</span>
                     </div>
                 </div>
