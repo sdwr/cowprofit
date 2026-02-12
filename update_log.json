@@ -1,0 +1,1051 @@
+{
+  "checks": [
+    {
+      "check_time": "2026-02-11T20:20:43.242861",
+      "data_timestamp": 1770860120,
+      "data_time": "2026-02-11T19:35:20",
+      "age_minutes": 45.4,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-11T20:26:19.064213",
+      "data_timestamp": 1770860120,
+      "data_time": "2026-02-11T19:35:20",
+      "age_minutes": 51.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T20:30:09.141159",
+      "data_timestamp": 1770860120,
+      "data_time": "2026-02-11T19:35:20",
+      "age_minutes": 54.8,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T20:35:08.413963",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 1.6,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-11T20:40:09.076982",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 6.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T20:45:08.819245",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 11.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T20:50:10.304078",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 16.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T20:55:08.925310",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 21.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:00:08.718421",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 26.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:05:09.948073",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 31.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:10:08.890249",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 36.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:15:08.948219",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 41.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:20:08.773256",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 46.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:25:09.787357",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 51.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:30:10.635682",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 56.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:35:09.274397",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 61.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:40:08.434622",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 66.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:45:10.376357",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 71.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:50:09.231217",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 76.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T21:55:08.977930",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 81.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T22:00:12.503933",
+      "data_timestamp": 1770863612,
+      "data_time": "2026-02-11T20:33:32",
+      "age_minutes": 86.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T22:05:08.660235",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 24.9,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-11T22:10:11.183230",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 29.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T22:15:09.400003",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 34.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T22:20:08.606816",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 39.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T22:25:09.360501",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 44.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T22:30:10.348312",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 49.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T22:35:08.638301",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 54.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T22:40:09.511508",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 59.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T22:45:08.441198",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 64.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T22:50:09.111353",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 69.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T22:55:10.381952",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 74.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T23:00:11.666470",
+      "data_timestamp": 1770867617,
+      "data_time": "2026-02-11T21:40:17",
+      "age_minutes": 79.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T23:05:08.439300",
+      "data_timestamp": 1770871217,
+      "data_time": "2026-02-11T22:40:17",
+      "age_minutes": 24.9,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-11T23:10:08.608693",
+      "data_timestamp": 1770871217,
+      "data_time": "2026-02-11T22:40:17",
+      "age_minutes": 29.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T23:15:08.976664",
+      "data_timestamp": 1770871217,
+      "data_time": "2026-02-11T22:40:17",
+      "age_minutes": 34.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T23:20:08.090878",
+      "data_timestamp": 1770871217,
+      "data_time": "2026-02-11T22:40:17",
+      "age_minutes": 39.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T23:25:09.932771",
+      "data_timestamp": 1770871217,
+      "data_time": "2026-02-11T22:40:17",
+      "age_minutes": 44.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T23:30:10.013818",
+      "data_timestamp": 1770871217,
+      "data_time": "2026-02-11T22:40:17",
+      "age_minutes": 49.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T23:35:08.038139",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 3.6,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-11T23:40:08.797024",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 8.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T23:45:10.298787",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 13.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T23:50:12.898307",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 18.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-11T23:55:10.039805",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 23.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:00:10.105554",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 28.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:05:09.043310",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 33.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:10:08.852943",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 38.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:15:08.659650",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 43.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:20:10.950118",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 48.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:25:09.275192",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 53.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:30:08.687464",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 58.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:35:09.083059",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 63.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:40:13.278713",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 68.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:45:09.264015",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 73.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:50:08.037222",
+      "data_timestamp": 1770874294,
+      "data_time": "2026-02-11T23:31:34",
+      "age_minutes": 78.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T00:55:09.349216",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 27.7,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-12T01:00:09.561863",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 32.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T01:05:09.367845",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 37.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T01:10:10.906980",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 42.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T01:15:08.566309",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 47.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T01:20:09.460937",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 52.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T01:25:08.880780",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 57.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T01:30:10.211024",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 62.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T01:35:09.762675",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 67.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T01:40:10.168313",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 72.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T01:45:08.933201",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 77.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T01:50:09.725098",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 82.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T01:55:08.788646",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 87.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T02:00:10.628362",
+      "data_timestamp": 1770877648,
+      "data_time": "2026-02-12T00:27:28",
+      "age_minutes": 92.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T02:05:09.251848",
+      "data_timestamp": 1770881730,
+      "data_time": "2026-02-12T01:35:30",
+      "age_minutes": 29.7,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-12T02:10:08.836341",
+      "data_timestamp": 1770881730,
+      "data_time": "2026-02-12T01:35:30",
+      "age_minutes": 34.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T02:15:16.157517",
+      "data_timestamp": 1770881730,
+      "data_time": "2026-02-12T01:35:30",
+      "age_minutes": 39.8,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T02:20:09.075484",
+      "data_timestamp": 1770881730,
+      "data_time": "2026-02-12T01:35:30",
+      "age_minutes": 44.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T02:25:08.418383",
+      "data_timestamp": 1770881730,
+      "data_time": "2026-02-12T01:35:30",
+      "age_minutes": 49.6,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T02:30:09.651432",
+      "data_timestamp": 1770881730,
+      "data_time": "2026-02-12T01:35:30",
+      "age_minutes": 54.7,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T02:35:08.637982",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 7.0,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-12T02:40:09.607269",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 12.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T02:45:09.481811",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 17.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T02:50:08.833981",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 22.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T02:55:09.230400",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 27.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T03:00:10.251173",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 32.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T03:05:09.524843",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 37.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T03:10:08.479624",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 42.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T03:15:09.187302",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 47.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T03:20:09.182440",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 52.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T03:25:09.063417",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 57.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T03:30:08.731396",
+      "data_timestamp": 1770884890,
+      "data_time": "2026-02-12T02:28:10",
+      "age_minutes": 62.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T03:35:08.826107",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 10.4,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-12T03:40:07.881435",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 15.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T03:45:09.734210",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 20.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T03:50:08.818209",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 25.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T03:55:08.727871",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 30.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T04:00:10.964550",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 35.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T04:05:09.622670",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 40.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T04:10:11.305446",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 45.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T04:15:09.663256",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 50.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T04:20:09.119094",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 55.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T04:25:08.743321",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 60.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T04:30:09.947715",
+      "data_timestamp": 1770888285,
+      "data_time": "2026-02-12T03:24:45",
+      "age_minutes": 65.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T04:35:08.906660",
+      "data_timestamp": 1770891341,
+      "data_time": "2026-02-12T04:15:41",
+      "age_minutes": 19.5,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-12T04:40:08.427659",
+      "data_timestamp": 1770891341,
+      "data_time": "2026-02-12T04:15:41",
+      "age_minutes": 24.5,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T04:45:11.092466",
+      "data_timestamp": 1770891341,
+      "data_time": "2026-02-12T04:15:41",
+      "age_minutes": 29.5,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T04:50:10.178453",
+      "data_timestamp": 1770891341,
+      "data_time": "2026-02-12T04:15:41",
+      "age_minutes": 34.5,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T04:55:09.221077",
+      "data_timestamp": 1770891341,
+      "data_time": "2026-02-12T04:15:41",
+      "age_minutes": 39.5,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T05:00:09.406804",
+      "data_timestamp": 1770891341,
+      "data_time": "2026-02-12T04:15:41",
+      "age_minutes": 44.5,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T05:05:09.373309",
+      "data_timestamp": 1770891341,
+      "data_time": "2026-02-12T04:15:41",
+      "age_minutes": 49.5,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T05:10:09.126555",
+      "data_timestamp": 1770891341,
+      "data_time": "2026-02-12T04:15:41",
+      "age_minutes": 54.5,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T05:15:09.344415",
+      "data_timestamp": 1770891341,
+      "data_time": "2026-02-12T04:15:41",
+      "age_minutes": 59.5,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T05:20:08.911865",
+      "data_timestamp": 1770891341,
+      "data_time": "2026-02-12T04:15:41",
+      "age_minutes": 64.5,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T05:25:10.161816",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 4.9,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-12T05:30:09.971541",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 9.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T05:35:10.237296",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 14.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T05:40:09.516926",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 19.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T05:45:09.441225",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 24.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T05:50:10.147795",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 29.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T05:55:08.772036",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 34.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T06:00:12.416971",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 40.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T06:05:09.253599",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 44.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T06:10:08.423665",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 49.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T06:15:08.769927",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 54.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T06:20:08.582936",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 59.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T06:25:09.344397",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 64.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T06:30:08.954493",
+      "data_timestamp": 1770895214,
+      "data_time": "2026-02-12T05:20:14",
+      "age_minutes": 69.9,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T06:35:09.580496",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 14.3,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-12T06:40:12.066794",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 19.4,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T06:45:09.248391",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 24.3,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T06:50:09.239244",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 29.3,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T06:55:09.438853",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 34.3,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T07:00:09.531370",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 39.3,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T07:05:07.609890",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 44.3,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T07:10:11.241711",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 49.3,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T07:15:09.267953",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 54.3,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T07:20:08.881203",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 59.3,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T07:25:09.053658",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 64.3,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T07:30:09.497915",
+      "data_timestamp": 1770898851,
+      "data_time": "2026-02-12T06:20:51",
+      "age_minutes": 69.3,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T07:35:09.207256",
+      "data_timestamp": 1770903039,
+      "data_time": "2026-02-12T07:30:39",
+      "age_minutes": 4.5,
+      "is_new": true
+    },
+    {
+      "check_time": "2026-02-12T07:40:08.465626",
+      "data_timestamp": 1770903039,
+      "data_time": "2026-02-12T07:30:39",
+      "age_minutes": 9.5,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T07:40:40.889693",
+      "data_timestamp": 1770903039,
+      "data_time": "2026-02-12T07:30:39",
+      "age_minutes": 10.0,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T07:45:10.122643",
+      "data_timestamp": 1770903039,
+      "data_time": "2026-02-12T07:30:39",
+      "age_minutes": 14.5,
+      "is_new": false
+    },
+    {
+      "check_time": "2026-02-12T07:50:09.564266",
+      "data_timestamp": 1770903039,
+      "data_time": "2026-02-12T07:30:39",
+      "age_minutes": 19.5,
+      "is_new": false
+    }
+  ],
+  "updates": [
+    {
+      "detected_at": "2026-02-11T20:20:43.242861",
+      "data_time": "2026-02-11T19:35:20",
+      "data_minute": 35
+    },
+    {
+      "detected_at": "2026-02-11T20:35:08.413963",
+      "data_time": "2026-02-11T20:33:32",
+      "data_minute": 33
+    },
+    {
+      "detected_at": "2026-02-11T22:05:08.660235",
+      "data_time": "2026-02-11T21:40:17",
+      "data_minute": 40
+    },
+    {
+      "detected_at": "2026-02-11T23:05:08.439300",
+      "data_time": "2026-02-11T22:40:17",
+      "data_minute": 40
+    },
+    {
+      "detected_at": "2026-02-11T23:35:08.038139",
+      "data_time": "2026-02-11T23:31:34",
+      "data_minute": 31
+    },
+    {
+      "detected_at": "2026-02-12T00:55:09.349216",
+      "data_time": "2026-02-12T00:27:28",
+      "data_minute": 27
+    },
+    {
+      "detected_at": "2026-02-12T02:05:09.251848",
+      "data_time": "2026-02-12T01:35:30",
+      "data_minute": 35
+    },
+    {
+      "detected_at": "2026-02-12T02:35:08.637982",
+      "data_time": "2026-02-12T02:28:10",
+      "data_minute": 28
+    },
+    {
+      "detected_at": "2026-02-12T03:35:08.826107",
+      "data_time": "2026-02-12T03:24:45",
+      "data_minute": 24
+    },
+    {
+      "detected_at": "2026-02-12T04:35:08.906660",
+      "data_time": "2026-02-12T04:15:41",
+      "data_minute": 15
+    },
+    {
+      "detected_at": "2026-02-12T05:25:10.161816",
+      "data_time": "2026-02-12T05:20:14",
+      "data_minute": 20
+    },
+    {
+      "detected_at": "2026-02-12T06:35:09.580496",
+      "data_time": "2026-02-12T06:20:51",
+      "data_minute": 20
+    },
+    {
+      "detected_at": "2026-02-12T07:35:09.207256",
+      "data_time": "2026-02-12T07:30:39",
+      "data_minute": 30
+    }
+  ]
+}
