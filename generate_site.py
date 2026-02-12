@@ -53,11 +53,33 @@ def format_coins(value):
         return f"{value:.0f}"
 
 
-def generate_html(timestamp, data_by_mode, player_stats):
+def format_duration(seconds):
+    """Format duration in human readable form."""
+    if seconds <= 0:
+        return "just now"
+    elif seconds < 60:
+        return f"{int(seconds)}s ago"
+    elif seconds < 3600:
+        return f"{int(seconds / 60)}m ago"
+    elif seconds < 86400:
+        return f"{seconds / 3600:.1f}h ago"
+    else:
+        return f"{seconds / 86400:.1f}d ago"
+
+
+def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None):
     """Generate the full HTML page."""
     
     json_data = json.dumps(data_by_mode)
     stats_json = json.dumps(player_stats)
+    
+    # Calculate time since last check/update
+    if price_history_meta:
+        time_since_check = format_duration(price_history_meta.get('seconds_since_check', 0))
+        time_since_market = format_duration(price_history_meta.get('seconds_since_market', 0))
+    else:
+        time_since_check = "unknown"
+        time_since_market = "unknown"
     
     return f'''<!DOCTYPE html>
 <html lang="en">
@@ -412,7 +434,7 @@ def generate_html(timestamp, data_by_mode, player_stats):
                 <div class="gear-panel" id="gear-panel"></div>
             </div>
         </div>
-        <p class="subtitle">MWI Enhancement Profit Tracker | Market data: {timestamp} (updates ~30 min)</p>
+        <p class="subtitle">MWI Enhancement Profit Tracker | Market: {timestamp} | Last check: {time_since_check} | Market update: {time_since_market}</p>
         
         <div class="controls">
             <div class="control-group">
@@ -854,10 +876,19 @@ def main():
     # Get player stats for the gear dropdown
     player_stats = calc.get_player_stats()
     
+    # Calculate time since last check/market update
+    last_check_ts = price_history.get('last_check_ts', now_ts)
+    last_market_ts = price_history.get('last_market_timestamp', now_ts)
+    price_history_meta = {
+        'seconds_since_check': now_ts - last_check_ts,
+        'seconds_since_market': now_ts - last_market_ts
+    }
+    
     html = generate_html(
         timestamp=timestamp.strftime('%Y-%m-%d %H:%M UTC'),
         data_by_mode=all_modes,
-        player_stats=player_stats
+        player_stats=player_stats,
+        price_history_meta=price_history_meta
     )
     
     with open('index.html', 'w', encoding='utf-8') as f:
