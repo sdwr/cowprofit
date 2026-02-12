@@ -10,15 +10,15 @@ with open(MAIN_PY, 'r', encoding='utf-8') as f:
     content = f.read()
 
 # Check if already patched
-if '/prices' in content:
+if '@app.get("/prices"' in content:
     print("Already patched!")
     exit(0)
 
-# Add import for Path if not present
+# Add import for Path if not present - add after os import
 if 'from pathlib import Path' not in content:
     content = content.replace(
-        'from datetime import datetime',
-        'from datetime import datetime\nfrom pathlib import Path'
+        'import os\n',
+        'import os\nfrom pathlib import Path\n'
     )
 
 # Add route before main block
