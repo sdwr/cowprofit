@@ -108,14 +108,13 @@ def get_price_age_info(item_hrid, target_level, price_history, now_ts):
     data = items.get(key, {})
     
     if not data:
-        return {'price_age_seconds': 0, 'price_direction': None}
+        return {'price_since_ts': 0, 'price_direction': None}
     
-    price_since_ts = data.get('current_price_since_ts', now_ts)
-    age_seconds = max(0, now_ts - price_since_ts)
+    price_since_ts = data.get('current_price_since_ts', 0)
     direction = data.get('price_direction')  # 'up', 'down', or None
     
     return {
-        'price_age_seconds': age_seconds,
+        'price_since_ts': price_since_ts,
         'price_direction': direction
     }
 
@@ -132,33 +131,15 @@ def format_coins(value):
         return f"{value:.0f}"
 
 
-def format_duration(seconds):
-    """Format duration in human readable form."""
-    if seconds <= 0:
-        return "just now"
-    elif seconds < 60:
-        return f"{int(seconds)}s ago"
-    elif seconds < 3600:
-        return f"{int(seconds / 60)}m ago"
-    elif seconds < 86400:
-        return f"{seconds / 3600:.1f}h ago"
-    else:
-        return f"{seconds / 86400:.1f}d ago"
-
-
 def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None):
     """Generate the full HTML page."""
     
     json_data = json.dumps(data_by_mode)
     stats_json = json.dumps(player_stats)
     
-    # Calculate time since last check/update
-    if price_history_meta:
-        time_since_check = format_duration(price_history_meta.get('seconds_since_check', 0))
-        time_since_market = format_duration(price_history_meta.get('seconds_since_market', 0))
-    else:
-        time_since_check = "unknown"
-        time_since_market = "unknown"
+    # Pass timestamps for dynamic JavaScript calculation
+    last_check_ts = price_history_meta.get('last_check_ts', 0) if price_history_meta else 0
+    last_market_ts = price_history_meta.get('last_market_ts', 0) if price_history_meta else 0
     
     return f'''<!DOCTYPE html>
 <html lang="en">
@@ -513,7 +494,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                 <div class="gear-panel" id="gear-panel"></div>
             </div>
         </div>
-        <p class="subtitle">MWI Enhancement Profit Tracker | Market: {timestamp} | Last check: {time_since_check} | Market update: {time_since_market}</p>
+        <p class="subtitle">MWI Enhancement Profit Tracker | Last check: <span id="time-check">-</span> | Market update: <span id="time-market">-</span></p>
         
         <div class="controls">
             <div class="control-group">
@@ -594,6 +575,8 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
     <script>
         const allData = {json_data};
         const playerStats = {stats_json};
+        const lastCheckTs = {last_check_ts};
+        const lastMarketTs = {last_market_ts};
         let currentMode = 'pessimistic';
         let currentLevel = 'all';
         let sortCol = 10; // Default to $/day column
@@ -620,6 +603,20 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             if (direction === 'up') return '<span class="price-up">↑</span>';
             if (direction === 'down') return '<span class="price-down">↓</span>';
             return '-';
+        }}
+        
+        function formatTimeAgo(ts) {{
+            if (!ts) return '-';
+            const seconds = Math.floor(Date.now() / 1000) - ts;
+            if (seconds < 60) return Math.floor(seconds) + 's ago';
+            if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+            if (seconds < 86400) return (seconds / 3600).toFixed(1) + 'h ago';
+            return (seconds / 86400).toFixed(1) + 'd ago';
+        }}
+        
+        function updateTimes() {{
+            document.getElementById('time-check').textContent = formatTimeAgo(lastCheckTs);
+            document.getElementById('time-market').textContent = formatTimeAgo(lastMarketTs);
         }}
         
         function formatCoins(value) {{
@@ -841,8 +838,11 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                 }};
             }});
             
-            // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, price_age_seconds, profit, roi, time_days, profit_day, xp_per_day
-            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', 'price_age_seconds', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day'];
+            // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, _age, profit, roi, time_days, profit_day, xp_per_day
+            const nowTs = Math.floor(Date.now() / 1000);
+            // Add computed _age field for sorting
+            filtered = filtered.map(r => ({{...r, _age: r.price_since_ts ? nowTs - r.price_since_ts : 0}}));
+            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_age', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day'];
             filtered.sort((a, b) => {{
                 let va = a[sortKeys[sortCol]];
                 let vb = b[sortKeys[sortCol]];
@@ -883,7 +883,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                     <td class="number hide-mobile">${{formatCoins(r.mat_cost)}}</td>
                     <td class="number hide-mobile">${{formatCoins(r.total_cost)}}</td>
                     <td class="number">${{formatCoins(r.sell_price)}}</td>
-                    <td class="number">${{formatAge(r.price_age_seconds)}} ${{getAgeArrow(r.price_direction)}}</td>
+                    <td class="number">${{formatAge(r._age)}} ${{getAgeArrow(r.price_direction)}}</td>
                     <td class="number ${{profitClass}}">${{formatCoins(profit)}}</td>
                     <td class="number ${{profitClass}}">${{roi.toFixed(1)}}%</td>
                     <td class="number hide-mobile">${{r.time_days.toFixed(2)}}</td>
@@ -915,6 +915,8 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         }});
         
         renderTable();
+        updateTimes();
+        setInterval(updateTimes, 60000); // Update header times every minute
     </script>
 </body>
 </html>
@@ -955,7 +957,7 @@ def main():
             item_hrid = result.get('item_hrid', '')
             target_level = result.get('target_level', 0)
             age_info = get_price_age_info(item_hrid, target_level, price_history, now_ts)
-            result['price_age_seconds'] = age_info['price_age_seconds']
+            result['price_since_ts'] = age_info['price_since_ts']
             result['price_direction'] = age_info['price_direction']
     
     profitable_count = len([r for r in all_modes['pessimistic'] if r['profit'] > MIN_PROFIT])
@@ -964,12 +966,10 @@ def main():
     # Get player stats for the gear dropdown
     player_stats = calc.get_player_stats()
     
-    # Calculate time since last check/market update
-    last_check_ts = price_history.get('last_check_ts', now_ts)
-    last_market_ts = price_history.get('last_market_timestamp', now_ts)
+    # Pass timestamps for dynamic JavaScript calculation
     price_history_meta = {
-        'seconds_since_check': now_ts - last_check_ts,
-        'seconds_since_market': now_ts - last_market_ts
+        'last_check_ts': price_history.get('last_check_ts', now_ts),
+        'last_market_ts': price_history.get('last_market_timestamp', now_ts)
     }
     
     html = generate_html(
