@@ -192,7 +192,7 @@ def generate_html(timestamp, data_by_mode):
 <body>
     <div class="container">
         <h1>&#x1F404; CowProfit</h1>
-        <p class="subtitle">MWI Enhancement Profit Tracker | Updated: {timestamp}</p>
+        <p class="subtitle">MWI Enhancement Profit Tracker | Market data: {timestamp} (updates every ~15 min)</p>
         
         <div class="controls">
             <div class="control-group">

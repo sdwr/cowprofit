@@ -123,12 +123,60 @@ class EnhancementCalculator:
         
         return bonus
     
-    def get_item_price(self, hrid, enhancement_level, market_data, mode=PriceMode.MIDPOINT):
-        """Get market price for an item at a specific enhancement level.
+    def get_crafting_cost(self, hrid, market_data, mode=PriceMode.MIDPOINT, depth=0):
+        """Calculate the crafting cost of an item (recursive).
         
-        Args:
-            mode: PriceMode enum - determines which price to return
+        Returns 0 if item is not craftable.
         """
+        if depth > 10:  # Prevent infinite recursion
+            return 0
+        if hrid == '/items/coin':
+            return 1
+        
+        item = self.item_detail_map.get(hrid, {})
+        category = item.get('categoryHrid', '')
+        
+        # Only calculate crafting cost for equipment and special items
+        if category != '/item_categories/equipment' and hrid != '/items/philosophers_mirror':
+            return 0
+        
+        # Find the crafting action for this item
+        action = None
+        for act in self.action_detail_map.values():
+            if (act.get('function') == '/action_functions/production' and
+                act.get('outputItems') and
+                act['outputItems'][0].get('itemHrid') == hrid):
+                action = act
+                break
+        
+        if not action:
+            return 0  # Not craftable
+        
+        cost = 0
+        
+        # Add input materials cost
+        for input_item in action.get('inputItems', []):
+            input_hrid = input_item['itemHrid']
+            count = input_item['count']
+            # Get market price for materials
+            input_price = self._get_raw_market_price(input_hrid, 0, market_data, mode)
+            if input_price <= 0:
+                # Try crafting cost for the input
+                input_price = self.get_crafting_cost(input_hrid, market_data, mode, depth + 1)
+            cost += count * input_price
+        
+        # Add upgrade item cost (for refined items)
+        upgrade_hrid = action.get('upgradeItemHrid', '')
+        if upgrade_hrid:
+            upgrade_price = self._get_raw_market_price(upgrade_hrid, 0, market_data, mode)
+            if upgrade_price <= 0:
+                upgrade_price = self.get_crafting_cost(upgrade_hrid, market_data, mode, depth + 1)
+            cost += upgrade_price
+        
+        return cost
+    
+    def _get_raw_market_price(self, hrid, enhancement_level, market_data, mode=PriceMode.MIDPOINT):
+        """Get raw market price without crafting cost fallback."""
         if hrid == '/items/coin':
             return 1
         
@@ -139,17 +187,12 @@ class EnhancementCalculator:
         ask = level_data.get('a', -1)
         bid = level_data.get('b', -1)
         
-        # Handle -1 (no orders)
         if ask == -1 and bid == -1:
-            return 0  # No market data
+            return 0
         
         if mode == PriceMode.PESSIMISTIC:
-            # For buying, we want ask (what sellers want)
-            # For selling, we want bid (what buyers offer)
-            # This method is called for buying, so return ask
-            return ask if ask > 0 else bid if bid > 0 else 0
+            return ask if ask > 0 else 0  # Only use ask for buying
         elif mode == PriceMode.OPTIMISTIC:
-            # For buying, we want bid (cheaper)
             return bid if bid > 0 else ask if ask > 0 else 0
         else:  # MIDPOINT
             if ask == -1:
@@ -158,6 +201,29 @@ class EnhancementCalculator:
                 return ask
             else:
                 return (ask + bid) / 2
+    
+    def get_item_price(self, hrid, enhancement_level, market_data, mode=PriceMode.MIDPOINT):
+        """Get market price for an item at a specific enhancement level.
+        
+        For craftable items, uses crafting cost as floor price.
+        """
+        if hrid == '/items/coin':
+            return 1
+        
+        # Get raw market price
+        market_price = self._get_raw_market_price(hrid, enhancement_level, market_data, mode)
+        
+        # For +0 items, check crafting cost as floor
+        if enhancement_level == 0:
+            crafting_cost = self.get_crafting_cost(hrid, market_data, mode)
+            if crafting_cost > 0:
+                # Use higher of market price or crafting cost
+                if market_price <= 0:
+                    return crafting_cost
+                return max(market_price, crafting_cost)
+        
+        # For enhanced items or non-craftable, just use market price
+        return market_price if market_price > 0 else 0
     
     def get_sell_price(self, hrid, enhancement_level, market_data, mode=PriceMode.MIDPOINT):
         """Get the price you can sell an item for."""
@@ -189,40 +255,15 @@ class EnhancementCalculator:
                 return (ask + bid) / 2
     
     def get_full_item_price(self, hrid, market_data, mode=PriceMode.MIDPOINT):
-        """Get crafting cost of an item (recursive for crafted items)."""
+        """Get price of an item for enhancement calculations.
+        
+        For materials: uses market price
+        For craftable equipment: uses higher of market price or crafting cost
+        """
         if hrid == '/items/coin':
             return 1
         
-        item = self.item_detail_map.get(hrid, {})
-        category = item.get('categoryHrid', '')
-        
-        # For equipment and philosopher's mirror, check if craftable
-        if category == '/item_categories/equipment' or hrid == '/items/philosophers_mirror':
-            action = None
-            for act in self.action_detail_map.values():
-                if (act.get('function') == '/action_functions/production' and
-                    act.get('outputItems') and
-                    act['outputItems'][0].get('itemHrid') == hrid):
-                    action = act
-                    break
-            
-            if action:
-                cost = 0
-                for input_item in action.get('inputItems', []):
-                    input_hrid = input_item['itemHrid']
-                    count = input_item['count']
-                    input_cost = count * self.get_full_item_price(input_hrid, market_data, mode)
-                    if 'charm' in hrid:
-                        input_cost *= 0.90
-                    cost += input_cost
-                
-                upgrade = action.get('upgradeItemHrid', '')
-                if upgrade:
-                    cost += self.get_full_item_price(upgrade, market_data, mode)
-                
-                return cost
-        
-        # Base item - get from market
+        # Use get_item_price which handles crafting cost floor for +0 items
         return self.get_item_price(hrid, 0, market_data, mode)
     
     def calculate_enhancement_cost(self, item_hrid, target_level, market_data, mode=PriceMode.MIDPOINT):
