@@ -382,7 +382,7 @@ def generate_html(timestamp, data_by_mode, player_stats):
                 <div class="gear-panel" id="gear-panel"></div>
             </div>
         </div>
-        <p class="subtitle">MWI Enhancement Profit Tracker | Market data: {timestamp} (updates ~15 min)</p>
+        <p class="subtitle">MWI Enhancement Profit Tracker | Market data: {timestamp} (updates ~30 min)</p>
         
         <div class="controls">
             <div class="control-group">
@@ -392,7 +392,7 @@ def generate_html(timestamp, data_by_mode, player_stats):
                 <button class="mode-btn" onclick="setMode('optimistic')" id="btn-optimistic">Optimistic</button>
             </div>
             <div class="control-group">
-                <button class="toggle-btn" onclick="toggleFee()" id="btn-fee">-2% Fee</button>
+                <button class="toggle-btn active" onclick="toggleFee()" id="btn-fee">-2% Fee</button>
             </div>
         </div>
         <p class="mode-info" id="mode-info">Buy at Ask, Sell at Bid (safest estimate)</p>
@@ -448,7 +448,6 @@ def generate_html(timestamp, data_by_mode, player_stats):
                     <th onclick="sortTable(8, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(9, 'num')" class="number">$/day<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(10, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(11, 'num')" class="number">Score<span class="sort-arrow">&#9650;</span></th>
                 </tr>
             </thead>
             <tbody id="table-body">
@@ -457,7 +456,6 @@ def generate_html(timestamp, data_by_mode, player_stats):
         
         <div class="footer">
             <p>Data from <a href="https://www.milkywayidle.com" target="_blank">Milky Way Idle</a> | Math from <a href="https://doh-nuts.github.io/Enhancelator/" target="_blank">Enhancelator</a></p>
-            <p>Score = sqrt(ROI% * $/day) — balances return rate with daily profit</p>
         </div>
     </div>
     
@@ -466,9 +464,9 @@ def generate_html(timestamp, data_by_mode, player_stats):
         const playerStats = {stats_json};
         let currentMode = 'pessimistic';
         let currentLevel = 'all';
-        let sortCol = 11; // Default to Score column
+        let sortCol = 9; // Default to $/day column
         let sortAsc = false;
-        let showFee = false;
+        let showFee = true; // Fee toggle on by default
         let expandedRows = new Set();
         let gearOpen = false;
         
@@ -576,13 +574,6 @@ def generate_html(timestamp, data_by_mode, player_stats):
                 expandedRows.add(rowId);
             }}
             renderTable();
-        }}
-        
-        // Calculate smart score: sqrt(ROI * profit_per_day)
-        // This balances high ROI with high daily profit
-        function calcScore(roi, profitPerDay) {{
-            if (roi <= 0 || profitPerDay <= 0) return 0;
-            return Math.sqrt(roi * profitPerDay);
         }}
         
         function renderDetailRow(r) {{
@@ -700,13 +691,12 @@ def generate_html(timestamp, data_by_mode, player_stats):
                     ...r, 
                     _profit: r[profitKey], 
                     _profit_day: profitDay,
-                    _roi: roi,
-                    _score: calcScore(roi, profitDay)
+                    _roi: roi
                 }};
             }});
             
-            // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, profit, roi, time_days, profit_day, xp_per_day, score
-            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day', '_score'];
+            // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, profit, roi, time_days, profit_day, xp_per_day
+            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day'];
             filtered.sort((a, b) => {{
                 let va = a[sortKeys[sortCol]];
                 let vb = b[sortKeys[sortCol]];
@@ -737,7 +727,6 @@ def generate_html(timestamp, data_by_mode, player_stats):
                 const profit = r._profit;
                 const profitDay = r._profit_day;
                 const roi = r._roi;
-                const score = r._score;
                 const profitClass = profit > 0 ? 'positive' : profit < 0 ? 'negative' : 'neutral';
                 const sourceClass = r.base_source === 'market' ? 'source-market' : r.base_source === 'craft' ? 'source-craft' : 'source-vendor';
                 
@@ -753,11 +742,10 @@ def generate_html(timestamp, data_by_mode, player_stats):
                     <td class="number hide-mobile">${{r.time_days.toFixed(2)}}</td>
                     <td class="number ${{profitClass}}">${{formatCoins(profitDay)}}</td>
                     <td class="number hide-mobile">${{formatXP(r.xp_per_day)}}</td>
-                    <td class="number ${{profitClass}}">${{formatCoins(score)}}</td>
                 </tr>`;
                 
                 html += `<tr class="detail-row ${{isExpanded ? 'visible' : ''}}">
-                    <td colspan="12">${{renderDetailRow(r)}}</td>
+                    <td colspan="11">${{renderDetailRow(r)}}</td>
                 </tr>`;
             }});
             
@@ -828,13 +816,11 @@ def main():
     
     for mode_name in ['pessimistic']:
         results = all_modes[mode_name]
-        profitable = [r for r in results if r['profit'] > MIN_PROFIT]
-        print(f"\n=== Top 5 {mode_name.upper()} (by score) ===")
-        # Sort by score
-        scored = [(r, (r['roi'] * r['profit_per_day']) ** 0.5) for r in profitable]
-        scored.sort(key=lambda x: x[1], reverse=True)
-        for i, (r, score) in enumerate(scored[:5], 1):
-            print(f"{i}. {r['item_name']} +{r['target_level']}: {format_coins(r['profit'])} ({r['roi']:.1f}%) - {format_coins(r['profit_per_day'])}/day - Score: {format_coins(score)}")
+        profitable = [r for r in results if r['profit_after_fee'] > MIN_PROFIT]
+        print(f"\n=== Top 5 {mode_name.upper()} (by $/day after fee) ===")
+        profitable.sort(key=lambda r: r['profit_per_day_after_fee'], reverse=True)
+        for i, r in enumerate(profitable[:5], 1):
+            print(f"{i}. {r['item_name']} +{r['target_level']}: {format_coins(r['profit_after_fee'])} profit, {format_coins(r['total_cost'])} cost, {format_coins(r['profit_per_day_after_fee'])}/day")
 
 
 if __name__ == '__main__':
