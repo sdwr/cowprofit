@@ -12,9 +12,9 @@ from enhance_calc import EnhancementCalculator, PriceMode
 # Target enhancement levels to calculate
 TARGET_LEVELS = [8, 10, 12, 14]
 
-# Minimum profit to show (filter out tiny profits)
-MIN_PROFIT = 1_000_000  # 1M coins
-MAX_ROI = 1000  # Filter unrealistic ROI
+# Minimum profit to show
+MIN_PROFIT = 1_000_000
+MAX_ROI = 1000
 
 
 def format_coins(value):
@@ -32,7 +32,6 @@ def format_coins(value):
 def generate_html(timestamp, data_by_mode):
     """Generate the full HTML page with embedded data for all modes."""
     
-    # Convert data to JSON for embedding
     json_data = json.dumps(data_by_mode)
     
     return f'''<!DOCTYPE html>
@@ -50,7 +49,7 @@ def generate_html(timestamp, data_by_mode):
             min-height: 100vh;
             padding: 20px;
         }}
-        .container {{ max-width: 1400px; margin: 0 auto; }}
+        .container {{ max-width: 1600px; margin: 0 auto; }}
         h1 {{
             text-align: center;
             color: #eeb357;
@@ -128,14 +127,13 @@ def generate_html(timestamp, data_by_mode):
         th {{
             background: rgba(238,179,87,0.2);
             color: #eeb357;
-            padding: 12px 8px;
+            padding: 12px 6px;
             text-align: left;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             white-space: nowrap;
             cursor: pointer;
             user-select: none;
-            position: relative;
         }}
         th:hover {{
             background: rgba(238,179,87,0.35);
@@ -148,9 +146,9 @@ def generate_html(timestamp, data_by_mode):
             opacity: 1;
         }}
         td {{
-            padding: 10px 8px;
+            padding: 8px 6px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }}
         tr:hover {{ background: rgba(255,255,255,0.05); }}
         .positive {{ color: #4ade80; }}
@@ -162,10 +160,21 @@ def generate_html(timestamp, data_by_mode):
             color: #eeb357;
             padding: 2px 8px;
             border-radius: 10px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: bold;
         }}
-        .number {{ text-align: right; font-family: 'SF Mono', Monaco, monospace; }}
+        .number {{ text-align: right; font-family: 'SF Mono', Monaco, monospace; font-size: 0.8rem; }}
+        .price-source {{
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }}
+        .source-market {{ background: #60a5fa; }}
+        .source-craft {{ background: #f59e0b; }}
+        .source-vendor {{ background: #9ca3af; }}
         .footer {{
             text-align: center;
             margin-top: 30px;
@@ -182,9 +191,22 @@ def generate_html(timestamp, data_by_mode):
             margin-top: -10px;
             margin-bottom: 15px;
         }}
-        @media (max-width: 768px) {{
-            table {{ font-size: 0.75rem; }}
-            th, td {{ padding: 8px 4px; }}
+        .legend {{
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            font-size: 0.75rem;
+            color: #888;
+        }}
+        .legend-item {{
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }}
+        @media (max-width: 900px) {{
+            table {{ font-size: 0.7rem; }}
+            th, td {{ padding: 6px 3px; }}
             .hide-mobile {{ display: none; }}
         }}
     </style>
@@ -192,7 +214,7 @@ def generate_html(timestamp, data_by_mode):
 <body>
     <div class="container">
         <h1>&#x1F404; CowProfit</h1>
-        <p class="subtitle">MWI Enhancement Profit Tracker | Market data: {timestamp} (updates every ~15 min)</p>
+        <p class="subtitle">MWI Enhancement Profit Tracker | Market data: {timestamp} (updates ~15 min)</p>
         
         <div class="controls">
             <div class="control-group">
@@ -203,6 +225,12 @@ def generate_html(timestamp, data_by_mode):
             </div>
         </div>
         <p class="mode-info" id="mode-info">Buy at Ask, Sell at Bid (safest estimate)</p>
+        
+        <div class="legend">
+            <div class="legend-item"><span class="price-source source-market"></span> Market price</div>
+            <div class="legend-item"><span class="price-source source-craft"></span> Craft cost</div>
+            <div class="legend-item"><span class="price-source source-vendor"></span> Vendor price</div>
+        </div>
         
         <div class="stats">
             <div class="stat">
@@ -216,6 +244,10 @@ def generate_html(timestamp, data_by_mode):
             <div class="stat">
                 <div class="stat-value" id="stat-profit">-</div>
                 <div class="stat-label">Top Profit</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-profithr">-</div>
+                <div class="stat-label">Best Profit/hr</div>
             </div>
         </div>
         
@@ -233,12 +265,14 @@ def generate_html(timestamp, data_by_mode):
                     <th onclick="sortTable(0, 'num')">#<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(1, 'str')">Item<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(2, 'num')">Lvl<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(3, 'num')" class="number hide-mobile">Buy<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(3, 'num')" class="number">Buy<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(4, 'num')" class="number hide-mobile">Enhance<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(5, 'num')" class="number">Total Cost<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(5, 'num')" class="number hide-mobile">Total<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(6, 'num')" class="number">Sell<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(7, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(8, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(9, 'num')" class="number">Time<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(10, 'num')" class="number">$/hr<span class="sort-arrow">&#9650;</span></th>
                 </tr>
             </thead>
             <tbody id="table-body">
@@ -249,6 +283,7 @@ def generate_html(timestamp, data_by_mode):
             <p>Data from <a href="https://www.milkywayidle.com" target="_blank">Milky Way Idle</a> market API</p>
             <p>Calculations based on <a href="https://doh-nuts.github.io/Enhancelator/" target="_blank">Enhancelator</a></p>
             <p>Gear: Celestial +14, Gloves +10, Pouch +8, Top/Bot +8, Neck +7, Adv Charm +6, Skill 125</p>
+            <p>Teas: Super Enhancing, Blessed, Wisdom, Artisan (11.2% mat reduction)</p>
         </div>
     </div>
     
@@ -256,7 +291,7 @@ def generate_html(timestamp, data_by_mode):
         const allData = {json_data};
         let currentMode = 'pessimistic';
         let currentLevel = 'all';
-        let sortCol = 7; // Default sort by profit
+        let sortCol = 7;
         let sortAsc = false;
         
         const modeInfo = {{
@@ -270,6 +305,11 @@ def generate_html(timestamp, data_by_mode):
             if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(1) + 'M';
             if (Math.abs(value) >= 1e3) return (value/1e3).toFixed(1) + 'K';
             return value.toFixed(0);
+        }}
+        
+        function formatTime(hours) {{
+            if (hours < 1) return Math.round(hours * 60) + 'm';
+            return hours.toFixed(1) + 'h';
         }}
         
         function setMode(mode) {{
@@ -292,7 +332,7 @@ def generate_html(timestamp, data_by_mode):
                 sortAsc = !sortAsc;
             }} else {{
                 sortCol = col;
-                sortAsc = (col <= 2); // Ascending for #, name, level; descending for numbers
+                sortAsc = (col <= 2);
             }}
             renderTable();
         }}
@@ -300,12 +340,10 @@ def generate_html(timestamp, data_by_mode):
         function renderTable() {{
             const data = allData[currentMode] || [];
             
-            // Filter by level
             let filtered = currentLevel === 'all' ? data : 
                 data.filter(r => r.target_level == currentLevel);
             
-            // Sort
-            const sortKeys = ['_idx', 'item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', 'profit', 'roi'];
+            const sortKeys = ['_idx', 'item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', 'profit', 'roi', 'time_hours', 'profit_per_hour'];
             filtered = filtered.map((r, i) => ({{...r, _idx: i + 1}}));
             filtered.sort((a, b) => {{
                 let va = a[sortKeys[sortCol]];
@@ -316,33 +354,35 @@ def generate_html(timestamp, data_by_mode):
                 return sortAsc ? va - vb : vb - va;
             }});
             
-            // Update stats
             const profitable = data.filter(r => r.profit > 1000000 && r.roi < 1000);
             const bestProfit = data.length ? Math.max(...data.map(r => r.profit)) : 0;
             const bestRoi = profitable.length ? Math.max(...profitable.map(r => r.roi)) : 0;
+            const bestProfitHr = profitable.length ? Math.max(...profitable.map(r => r.profit_per_hour)) : 0;
             
             document.getElementById('stat-profitable').textContent = profitable.length;
             document.getElementById('stat-roi').textContent = bestRoi.toFixed(0) + '%';
             document.getElementById('stat-profit').textContent = formatCoins(bestProfit);
+            document.getElementById('stat-profithr').textContent = formatCoins(bestProfitHr) + '/hr';
             
-            // Render rows
             const tbody = document.getElementById('table-body');
-            tbody.innerHTML = filtered.slice(0, 200).map((r, i) => {{
+            tbody.innerHTML = filtered.slice(0, 300).map((r, i) => {{
                 const profitClass = r.profit > 0 ? 'positive' : r.profit < 0 ? 'negative' : 'neutral';
+                const sourceClass = r.base_source === 'market' ? 'source-market' : r.base_source === 'craft' ? 'source-craft' : 'source-vendor';
                 return `<tr data-level="${{r.target_level}}">
                     <td>${{i + 1}}</td>
                     <td class="item-name">${{r.item_name}}</td>
                     <td><span class="level-badge">+${{r.target_level}}</span></td>
-                    <td class="number hide-mobile">${{formatCoins(r.base_price)}}</td>
+                    <td class="number"><span class="price-source ${{sourceClass}}"></span>${{formatCoins(r.base_price)}}</td>
                     <td class="number hide-mobile">${{formatCoins(r.mat_cost)}}</td>
-                    <td class="number">${{formatCoins(r.total_cost)}}</td>
+                    <td class="number hide-mobile">${{formatCoins(r.total_cost)}}</td>
                     <td class="number">${{formatCoins(r.sell_price)}}</td>
                     <td class="number ${{profitClass}}">${{formatCoins(r.profit)}}</td>
                     <td class="number ${{profitClass}}">${{r.roi.toFixed(1)}}%</td>
+                    <td class="number">${{formatTime(r.time_hours)}}</td>
+                    <td class="number ${{profitClass}}">${{formatCoins(r.profit_per_hour)}}</td>
                 </tr>`;
             }}).join('');
             
-            // Update sort arrows
             document.querySelectorAll('th').forEach((th, i) => {{
                 th.classList.toggle('sorted', i === sortCol);
                 const arrow = th.querySelector('.sort-arrow');
@@ -350,7 +390,6 @@ def generate_html(timestamp, data_by_mode):
             }});
         }}
         
-        // Initial render
         renderTable();
     </script>
 </body>
@@ -369,28 +408,23 @@ def main():
     
     print(f"Calculating profits for {len(calc.enhanceable_items)} items in all price modes...")
     
-    # Calculate for all modes
     all_modes = calc.get_all_profits_all_modes(market_data, TARGET_LEVELS)
     
-    # Filter each mode
     for mode in all_modes:
         all_modes[mode] = [r for r in all_modes[mode] if r['roi'] < MAX_ROI]
     
     profitable_count = len([r for r in all_modes['pessimistic'] if r['profit'] > MIN_PROFIT])
     print(f"Found {profitable_count} profitable opportunities (pessimistic)")
     
-    # Generate HTML
     html = generate_html(
         timestamp=timestamp.strftime('%Y-%m-%d %H:%M UTC'),
         data_by_mode=all_modes
     )
     
-    # Write HTML
     with open('index.html', 'w', encoding='utf-8') as f:
         f.write(html)
     print("Generated index.html")
     
-    # Write JSON data
     with open('data.json', 'w', encoding='utf-8') as f:
         json.dump({
             'timestamp': market_data.get('timestamp'),
@@ -398,27 +432,15 @@ def main():
             'modes': {
                 mode: results[:100] for mode, results in all_modes.items()
             },
-            'stats': {
-                'pessimistic': {
-                    'profitable_count': len([r for r in all_modes['pessimistic'] if r['profit'] > MIN_PROFIT]),
-                },
-                'midpoint': {
-                    'profitable_count': len([r for r in all_modes['midpoint'] if r['profit'] > MIN_PROFIT]),
-                },
-                'optimistic': {
-                    'profitable_count': len([r for r in all_modes['optimistic'] if r['profit'] > MIN_PROFIT]),
-                },
-            }
         }, f, indent=2)
     print("Generated data.json")
     
-    # Print top 5 for each mode
     for mode_name in ['pessimistic', 'midpoint', 'optimistic']:
         results = all_modes[mode_name]
         profitable = [r for r in results if r['profit'] > MIN_PROFIT]
         print(f"\n=== Top 5 {mode_name.upper()} ===")
         for i, r in enumerate(profitable[:5], 1):
-            print(f"{i}. {r['item_name']} +{r['target_level']}: {format_coins(r['profit'])} ({r['roi']:.1f}%)")
+            print(f"{i}. {r['item_name']} +{r['target_level']}: {format_coins(r['profit'])} ({r['roi']:.1f}%) - {format_coins(r['profit_per_hour'])}/hr")
 
 
 if __name__ == '__main__':
