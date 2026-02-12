@@ -214,9 +214,21 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .mat-row:last-child { border-bottom: none; }
+        .mat-row.total-row { 
+            border-top: 1px solid rgba(238,179,87,0.3);
+            margin-top: 4px;
+            padding-top: 6px;
+            font-weight: bold;
+        }
         .mat-name { flex: 1; color: #ccc; }
         .mat-count { color: #888; margin: 0 8px; font-size: 0.7rem; }
         .mat-price { font-family: 'SF Mono', Monaco, monospace; color: #eeb357; }
+        .price-note {
+            font-weight: normal;
+            font-size: 0.65rem;
+            color: #666;
+            text-transform: none;
+        }
         .expand-icon {
             display: inline-block;
             width: 16px;
@@ -418,13 +430,16 @@
         }
         
         function renderDetailRow(r) {
+            // Price mode label
+            const priceLabel = currentMode === 'pessimistic' ? 'ask' : currentMode === 'optimistic' ? 'bid' : 'mid';
+            
             // Build materials section
             let matsHtml = '';
             if (r.materials && r.materials.length > 0) {
                 matsHtml = r.materials.map(m => 
                     `<div class="mat-row">
                         <span class="mat-name">${m.name}</span>
-                        <span class="mat-count">${m.count.toFixed(1)}x</span>
+                        <span class="mat-count">${m.count.toFixed(2)}x</span>
                         <span class="mat-price">${formatCoins(m.price)}</span>
                     </div>`
                 ).join('');
@@ -441,14 +456,19 @@
             let craftHtml = '';
             if (r.base_source === 'craft' && r.craft_materials && r.craft_materials.length > 0) {
                 craftHtml = `<div class="detail-section">
-                    <h4>&#x1F528; Craft Materials</h4>
+                    <h4>&#x1F528; Craft Materials <span class="price-note">(${priceLabel} prices, 11.2% artisan)</span></h4>
                     ${r.craft_materials.map(m => 
                         `<div class="mat-row">
-                            <span class="mat-name">${m.name}${m.is_upgrade ? ' (base)' : ''}</span>
-                            <span class="mat-count">${m.count.toFixed(1)}x</span>
+                            <span class="mat-name">${m.name}${m.is_upgrade ? ' (base, no reduction)' : ''}</span>
+                            <span class="mat-count">${m.count.toFixed(2)}x</span>
                             <span class="mat-price">${formatCoins(m.price)}</span>
                         </div>`
                     ).join('')}
+                    <div class="mat-row total-row">
+                        <span class="mat-name">Total craft cost</span>
+                        <span class="mat-count"></span>
+                        <span class="mat-price">${formatCoins(r.craft_materials.reduce((sum, m) => sum + m.count * m.price, 0))}</span>
+                    </div>
                 </div>`;
             }
             
@@ -460,7 +480,7 @@
                 <div class="detail-section">
                     <h4>&#x1F4E6; Base Item</h4>
                     <div class="detail-line">
-                        <span class="label">Price (${r.base_source})</span>
+                        <span class="label">Price (${r.base_source}, ${priceLabel})</span>
                         <span class="value">${formatCoins(r.base_price)}</span>
                     </div>
                     <div class="detail-line">
@@ -470,12 +490,12 @@
                 </div>
                 
                 <div class="detail-section">
-                    <h4>&#x1F527; Materials/Attempt</h4>
+                    <h4>&#x1F527; Materials/Attempt <span class="price-note">(${priceLabel}, 11.2% artisan)</span></h4>
                     ${matsHtml || '<div class="detail-line"><span class="label">No materials</span></div>'}
                 </div>
                 
                 <div class="detail-section">
-                    <h4>&#x1F6E1; Protection</h4>
+                    <h4>&#x1F6E1; Protection <span class="price-note">(${priceLabel})</span></h4>
                     <div class="detail-line">
                         <span class="label">${r.protect_name || 'Unknown'}</span>
                         <span class="value">${formatCoins(r.protect_price)}</span>
