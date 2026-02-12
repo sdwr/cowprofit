@@ -1,5 +1,6 @@
 """
 Generate static HTML site with enhancement profit rankings.
+Includes price history tracking (consolidated from update_prices.py).
 """
 
 import json
@@ -9,6 +10,7 @@ from pathlib import Path
 from enhance_calc import EnhancementCalculator, PriceMode
 
 TARGET_LEVELS = [8, 10, 12, 14]
+TRACKED_LEVELS = [0, 8, 10, 12, 14]  # Levels to track in price history
 MIN_PROFIT = 1_000_000
 MAX_ROI = 1000
 
@@ -23,10 +25,87 @@ def load_price_history():
     return {'items': {}}
 
 
-def get_price_age_info(item_hrid, price_history, now_ts):
-    """Get price age and direction for an item."""
+def save_price_history(data):
+    """Save price history to file."""
+    with open(PRICE_HISTORY_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f)
+
+
+def update_price_history(market_data, history):
+    """
+    Update price history with current market data.
+    Tracks prices at multiple enhancement levels using keys like 'hrid:level'.
+    Returns (updated_history, changes_list).
+    """
+    market_ts = market_data.get('timestamp', 0)
+    now = datetime.now()
+    now_iso = now.isoformat()
+    now_ts = int(now.timestamp())
+    
+    is_new_data = market_ts != history.get('last_market_timestamp')
+    
+    history['last_check'] = now_iso
+    history['last_check_ts'] = now_ts
+    history['last_market_timestamp'] = market_ts
+    history['last_market_time'] = datetime.fromtimestamp(market_ts).isoformat()
+    
+    if 'items' not in history:
+        history['items'] = {}
+    
+    changes = []
+    
+    for item_hrid, levels in market_data.get('marketData', {}).items():
+        for level in TRACKED_LEVELS:
+            level_str = str(level)
+            if level_str not in levels:
+                continue
+            
+            # Get ask price (sell price from seller's perspective)
+            ask = levels[level_str].get('a', -1)
+            if ask == -1:
+                continue
+            
+            # Key format: "hrid:level"
+            key = f"{item_hrid}:{level}"
+            
+            if key not in history['items']:
+                history['items'][key] = {
+                    'current_price': ask,
+                    'current_price_since': now_iso,
+                    'current_price_since_ts': now_ts,
+                    'last_price': None,
+                    'last_price_until': None,
+                    'last_price_until_ts': None,
+                    'price_direction': None
+                }
+            else:
+                item = history['items'][key]
+                if item['current_price'] != ask:
+                    direction = 'up' if ask > item['current_price'] else 'down'
+                    changes.append({
+                        'key': key,
+                        'old': item['current_price'],
+                        'new': ask,
+                        'dir': direction
+                    })
+                    item['last_price'] = item['current_price']
+                    item['last_price_until'] = now_iso
+                    item['last_price_until_ts'] = now_ts
+                    item['current_price'] = ask
+                    item['current_price_since'] = now_iso
+                    item['current_price_since_ts'] = now_ts
+                    item['price_direction'] = direction
+    
+    return history, is_new_data, changes
+
+
+def get_price_age_info(item_hrid, target_level, price_history, now_ts):
+    """Get price age and direction for an item at a specific enhancement level."""
     items = price_history.get('items', {})
-    data = items.get(item_hrid, {})
+    
+    # Look up by hrid:level key
+    key = f"{item_hrid}:{target_level}"
+    data = items.get(key, {})
     
     if not data:
         return {'price_age_seconds': 0, 'price_direction': None}
@@ -848,6 +927,16 @@ def main():
     market_data = resp.json()
     timestamp = datetime.fromtimestamp(market_data.get('timestamp', 0))
     
+    # Update price history (consolidated from update_prices.py)
+    print("Updating price history...")
+    price_history = load_price_history()
+    price_history, is_new_data, changes = update_price_history(market_data, price_history)
+    save_price_history(price_history)
+    if is_new_data:
+        print(f"  New market data! {len(changes)} price changes")
+    else:
+        print(f"  Same market data")
+    
     print("Loading game data...")
     calc = EnhancementCalculator('init_client_info.json')
     
@@ -858,15 +947,14 @@ def main():
     for mode in all_modes:
         all_modes[mode] = [r for r in all_modes[mode] if r['roi'] < MAX_ROI]
     
-    # Enrich with price age data
-    print("Loading price history...")
-    price_history = load_price_history()
+    # Enrich with price age data (now using hrid:level keys)
     now_ts = int(datetime.now().timestamp())
     
     for mode in all_modes:
         for result in all_modes[mode]:
             item_hrid = result.get('item_hrid', '')
-            age_info = get_price_age_info(item_hrid, price_history, now_ts)
+            target_level = result.get('target_level', 0)
+            age_info = get_price_age_info(item_hrid, target_level, price_history, now_ts)
             result['price_age_seconds'] = age_info['price_age_seconds']
             result['price_direction'] = age_info['price_direction']
     
