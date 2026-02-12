@@ -1,6 +1,5 @@
 """
 Generate static HTML site with enhancement profit rankings.
-Supports multiple price modes and sortable columns.
 """
 
 import json
@@ -9,28 +8,25 @@ from datetime import datetime
 from pathlib import Path
 from enhance_calc import EnhancementCalculator, PriceMode
 
-# Target enhancement levels to calculate
 TARGET_LEVELS = [8, 10, 12, 14]
-
-# Minimum profit to show
 MIN_PROFIT = 1_000_000
 MAX_ROI = 1000
 
 
 def format_coins(value):
-    """Format coin value with K/M/B suffix."""
+    """Format coin value with K/M/B suffix and 2 decimal places."""
     if abs(value) >= 1_000_000_000:
-        return f"{value/1_000_000_000:.1f}B"
+        return f"{value/1_000_000_000:.2f}B"
     elif abs(value) >= 1_000_000:
-        return f"{value/1_000_000:.1f}M"
+        return f"{value/1_000_000:.2f}M"
     elif abs(value) >= 1_000:
-        return f"{value/1_000:.1f}K"
+        return f"{value/1_000:.2f}K"
     else:
         return f"{value:.0f}"
 
 
 def generate_html(timestamp, data_by_mode):
-    """Generate the full HTML page with embedded data for all modes."""
+    """Generate the full HTML page."""
     
     json_data = json.dumps(data_by_mode)
     
@@ -49,7 +45,7 @@ def generate_html(timestamp, data_by_mode):
             min-height: 100vh;
             padding: 20px;
         }}
-        .container {{ max-width: 1600px; margin: 0 auto; }}
+        .container {{ max-width: 1800px; margin: 0 auto; }}
         h1 {{
             text-align: center;
             color: #eeb357;
@@ -59,14 +55,14 @@ def generate_html(timestamp, data_by_mode):
         .subtitle {{
             text-align: center;
             color: #888;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             font-size: 0.9rem;
         }}
         .controls {{
             display: flex;
             justify-content: center;
             gap: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
             align-items: center;
         }}
@@ -82,39 +78,53 @@ def generate_html(timestamp, data_by_mode):
         .stats {{
             display: flex;
             justify-content: center;
-            gap: 30px;
-            margin-bottom: 20px;
+            gap: 25px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
         }}
         .stat {{
             background: rgba(255,255,255,0.05);
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 8px;
             text-align: center;
         }}
-        .stat-value {{ font-size: 1.5rem; color: #eeb357; font-weight: bold; }}
-        .stat-label {{ font-size: 0.8rem; color: #888; }}
+        .stat-value {{ font-size: 1.3rem; color: #eeb357; font-weight: bold; }}
+        .stat-label {{ font-size: 0.75rem; color: #888; }}
         .filters {{
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
         }}
         .filter-btn, .mode-btn {{
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
             color: #e8e8e8;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 20px;
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }}
         .filter-btn:hover, .filter-btn.active,
         .mode-btn:hover, .mode-btn.active {{
             background: #eeb357;
             color: #1a1a2e;
+            border-color: #eeb357;
+        }}
+        .toggle-btn {{
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #888;
+            padding: 4px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }}
+        .toggle-btn.active {{
+            background: rgba(238,179,87,0.3);
+            color: #eeb357;
             border-color: #eeb357;
         }}
         table {{
@@ -127,10 +137,10 @@ def generate_html(timestamp, data_by_mode):
         th {{
             background: rgba(238,179,87,0.2);
             color: #eeb357;
-            padding: 12px 6px;
+            padding: 10px 5px;
             text-align: left;
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             white-space: nowrap;
             cursor: pointer;
             user-select: none;
@@ -139,37 +149,37 @@ def generate_html(timestamp, data_by_mode):
             background: rgba(238,179,87,0.35);
         }}
         th .sort-arrow {{
-            margin-left: 4px;
+            margin-left: 3px;
             opacity: 0.5;
         }}
         th.sorted .sort-arrow {{
             opacity: 1;
         }}
         td {{
-            padding: 8px 6px;
+            padding: 7px 5px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }}
         tr:hover {{ background: rgba(255,255,255,0.05); }}
         .positive {{ color: #4ade80; }}
         .negative {{ color: #f87171; }}
         .neutral {{ color: #888; }}
-        .item-name {{ font-weight: 500; }}
+        .item-name {{ font-weight: 500; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }}
         .level-badge {{
             background: rgba(238,179,87,0.3);
             color: #eeb357;
-            padding: 2px 8px;
+            padding: 2px 6px;
             border-radius: 10px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: bold;
         }}
-        .number {{ text-align: right; font-family: 'SF Mono', Monaco, monospace; font-size: 0.8rem; }}
+        .number {{ text-align: right; font-family: 'SF Mono', Monaco, monospace; font-size: 0.75rem; }}
         .price-source {{
             display: inline-block;
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            margin-right: 4px;
+            margin-right: 3px;
             vertical-align: middle;
         }}
         .source-market {{ background: #60a5fa; }}
@@ -177,26 +187,25 @@ def generate_html(timestamp, data_by_mode):
         .source-vendor {{ background: #9ca3af; }}
         .footer {{
             text-align: center;
-            margin-top: 30px;
-            padding: 20px;
+            margin-top: 25px;
+            padding: 15px;
             color: #666;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }}
         .footer a {{ color: #eeb357; text-decoration: none; }}
         .footer a:hover {{ text-decoration: underline; }}
         .mode-info {{
             text-align: center;
             color: #666;
-            font-size: 0.75rem;
-            margin-top: -10px;
-            margin-bottom: 15px;
+            font-size: 0.7rem;
+            margin-bottom: 10px;
         }}
         .legend {{
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin-bottom: 15px;
-            font-size: 0.75rem;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 0.7rem;
             color: #888;
         }}
         .legend-item {{
@@ -204,9 +213,9 @@ def generate_html(timestamp, data_by_mode):
             align-items: center;
             gap: 4px;
         }}
-        @media (max-width: 900px) {{
-            table {{ font-size: 0.7rem; }}
-            th, td {{ padding: 6px 3px; }}
+        @media (max-width: 1000px) {{
+            table {{ font-size: 0.65rem; }}
+            th, td {{ padding: 5px 3px; }}
             .hide-mobile {{ display: none; }}
         }}
     </style>
@@ -218,24 +227,27 @@ def generate_html(timestamp, data_by_mode):
         
         <div class="controls">
             <div class="control-group">
-                <span class="control-label">Price Mode:</span>
+                <span class="control-label">Price:</span>
                 <button class="mode-btn active" onclick="setMode('pessimistic')" id="btn-pessimistic">Pessimistic</button>
                 <button class="mode-btn" onclick="setMode('midpoint')" id="btn-midpoint">Midpoint</button>
                 <button class="mode-btn" onclick="setMode('optimistic')" id="btn-optimistic">Optimistic</button>
+            </div>
+            <div class="control-group">
+                <button class="toggle-btn" onclick="toggleFee()" id="btn-fee">-2% Fee</button>
             </div>
         </div>
         <p class="mode-info" id="mode-info">Buy at Ask, Sell at Bid (safest estimate)</p>
         
         <div class="legend">
-            <div class="legend-item"><span class="price-source source-market"></span> Market price</div>
-            <div class="legend-item"><span class="price-source source-craft"></span> Craft cost</div>
-            <div class="legend-item"><span class="price-source source-vendor"></span> Vendor price</div>
+            <div class="legend-item"><span class="price-source source-market"></span> Market</div>
+            <div class="legend-item"><span class="price-source source-craft"></span> Craft</div>
+            <div class="legend-item"><span class="price-source source-vendor"></span> Vendor</div>
         </div>
         
         <div class="stats">
             <div class="stat">
                 <div class="stat-value" id="stat-profitable">-</div>
-                <div class="stat-label">Profitable Items</div>
+                <div class="stat-label">Profitable</div>
             </div>
             <div class="stat">
                 <div class="stat-value" id="stat-roi">-</div>
@@ -246,8 +258,12 @@ def generate_html(timestamp, data_by_mode):
                 <div class="stat-label">Top Profit</div>
             </div>
             <div class="stat">
-                <div class="stat-value" id="stat-profithr">-</div>
-                <div class="stat-label">Best Profit/hr</div>
+                <div class="stat-value" id="stat-profitday">-</div>
+                <div class="stat-label">Best $/day</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-xpday">-</div>
+                <div class="stat-label">Best XP/day</div>
             </div>
         </div>
         
@@ -271,8 +287,9 @@ def generate_html(timestamp, data_by_mode):
                     <th onclick="sortTable(6, 'num')" class="number">Sell<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(7, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(8, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(9, 'num')" class="number">Time<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(10, 'num')" class="number">$/hr<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(9, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(10, 'num')" class="number">$/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(11, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
                 </tr>
             </thead>
             <tbody id="table-body">
@@ -280,10 +297,9 @@ def generate_html(timestamp, data_by_mode):
         </table>
         
         <div class="footer">
-            <p>Data from <a href="https://www.milkywayidle.com" target="_blank">Milky Way Idle</a> market API</p>
-            <p>Calculations based on <a href="https://doh-nuts.github.io/Enhancelator/" target="_blank">Enhancelator</a></p>
-            <p>Gear: Celestial +14, Gloves +10, Pouch +8, Top/Bot +8, Neck +7, Adv Charm +6, Skill 125</p>
-            <p>Teas: Super Enhancing, Blessed, Wisdom, Artisan (11.2% mat reduction)</p>
+            <p>Data from <a href="https://www.milkywayidle.com" target="_blank">Milky Way Idle</a> | Math from <a href="https://doh-nuts.github.io/Enhancelator/" target="_blank">Enhancelator</a></p>
+            <p>Celestial +14 | Gloves +10 | Pouch +8 | Top/Bot +8 | Neck +7 | Adv Charm +6 | Skill 125 | Observatory +8</p>
+            <p>Teas: Ultra Enhancing, Blessed, Wisdom, Artisan (11.2% mat reduction)</p>
         </div>
     </div>
     
@@ -293,6 +309,7 @@ def generate_html(timestamp, data_by_mode):
         let currentLevel = 'all';
         let sortCol = 7;
         let sortAsc = false;
+        let showFee = false;
         
         const modeInfo = {{
             'pessimistic': 'Buy at Ask, Sell at Bid (safest estimate)',
@@ -301,15 +318,22 @@ def generate_html(timestamp, data_by_mode):
         }};
         
         function formatCoins(value) {{
-            if (Math.abs(value) >= 1e9) return (value/1e9).toFixed(1) + 'B';
+            if (Math.abs(value) >= 1e9) return (value/1e9).toFixed(2) + 'B';
+            if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(2) + 'M';
+            if (Math.abs(value) >= 1e3) return (value/1e3).toFixed(2) + 'K';
+            return value.toFixed(0);
+        }}
+        
+        function formatXP(value) {{
             if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(1) + 'M';
             if (Math.abs(value) >= 1e3) return (value/1e3).toFixed(1) + 'K';
             return value.toFixed(0);
         }}
         
-        function formatTime(hours) {{
-            if (hours < 1) return Math.round(hours * 60) + 'm';
-            return hours.toFixed(1) + 'h';
+        function toggleFee() {{
+            showFee = !showFee;
+            document.getElementById('btn-fee').classList.toggle('active', showFee);
+            renderTable();
         }}
         
         function setMode(mode) {{
@@ -343,30 +367,38 @@ def generate_html(timestamp, data_by_mode):
             let filtered = currentLevel === 'all' ? data : 
                 data.filter(r => r.target_level == currentLevel);
             
-            const sortKeys = ['_idx', 'item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', 'profit', 'roi', 'time_hours', 'profit_per_hour'];
-            filtered = filtered.map((r, i) => ({{...r, _idx: i + 1}}));
+            // Choose profit field based on fee toggle
+            const profitKey = showFee ? 'profit_after_fee' : 'profit';
+            const profitDayKey = showFee ? 'profit_per_day_after_fee' : 'profit_per_day';
+            
+            const sortKeys = ['_idx', 'item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', profitKey, 'roi', 'time_days', profitDayKey, 'xp_per_day'];
+            filtered = filtered.map((r, i) => ({{...r, _idx: i + 1, _profit: r[profitKey], _profit_day: r[profitDayKey]}}));
             filtered.sort((a, b) => {{
-                let va = a[sortKeys[sortCol]];
-                let vb = b[sortKeys[sortCol]];
+                let va = a[sortKeys[sortCol]] ?? a['_profit'];
+                let vb = b[sortKeys[sortCol]] ?? b['_profit'];
                 if (typeof va === 'string') {{
                     return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
                 }}
                 return sortAsc ? va - vb : vb - va;
             }});
             
-            const profitable = data.filter(r => r.profit > 1000000 && r.roi < 1000);
-            const bestProfit = data.length ? Math.max(...data.map(r => r.profit)) : 0;
+            const profitable = data.filter(r => r[profitKey] > 1000000 && r.roi < 1000);
+            const bestProfit = profitable.length ? Math.max(...profitable.map(r => r[profitKey])) : 0;
             const bestRoi = profitable.length ? Math.max(...profitable.map(r => r.roi)) : 0;
-            const bestProfitHr = profitable.length ? Math.max(...profitable.map(r => r.profit_per_hour)) : 0;
+            const bestProfitDay = profitable.length ? Math.max(...profitable.map(r => r[profitDayKey])) : 0;
+            const bestXpDay = data.length ? Math.max(...data.map(r => r.xp_per_day)) : 0;
             
             document.getElementById('stat-profitable').textContent = profitable.length;
             document.getElementById('stat-roi').textContent = bestRoi.toFixed(0) + '%';
             document.getElementById('stat-profit').textContent = formatCoins(bestProfit);
-            document.getElementById('stat-profithr').textContent = formatCoins(bestProfitHr) + '/hr';
+            document.getElementById('stat-profitday').textContent = formatCoins(bestProfitDay);
+            document.getElementById('stat-xpday').textContent = formatXP(bestXpDay);
             
             const tbody = document.getElementById('table-body');
-            tbody.innerHTML = filtered.slice(0, 300).map((r, i) => {{
-                const profitClass = r.profit > 0 ? 'positive' : r.profit < 0 ? 'negative' : 'neutral';
+            tbody.innerHTML = filtered.slice(0, 400).map((r, i) => {{
+                const profit = showFee ? r.profit_after_fee : r.profit;
+                const profitDay = showFee ? r.profit_per_day_after_fee : r.profit_per_day;
+                const profitClass = profit > 0 ? 'positive' : profit < 0 ? 'negative' : 'neutral';
                 const sourceClass = r.base_source === 'market' ? 'source-market' : r.base_source === 'craft' ? 'source-craft' : 'source-vendor';
                 return `<tr data-level="${{r.target_level}}">
                     <td>${{i + 1}}</td>
@@ -376,10 +408,11 @@ def generate_html(timestamp, data_by_mode):
                     <td class="number hide-mobile">${{formatCoins(r.mat_cost)}}</td>
                     <td class="number hide-mobile">${{formatCoins(r.total_cost)}}</td>
                     <td class="number">${{formatCoins(r.sell_price)}}</td>
-                    <td class="number ${{profitClass}}">${{formatCoins(r.profit)}}</td>
+                    <td class="number ${{profitClass}}">${{formatCoins(profit)}}</td>
                     <td class="number ${{profitClass}}">${{r.roi.toFixed(1)}}%</td>
-                    <td class="number">${{formatTime(r.time_hours)}}</td>
-                    <td class="number ${{profitClass}}">${{formatCoins(r.profit_per_hour)}}</td>
+                    <td class="number hide-mobile">${{r.time_days.toFixed(2)}}</td>
+                    <td class="number ${{profitClass}}">${{formatCoins(profitDay)}}</td>
+                    <td class="number hide-mobile">${{formatXP(r.xp_per_day)}}</td>
                 </tr>`;
             }}).join('');
             
@@ -406,7 +439,7 @@ def main():
     print("Loading game data...")
     calc = EnhancementCalculator('init_client_info.json')
     
-    print(f"Calculating profits for {len(calc.enhanceable_items)} items in all price modes...")
+    print(f"Calculating profits for {len(calc.enhanceable_items)} items...")
     
     all_modes = calc.get_all_profits_all_modes(market_data, TARGET_LEVELS)
     
@@ -429,18 +462,16 @@ def main():
         json.dump({
             'timestamp': market_data.get('timestamp'),
             'generated': datetime.now().isoformat(),
-            'modes': {
-                mode: results[:100] for mode, results in all_modes.items()
-            },
+            'modes': {mode: results[:100] for mode, results in all_modes.items()},
         }, f, indent=2)
     print("Generated data.json")
     
-    for mode_name in ['pessimistic', 'midpoint', 'optimistic']:
+    for mode_name in ['pessimistic']:
         results = all_modes[mode_name]
         profitable = [r for r in results if r['profit'] > MIN_PROFIT]
         print(f"\n=== Top 5 {mode_name.upper()} ===")
         for i, r in enumerate(profitable[:5], 1):
-            print(f"{i}. {r['item_name']} +{r['target_level']}: {format_coins(r['profit'])} ({r['roi']:.1f}%) - {format_coins(r['profit_per_hour'])}/hr")
+            print(f"{i}. {r['item_name']} +{r['target_level']}: {format_coins(r['profit'])} ({r['roi']:.1f}%) - {format_coins(r['profit_per_day'])}/day - {format_coins(r['xp_per_day'])} XP/day")
 
 
 if __name__ == '__main__':

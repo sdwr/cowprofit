@@ -35,7 +35,7 @@ class PriceMode(Enum):
 # User's gear configuration (HARDCODED)
 USER_CONFIG = {
     'enhancing_level': 125,
-    'observatory_level': 0,
+    'observatory_level': 8,  # Observatory buff
     
     # Gear with enhancement levels
     'enchanted_gloves_level': 10,
@@ -56,8 +56,8 @@ USER_CONFIG = {
     
     # Teas - ENABLED for production
     'tea_enhancing': False,  # +3 effective levels, +2% speed
-    'tea_super_enhancing': True,  # +6 effective levels, +4% speed
-    'tea_ultra_enhancing': False,  # +8 effective levels, +6% speed
+    'tea_super_enhancing': False,  # +6 effective levels, +4% speed
+    'tea_ultra_enhancing': True,  # +8 effective levels, +6% speed
     'tea_blessed': True,  # 1% chance to gain +2 levels on success
     'tea_wisdom': True,  # +12% enhancing XP
     
@@ -155,7 +155,7 @@ class EnhancementCalculator:
         effective_level = self.get_effective_level()
         observatory = USER_CONFIG['observatory_level']
         
-        # Speed bonuses
+        # Speed bonuses from teas
         tea_speed = 0
         if USER_CONFIG.get('tea_enhancing'):
             tea_speed = 2 * guzzling
@@ -189,6 +189,36 @@ class EnhancementCalculator:
         
         return 12 / (1 + speed_bonus / 100)
     
+    def get_xp_per_action(self, item_level, enhance_level):
+        """Calculate XP per enhancement action."""
+        guzzling = self.get_guzzling_bonus()
+        
+        # Base XP formula
+        base_xp = 1.4 * (1 + enhance_level) * (10 + item_level)
+        
+        # XP bonuses
+        xp_bonus = 0
+        
+        # Wisdom tea
+        if USER_CONFIG.get('tea_wisdom'):
+            xp_bonus += 0.12 * guzzling
+        
+        # Enhancer bottoms XP bonus
+        if USER_CONFIG.get('enhancer_bot_level'):
+            base = self._get_noncombat_stat('/items/enhancers_bottoms', 'enhancingExperience')
+            xp_bonus += base * ENHANCE_BONUS[USER_CONFIG['enhancer_bot_level']]
+        
+        # Philosopher's necklace (skilling XP, 5x scaling)
+        if USER_CONFIG.get('philo_neck_level'):
+            base = self._get_noncombat_stat('/items/philosophers_necklace', 'skillingExperience')
+            xp_bonus += base * (((ENHANCE_BONUS[USER_CONFIG['philo_neck_level']] - 1) * 5) + 1)
+        
+        # Experience buff
+        if USER_CONFIG.get('experience_buff_level'):
+            xp_bonus += 0.195 + USER_CONFIG['experience_buff_level'] * 0.005
+        
+        return base_xp * (1 + xp_bonus)
+    
     def get_vendor_price(self, hrid):
         """Get vendor sell price for an item."""
         item = self.item_detail_map.get(hrid, {})
@@ -197,7 +227,7 @@ class EnhancementCalculator:
     def get_crafting_cost(self, hrid, market_data, mode=PriceMode.MIDPOINT, depth=0):
         """Calculate the crafting cost of an item (recursive).
         
-        Returns 0 if item is not craftable.
+        Uses pessimistic pricing for materials regardless of mode.
         """
         if depth > 10:
             return 0
@@ -227,10 +257,13 @@ class EnhancementCalculator:
         artisan_mult = self.get_artisan_tea_multiplier()
         
         # Add input materials cost (affected by artisan tea)
+        # Always use PESSIMISTIC for crafting costs (buy at ask)
         for input_item in action.get('inputItems', []):
             input_hrid = input_item['itemHrid']
             count = input_item['count'] * artisan_mult
-            input_price = self._get_raw_market_price(input_hrid, 0, market_data, mode)
+            
+            # Get ask price for materials
+            input_price = self._get_buy_price(input_hrid, 0, market_data, mode)
             if input_price <= 0:
                 input_price = self.get_crafting_cost(input_hrid, market_data, mode, depth + 1)
             if input_price <= 0:
@@ -240,7 +273,7 @@ class EnhancementCalculator:
         # Add upgrade item cost (NOT affected by artisan tea - it's the base item)
         upgrade_hrid = action.get('upgradeItemHrid', '')
         if upgrade_hrid:
-            upgrade_price = self._get_raw_market_price(upgrade_hrid, 0, market_data, mode)
+            upgrade_price = self._get_buy_price(upgrade_hrid, 0, market_data, mode)
             if upgrade_price <= 0:
                 upgrade_price = self.get_crafting_cost(upgrade_hrid, market_data, mode, depth + 1)
             if upgrade_price <= 0:
@@ -249,8 +282,8 @@ class EnhancementCalculator:
         
         return cost
     
-    def _get_raw_market_price(self, hrid, enhancement_level, market_data, mode=PriceMode.MIDPOINT):
-        """Get raw market price without fallbacks."""
+    def _get_buy_price(self, hrid, enhancement_level, market_data, mode=PriceMode.MIDPOINT):
+        """Get market price for BUYING an item (what you'd pay)."""
         if hrid == '/items/coin':
             return 1
         
@@ -265,16 +298,26 @@ class EnhancementCalculator:
             return 0
         
         if mode == PriceMode.PESSIMISTIC:
+            # Buy at ask price (what sellers want)
             return ask if ask > 0 else 0
         elif mode == PriceMode.OPTIMISTIC:
-            return bid if bid > 0 else ask if ask > 0 else 0
-        else:  # MIDPOINT
-            if ask == -1:
+            # Buy at bid price (lucky if someone sells to us at our bid)
+            if bid > 0:
                 return bid
-            elif bid == -1:
-                return ask
-            else:
+            return ask if ask > 0 else 0
+        else:  # MIDPOINT
+            # Use midpoint only if both exist
+            if ask > 0 and bid > 0:
                 return (ask + bid) / 2
+            # If only ask exists, use it
+            if ask > 0:
+                return ask
+            # If only bid exists, not a real buy price
+            return 0
+    
+    def _get_raw_market_price(self, hrid, enhancement_level, market_data, mode=PriceMode.MIDPOINT):
+        """Get raw market price without fallbacks (for debugging)."""
+        return self._get_buy_price(hrid, enhancement_level, market_data, mode)
     
     def get_item_price(self, hrid, enhancement_level, market_data, mode=PriceMode.MIDPOINT):
         """Get price for buying an item.
@@ -291,7 +334,7 @@ class EnhancementCalculator:
         if 'trainee' in hrid and 'charm' in hrid:
             return 250000, 'vendor'
         
-        market_price = self._get_raw_market_price(hrid, enhancement_level, market_data, mode)
+        market_price = self._get_buy_price(hrid, enhancement_level, market_data, mode)
         
         # For +0 items, check crafting cost
         if enhancement_level == 0:
@@ -318,7 +361,7 @@ class EnhancementCalculator:
         return 0, 'none'
     
     def get_sell_price(self, hrid, enhancement_level, market_data, mode=PriceMode.MIDPOINT):
-        """Get the price you can sell an item for (bid price)."""
+        """Get the price you can sell an item for."""
         if hrid == '/items/coin':
             return 1
         
@@ -333,16 +376,19 @@ class EnhancementCalculator:
             return 0
         
         if mode == PriceMode.PESSIMISTIC:
+            # Sell at bid (what buyers will pay)
             return bid if bid > 0 else 0
         elif mode == PriceMode.OPTIMISTIC:
+            # Sell at ask (hope someone pays your price)
             return ask if ask > 0 else bid if bid > 0 else 0
         else:  # MIDPOINT
-            if ask == -1:
-                return bid
-            elif bid == -1:
-                return ask
-            else:
+            if ask > 0 and bid > 0:
                 return (ask + bid) / 2
+            if bid > 0:
+                return bid
+            if ask > 0:
+                return ask
+            return 0
     
     def get_full_item_price(self, hrid, market_data, mode=PriceMode.MIDPOINT):
         """Get price of an item for enhancement calculations."""
@@ -418,7 +464,7 @@ class EnhancementCalculator:
             result = self._markov_enhance(
                 target_level, prot_level, total_bonus, 
                 mat_prices, coin_cost, protect_price, base_price,
-                use_blessed, guzzling
+                use_blessed, guzzling, item_level
             )
             
             if result['total_cost'] < best_total:
@@ -436,9 +482,8 @@ class EnhancementCalculator:
         
         return best_result
     
-    def _markov_enhance(self, stop_at, protect_at, total_bonus, mat_prices, coin_cost, protect_price, base_price, use_blessed=False, guzzling=1):
+    def _markov_enhance(self, stop_at, protect_at, total_bonus, mat_prices, coin_cost, protect_price, base_price, use_blessed=False, guzzling=1, item_level=1):
         """Use Markov chain to calculate expected enhancement attempts."""
-        # Build transition matrix with blessed tea support
         n = stop_at + 1
         Q = np.zeros((stop_at, stop_at))
         
@@ -462,9 +507,6 @@ class EnhancementCalculator:
             
             if i + 1 < stop_at:
                 Q[i, i + 1] = remaining_success
-            elif i + 1 == stop_at:
-                # Success at target level stays (implicit)
-                pass
             
             Q[i, destination] += fail_chance
         
@@ -489,11 +531,22 @@ class EnhancementCalculator:
         
         total_cost = base_price + mat_cost
         
+        # Calculate total XP (sum of XP at each level weighted by attempts)
+        total_xp = 0
+        for i in range(stop_at):
+            success_chance = (SUCCESS_RATE[i] / 100.0) * total_bonus
+            success_chance = min(success_chance, 1.0)
+            xp_per_action = self.get_xp_per_action(item_level, i)
+            # XP = attempts at level * (success_xp + fail_xp)
+            # Success gives full XP, fail gives 10%
+            total_xp += M[0, i] * xp_per_action * (success_chance + 0.1 * (1 - success_chance))
+        
         return {
             'actions': attempts,
             'protect_count': protect_count,
             'mat_cost': mat_cost,
             'total_cost': total_cost,
+            'total_xp': total_xp,
         }
     
     def calculate_profit(self, item_hrid, target_level, market_data, mode=PriceMode.PESSIMISTIC):
@@ -507,12 +560,20 @@ class EnhancementCalculator:
         if sell_price <= 0:
             return None
         
+        # Market fee is 2% of sell price
+        market_fee = sell_price * 0.02
+        
         profit = sell_price - result['total_cost']
+        profit_after_fee = profit - market_fee
         roi = (profit / result['total_cost']) * 100 if result['total_cost'] > 0 else 0
         
-        # Calculate profit per hour
+        # Calculate per day metrics
         total_time_hours = result['actions'] * result['attempt_time'] / 3600
-        profit_per_hour = profit / total_time_hours if total_time_hours > 0 else 0
+        total_time_days = total_time_hours / 24
+        
+        profit_per_day = profit / total_time_days if total_time_days > 0 else 0
+        profit_per_day_after_fee = profit_after_fee / total_time_days if total_time_days > 0 else 0
+        xp_per_day = result['total_xp'] / total_time_days if total_time_days > 0 else 0
         
         return {
             'item_hrid': item_hrid,
@@ -523,11 +584,17 @@ class EnhancementCalculator:
             'mat_cost': result['mat_cost'],
             'total_cost': result['total_cost'],
             'sell_price': sell_price,
+            'market_fee': market_fee,
             'profit': profit,
+            'profit_after_fee': profit_after_fee,
             'roi': roi,
-            'profit_per_hour': profit_per_hour,
+            'profit_per_day': profit_per_day,
+            'profit_per_day_after_fee': profit_per_day_after_fee,
+            'xp_per_day': xp_per_day,
+            'total_xp': result['total_xp'],
             'actions': result['actions'],
             'time_hours': total_time_hours,
+            'time_days': total_time_days,
             'protect_count': result['protect_count'],
             'protect_at': result['protect_at'],
             'mode': mode.value,
@@ -566,7 +633,7 @@ class EnhancementCalculator:
 
 
 def test_calculator():
-    """Test the calculator against Enhancelator values."""
+    """Test the calculator."""
     import requests
     
     calc = EnhancementCalculator()
@@ -579,9 +646,9 @@ def test_calculator():
     print(f"Guzzling bonus: {calc.get_guzzling_bonus():.4f}x")
     print(f"Artisan tea multiplier: {calc.get_artisan_tea_multiplier():.4f}")
     print(f"Effective level: {calc.get_effective_level():.1f}")
+    print(f"Observatory: {USER_CONFIG['observatory_level']}")
     
     test_items = [
-        ('/items/grandmaster_melee_charm', 10),
         ('/items/acrobatic_hood', 10),
         ('/items/rippling_trident_refined', 10),
     ]
@@ -595,10 +662,11 @@ def test_calculator():
             print(f"  Mat cost: {result['mat_cost']:,.0f}")
             print(f"  Total: {result['total_cost']:,.0f}")
             print(f"  Sell: {result['sell_price']:,.0f}")
-            print(f"  Profit: {result['profit']:,.0f} ({result['roi']:.1f}%)")
-            print(f"  Actions: {result['actions']:.0f}")
-            print(f"  Time: {result['time_hours']:.1f}h")
-            print(f"  Profit/hr: {result['profit_per_hour']:,.0f}")
+            print(f"  Fee: {result['market_fee']:,.0f}")
+            print(f"  Profit: {result['profit']:,.0f} -> {result['profit_after_fee']:,.0f} after fee")
+            print(f"  Time: {result['time_days']:.2f} days")
+            print(f"  Profit/day: {result['profit_per_day']:,.0f}")
+            print(f"  XP/day: {result['xp_per_day']:,.0f}")
             print()
 
 
