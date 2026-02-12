@@ -95,9 +95,17 @@ def update_prices():
 def generate_html(history):
     now_ts = int(datetime.now().timestamp())
     
+    # Calculate time since last check and last market update
+    last_check_ts = history.get('last_check_ts', now_ts)
+    last_market_ts = history.get('last_market_timestamp', now_ts)
+    
+    time_since_check = format_duration(max(0, now_ts - last_check_ts))
+    time_since_market = format_duration(max(0, now_ts - last_market_ts))
+    
     items_list = []
     for key, data in history.get('items', {}).items():
-        price_since_ts = data.get('current_price_since_ts', now_ts)
+        # Use last_check_ts as fallback if item has no timestamp (legacy data)
+        price_since_ts = data.get('current_price_since_ts') or last_check_ts
         duration_secs = max(0, now_ts - price_since_ts)
         
         # Convert hrid to name
@@ -107,11 +115,19 @@ def generate_html(history):
         arrow = '↑' if direction == 'up' else ('↓' if direction == 'down' else '')
         arrow_class = 'price-up' if direction == 'up' else ('price-down' if direction == 'down' else '')
         
+        # Calculate how long the previous price lasted (if we have the data)
+        prev_duration_str = ''
+        if data.get('last_price') and data.get('last_price_until_ts') and data.get('current_price_since_ts'):
+            # We don't store when the previous price started, so we can't calculate its duration
+            # But we can show when it ended
+            pass
+        
         items_list.append({
             'key': key,
             'name': name,
             'price': data['current_price'],
             'since': data.get('current_price_since', '')[:19],
+            'since_ts': price_since_ts,
             'last_price': data.get('last_price'),
             'last_until': (data.get('last_price_until') or '')[:19],
             'duration': duration_secs,
@@ -131,10 +147,15 @@ def generate_html(history):
         
         detail = f'''<div class="detail-content">
             <div class="detail-row"><span class="detail-label">Current Price:</span><span>{item['price']:,}</span></div>
+            <div class="detail-row"><span class="detail-label">Price Age:</span><span>{item['duration_str']}</span></div>
             <div class="detail-row"><span class="detail-label">Since:</span><span>{item['since']}</span></div>'''
         if item['last_price']:
-            detail += f'''<div class="detail-row"><span class="detail-label">Previous:</span><span>{item['last_price']:,}</span></div>
-            <div class="detail-row"><span class="detail-label">Changed:</span><span>{item['last_until']}</span></div>'''
+            pct_change = ((item['price'] - item['last_price']) / item['last_price']) * 100
+            pct_str = f"+{pct_change:.1f}%" if pct_change > 0 else f"{pct_change:.1f}%"
+            detail += f'''<div class="detail-row"><span class="detail-label">Previous Price:</span><span>{item['last_price']:,} ({pct_str})</span></div>
+            <div class="detail-row"><span class="detail-label">Price Changed:</span><span>{item['last_until']}</span></div>'''
+        else:
+            detail += f'''<div class="detail-row"><span class="detail-label">Previous Price:</span><span>No change recorded</span></div>'''
         detail += '</div>'
         
         rows.append(f'''<tr data-name="{item['name'].lower()}">
@@ -175,8 +196,8 @@ details{{cursor:pointer}}details summary{{list-style:none}}details summary::-web
 <div class="header">
 <h1>MWI Price Tracker</h1>
 <div class="meta">
-<span>Last Check: {last_check}</span>
-<span>Market Data: {last_market}</span>
+<span>Last Check: {last_check} ({time_since_check} ago)</span>
+<span>Market Update: {last_market} ({time_since_market} ago)</span>
 <span>Items: {len(items_list)}</span>
 </div>
 </div>
