@@ -148,7 +148,7 @@ def format_coins(value):
         return f"{value:.0f}"
 
 
-def generate_data_js(all_modes, player_stats, price_history_meta):
+def generate_data_js(all_modes, player_stats, price_history_meta, game_version=''):
     """Generate the data.js file with all data as window.GAME_DATA."""
     data = {
         'modes': all_modes,
@@ -156,7 +156,8 @@ def generate_data_js(all_modes, player_stats, price_history_meta):
         'lastCheckTs': price_history_meta.get('last_check_ts', 0),
         'lastMarketTs': price_history_meta.get('last_market_ts', 0),
         'updateHistory': price_history_meta.get('update_history', []),
-        'generated': datetime.now().isoformat()
+        'generated': datetime.now().isoformat(),
+        'gameVersion': game_version
     }
     
     json_content = json.dumps(data)
@@ -216,7 +217,7 @@ def main():
     }
     
     # Generate data.js
-    data_js = generate_data_js(all_modes, player_stats, price_history_meta)
+    data_js = generate_data_js(all_modes, player_stats, price_history_meta, calc.game_version)
     
     with open('data.js', 'w', encoding='utf-8') as f:
         f.write(data_js)

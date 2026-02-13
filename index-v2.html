@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CowProfit - MWI Enhancement Tracker</title>
+    <title>CowProfit v2 - MWI Enhancement Tracker</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -410,52 +410,40 @@
             opacity: 0.8;
         }
         /* Shopping List */
+        /* Shopping List - 3 column layout with progress bars */
         .shopping-list {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(74, 222, 128, 0.3);
         }
-        .shopping-list h4 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .shop-pct-bar {
-            display: inline-flex;
-            align-items: center;
-            width: 80px;
-            height: 16px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(74, 222, 128, 0.5);
-            border-radius: 3px;
+        .shop-progress-bar {
             position: relative;
-            margin-left: auto;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            overflow: hidden;
         }
-        .shop-pct-fill {
+        .shop-progress-fill {
             position: absolute;
             left: 0;
             top: 0;
             bottom: 0;
             background: linear-gradient(90deg, rgba(74, 222, 128, 0.6) 0%, rgba(74, 222, 128, 0.3) 100%);
-            border-radius: 2px;
+            transition: width 0.3s ease;
         }
-        .shop-pct-text {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            text-align: center;
-            font-size: 0.65rem;
-            color: #4ade80;
+        .shop-progress-label {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7rem;
             font-weight: bold;
-        }
-        .shopping-list .total-row {
-            background: rgba(0, 50, 0, 0.4);
-            margin: 4px -12px -12px -12px;
-            padding: 8px 12px;
-            border-radius: 0 0 8px 8px;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
         .shop-header {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
+            grid-template-columns: 2fr 1.2fr 0.8fr;
             gap: 8px;
             padding: 4px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -468,28 +456,127 @@
         }
         .shop-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
+            grid-template-columns: 2fr 1.2fr 0.8fr;
             gap: 8px;
             padding: 4px 0;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             font-size: 0.8rem;
+            align-items: center;
         }
         .shop-row.prot-row {
             border-top: 1px solid rgba(255,255,255,0.1);
             margin-top: 4px;
             padding-top: 8px;
         }
-        .shop-row.total-row {
-            border-top: 1px solid rgba(238,179,87,0.3);
-            margin-top: 4px;
-            padding-top: 6px;
-            font-weight: bold;
-        }
         .shop-name { color: #ccc; }
-        .shop-owned { color: #888; text-align: right; font-family: 'SF Mono', Monaco, monospace; }
-        .shop-owned.complete { color: #4ade80; }
-        .shop-need { color: #888; text-align: right; font-family: 'SF Mono', Monaco, monospace; }
-        .shop-cost { text-align: right; font-family: 'SF Mono', Monaco, monospace; color: #eeb357; }
+        .shop-qty {
+            position: relative;
+            text-align: right;
+            font-family: 'SF Mono', Monaco, monospace;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .shop-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: rgba(74, 222, 128, 0.25);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .shop-qty-text {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 2px;
+        }
+        .shop-need-num { 
+            color: #fff; 
+            font-weight: bold;
+            min-width: 50px;
+            text-align: right;
+        }
+        .shop-total-num { 
+            color: #666;
+            min-width: 55px;
+            text-align: left;
+        }
+        .shop-price { text-align: right; font-family: 'SF Mono', Monaco, monospace; color: #eeb357; }
+        
+        /* Enhance Panel */
+        .enhance-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            padding: 0 12px 12px 12px !important;
+        }
+        .enhance-header {
+            background: rgba(168, 85, 247, 0.15);
+            margin: 0 -12px 12px -12px;
+            padding: 10px 12px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+        .enhance-header h4 {
+            color: #eeb357;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+        .protect-badge {
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .protect-line {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            flex: 1;
+            min-width: 150px;
+        }
+        .protect-count {
+            color: #d8b4fe;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        .protect-name {
+            color: #d8b4fe;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .protect-price {
+            color: #a78bfa;
+            font-size: 0.75rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            margin-left: auto;
+        }
+        .enhance-mats {
+            margin-bottom: 8px;
+        }
+        .enhance-mats-label {
+            color: #888;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .enhance-panel .mat-row.total-row {
+            background: rgba(168, 85, 247, 0.15);
+            margin: 4px -12px -12px -12px;
+            padding: 8px 12px;
+            border-radius: 0 0 8px 8px;
+        }
         .price-note {
             font-weight: normal;
             font-size: 0.65rem;
@@ -591,6 +678,7 @@
             </div>
         </div>
         <p class="mode-info" id="mode-info">Buy at Ask, Sell at Bid (safest estimate)</p>
+        <p class="mode-info" id="status" style="color: #eeb357;">Loading...</p>
         
         <div class="legend">
             <div class="legend-item"><span class="price-source source-market"></span> Market</div>
@@ -663,7 +751,10 @@
         </div>
     </div>
     
-    <script src="data.js"></script>
-    <script src="main.js"></script>
+    <!-- v2: Client-side calculations -->
+    <script src="prices.js"></script>
+    <script src="game-data.js"></script>
+    <script src="enhance-calc.js"></script>
+    <script src="main-v2.js"></script>
 </body>
 </html>

@@ -72,6 +72,7 @@ USER_CONFIG = {
 class EnhancementCalculator:
     def __init__(self, game_data_path='init_client_info.json'):
         self.game_data = None
+        self.game_version = ''
         self.item_detail_map = {}
         self.action_detail_map = {}
         self.enhanceable_items = []
@@ -82,6 +83,7 @@ class EnhancementCalculator:
         with open(path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
+        self.game_version = data.get('gameVersion', '')
         self.item_detail_map = data.get('itemDetailMap', {})
         self.action_detail_map = data.get('actionDetailMap', {})
         

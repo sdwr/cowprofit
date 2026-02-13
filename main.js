@@ -6,6 +6,7 @@ const playerStats = window.GAME_DATA?.playerStats || {};
 const lastCheckTs = window.GAME_DATA?.lastCheckTs || 0;
 const lastMarketTs = window.GAME_DATA?.lastMarketTs || 0;
 const updateHistory = window.GAME_DATA?.updateHistory || [];
+const gameVersion = window.GAME_DATA?.gameVersion || '';
 
 let currentMode = 'pessimistic';
 let currentLevel = 'all';
@@ -667,3 +668,8 @@ document.addEventListener('click', function(e) {
 renderTable();
 updateTimes();
 setInterval(updateTimes, 60000);
+
+// Display version
+if (gameVersion) {
+    document.getElementById('version-tag').textContent = gameVersion;
+}
