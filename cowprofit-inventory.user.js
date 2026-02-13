@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CowProfit Inventory Bridge
 // @namespace    https://github.com/sdwr/cowprofit
-// @version      1.0.5
+// @version      1.0.6
 // @description  Captures MWI inventory and coins, bridges to CowProfit via Tampermonkey storage
 // @author       sdwr
 // @license      MIT
@@ -104,7 +104,7 @@
                 log('Found coins in items:', coins);
                 continue; // Don't add coins to inventory
             }
-            
+
             // Only count inventory items, not equipped gear
             if (item.itemLocationHrid === '/item_locations/inventory') {
                 const key = item.itemHrid;
@@ -116,7 +116,7 @@
         if (coins === 0) {
             coins = data.character?.gameCoins || data.characterInfo?.coins || 0;
         }
-        
+
         log('Final coins:', formatCoins(coins));
 
         const payload = {
@@ -182,8 +182,8 @@
         GM_addStyle(`
             #cowprofit-status {
                 position: fixed;
-                top: 10px;
-                left: 10px;
+                top: 0px;
+                left: 0px;
                 background: rgba(0, 0, 0, 0.85);
                 color: #eeb357;
                 padding: 6px 12px;
@@ -205,9 +205,6 @@
             }
             #cowprofit-status .title::before {
                 content: '🐄';
-            }
-            #cowprofit-status .stats {
-                color: #ccc;
             }
             #cowprofit-status .btn {
                 background: #eeb357;
@@ -231,7 +228,6 @@
         div.id = 'cowprofit-status';
         div.innerHTML = `
             <div class="title">CowProfit</div>
-            <div class="stats">Waiting...</div>
             <div class="time"></div>
             <button class="btn" id="cowprofit-open">Open</button>
         `;
@@ -253,11 +249,7 @@
     }
 
     function updateExportUI(payload) {
-        const statsEl = document.querySelector('#cowprofit-status .stats');
         const timeEl = document.querySelector('#cowprofit-status .time');
-        if (statsEl) {
-            statsEl.textContent = `${payload.itemCount} items • ${formatCoins(payload.gameCoins)}`;
-        }
         if (timeEl) {
             const age = Math.floor((Date.now() - payload.capturedAt) / 60000);
             timeEl.textContent = age < 1 ? 'just now' : `${age}m ago`;
