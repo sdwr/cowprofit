@@ -12,6 +12,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle
+// @grant        unsafeWindow
 // @downloadURL  https://raw.githubusercontent.com/sdwr/cowprofit/main/cowprofit-inventory.user.js
 // @updateURL    https://raw.githubusercontent.com/sdwr/cowprofit/main/cowprofit-inventory.user.js
 // ==/UserScript==
@@ -473,5 +474,18 @@
         `;
         document.body.appendChild(div);
     }
+
+    // Listen for refresh requests from CowProfit page
+    // Use unsafeWindow to listen on the page's window object
+    if (typeof unsafeWindow !== 'undefined') {
+        unsafeWindow.addEventListener('cowprofit-request-loot', function() {
+            log('Refresh requested, reloading loot history...');
+            loadLootHistory();
+        });
+    }
+    window.addEventListener('cowprofit-request-loot', function() {
+        log('Refresh requested, reloading loot history...');
+        loadLootHistory();
+    });
 
 })();

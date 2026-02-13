@@ -456,7 +456,10 @@ function renderLootHistoryPanel() {
     const profitClass = totalProfit >= 0 ? 'positive' : 'negative';
     
     panel.innerHTML = `
-        <h5>📜 Enhance History</h5>
+        <div class="loot-header-row">
+            <h5>📜 Enhance History</h5>
+            <button class="refresh-btn" onclick="window.dispatchEvent(new Event('cowprofit-request-loot'))" title="Refresh data from game">🔄</button>
+        </div>
         <div class="loot-summary">
             <span>${validCount} sessions</span>
             <span class="loot-summary-value ${profitClass}">Total: ${formatCoins(totalProfit)}</span>
