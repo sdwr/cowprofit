@@ -35,7 +35,6 @@
         hookWebSocket();
         addExportUI();
     } else if (isCowProfit) {
-        log('Running on CowProfit - loading inventory data');
         loadInventoryData();
     }
 
