@@ -337,108 +337,127 @@ function renderLootHistoryPanel() {
     
     if (!lootHistoryData.length) {
         panel.innerHTML = `
-            <h5>📜 Loot History</h5>
+            <h5>📜 Enhance History</h5>
             <div class="loot-empty">
-                No loot data yet. Play the game with the userscript active to capture loot sessions.
+                No loot data yet. Play the game with the userscript active to capture enhance sessions.
             </div>
         `;
         return;
     }
     
-    // Render loot sessions (last 20)
-    const sessions = lootHistoryData.slice(0, 20);
-    let entriesHtml = '';
-    let totalProfit = 0;
-    let enhanceCount = 0;
+    // Filter to only enhance sessions with meaningful data
+    const enhanceSessions = lootHistoryData
+        .filter(s => s.actionHrid?.includes('enhance'))
+        .slice(0, 30);
     
-    for (const session of sessions) {
-        const duration = calculateDuration(session.startTime, session.endTime);
-        const actionName = formatActionName(session.actionHrid);
-        
-        // Check if this is an enhance session
-        const enhanceProfit = calculateEnhanceSessionProfit(session);
-        
-        if (enhanceProfit) {
-            // Render enhancement session with profit data
-            enhanceCount++;
-            totalProfit += enhanceProfit.profit;
-            const profitClass = enhanceProfit.profit >= 0 ? 'positive' : 'negative';
-            
-            // Build target level summary
-            const targetSummary = Object.entries(enhanceProfit.revenueBreakdown)
-                .map(([lvl, data]) => `+${lvl}×${data.count}`)
-                .join(', ') || 'none';
-            
-            entriesHtml += `
-                <div class="loot-entry enhance-entry">
-                    <div class="loot-header">
-                        <span class="loot-action">⚔️ ${enhanceProfit.itemName || 'Enhance'}</span>
-                        <span class="loot-time">${formatLootTime(session.startTime)}</span>
-                    </div>
-                    <div class="loot-details">
-                        <span class="loot-duration">${duration}</span>
-                        <span class="loot-actions">${enhanceProfit.actionCount} actions</span>
-                        <span class="loot-drops">${enhanceProfit.totalItems} items</span>
-                    </div>
-                    <div class="loot-costs">
-                        <span>Mats: ${formatCoins(enhanceProfit.totalMatCost)}</span>
-                        <span>Prot: ${formatCoins(enhanceProfit.totalProtCost)} (${enhanceProfit.protsUsed}×)</span>
-                    </div>
-                    <div class="loot-revenue">
-                        <span>Targets: ${targetSummary}</span>
-                        <span>Revenue: ${formatCoins(enhanceProfit.revenue)}</span>
-                    </div>
-                    <div class="loot-values">
-                        <span class="loot-value ${profitClass}">Profit: ${formatCoins(enhanceProfit.profit)}</span>
-                        <span class="loot-rate">${formatCoins(enhanceProfit.profitPerHour)}/hr</span>
-                    </div>
-                </div>
-            `;
-        } else {
-            // Regular loot session (non-enhance)
-            const stats = calculateLootSessionValue(session);
-            const profitClass = stats.bidValue > 0 ? 'positive' : 'neutral';
-            
-            entriesHtml += `
-                <div class="loot-entry">
-                    <div class="loot-header">
-                        <span class="loot-action">${actionName}</span>
-                        <span class="loot-time">${formatLootTime(session.startTime)}</span>
-                    </div>
-                    <div class="loot-details">
-                        <span class="loot-duration">${duration}</span>
-                        <span class="loot-actions">${session.actionCount || 0} actions</span>
-                        <span class="loot-drops">${stats.dropCount} drops</span>
-                    </div>
-                    <div class="loot-values">
-                        <span class="loot-value ${profitClass}">Bid: ${formatCoins(stats.bidValue)}</span>
-                        <span class="loot-value">Ask: ${formatCoins(stats.askValue)}</span>
-                        <span class="loot-rate">${formatCoins(stats.bidPerHour)}/hr</span>
-                    </div>
-                </div>
-            `;
-        }
+    if (!enhanceSessions.length) {
+        panel.innerHTML = `
+            <h5>📜 Enhance History</h5>
+            <div class="loot-empty">
+                No enhance sessions found. Start enhancing with the userscript active!
+            </div>
+        `;
+        return;
     }
     
-    // Summary stats
-    const totalBid = sessions.reduce((sum, s) => sum + calculateLootSessionValue(s).bidValue, 0);
-    const totalHours = sessions.reduce((sum, s) => {
-        const ms = new Date(s.endTime) - new Date(s.startTime);
-        return sum + (ms / 3600000);
-    }, 0);
-    const avgPerHour = totalHours > 0 ? totalBid / totalHours : 0;
+    let entriesHtml = '';
+    let totalProfit = 0;
+    let totalHours = 0;
+    let validCount = 0;
     
-    // Enhancement profit summary
-    const enhanceSummary = enhanceCount > 0 
-        ? `<span class="loot-summary-value ${totalProfit >= 0 ? 'positive' : 'negative'}">Enhance Profit: ${formatCoins(totalProfit)}</span>`
-        : '';
+    for (const session of enhanceSessions) {
+        const enhanceProfit = calculateEnhanceSessionProfit(session);
+        if (!enhanceProfit) continue;
+        
+        const duration = calculateDuration(session.startTime, session.endTime);
+        const durationMs = new Date(session.endTime) - new Date(session.startTime);
+        const hours = durationMs / 3600000;
+        
+        // Skip very short sessions (< 1 min) with no targets
+        if (hours < 0.02 && enhanceProfit.revenue === 0) continue;
+        
+        validCount++;
+        
+        // Only add to totals if we have all prices
+        const hasPriceErrors = enhanceProfit.matPriceMissing || enhanceProfit.protPriceMissing || enhanceProfit.revenuePriceMissing;
+        if (!hasPriceErrors) {
+            totalProfit += enhanceProfit.profit;
+            totalHours += hours;
+        }
+        
+        const profitClass = hasPriceErrors ? 'warning' : (enhanceProfit.profit > 0 ? 'positive' : (enhanceProfit.profit < 0 ? 'negative' : 'neutral'));
+        
+        // Build target level summary
+        const targetSummary = Object.entries(enhanceProfit.revenueBreakdown)
+            .map(([lvl, data]) => `+${lvl}×${data.count}`)
+            .join(', ') || '-';
+        
+        // Format costs - show error if price missing
+        let matCostStr = '-';
+        if (enhanceProfit.matPriceMissing) {
+            matCostStr = '⚠️ no price';
+        } else if (enhanceProfit.totalMatCost > 0) {
+            matCostStr = formatCoins(enhanceProfit.totalMatCost);
+        }
+        
+        let protCostStr = '-';
+        if (enhanceProfit.protsUsed > 0) {
+            if (enhanceProfit.protPriceMissing) {
+                protCostStr = `⚠️ no price (${enhanceProfit.protsUsed}×)`;
+            } else {
+                protCostStr = `${formatCoins(enhanceProfit.totalProtCost)} (${enhanceProfit.protsUsed}×)`;
+            }
+        }
+        
+        let revenueStr = '-';
+        if (enhanceProfit.revenuePriceMissing) {
+            revenueStr = '⚠️ no price';
+        } else if (enhanceProfit.revenue > 0) {
+            revenueStr = formatCoins(enhanceProfit.revenue);
+        }
+        
+        // Only show profit/rate if we have all prices
+        const hasPriceErrors = enhanceProfit.matPriceMissing || enhanceProfit.protPriceMissing || enhanceProfit.revenuePriceMissing;
+        const profitStr = hasPriceErrors ? '⚠️' : (enhanceProfit.profit !== 0 ? formatCoins(enhanceProfit.profit) : '-');
+        const rateStr = hasPriceErrors ? '-' : (enhanceProfit.profitPerHour !== 0 ? `${formatCoins(enhanceProfit.profitPerHour)}/hr` : '-');
+        
+        entriesHtml += `
+            <div class="loot-entry enhance-entry">
+                <div class="loot-header">
+                    <span class="loot-action">⚔️ ${enhanceProfit.itemName || 'Unknown'}</span>
+                    <span class="loot-time">${formatLootTime(session.startTime)}</span>
+                </div>
+                <div class="loot-details">
+                    <span class="loot-duration">${duration}</span>
+                    <span class="loot-actions">${enhanceProfit.actionCount} actions</span>
+                    <span class="loot-drops">${enhanceProfit.totalItems} items</span>
+                </div>
+                <div class="loot-costs">
+                    <span>Mats: ${matCostStr}</span>
+                    <span>Prot: ${protCostStr}</span>
+                </div>
+                <div class="loot-revenue">
+                    <span>Targets: ${targetSummary}</span>
+                    <span>Revenue: ${revenueStr}</span>
+                </div>
+                <div class="loot-values">
+                    <span class="loot-value ${profitClass}">Profit: ${profitStr}</span>
+                    <span class="loot-rate">${rateStr}</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Summary
+    const avgPerHour = totalHours > 0 ? totalProfit / totalHours : 0;
+    const profitClass = totalProfit >= 0 ? 'positive' : 'negative';
     
     panel.innerHTML = `
-        <h5>📜 Loot History</h5>
+        <h5>📜 Enhance History</h5>
         <div class="loot-summary">
-            <span>Last ${sessions.length} sessions</span>
-            <span class="loot-summary-value">Total: ${formatCoins(totalBid)}</span>
-            ${enhanceSummary}
+            <span>${validCount} sessions</span>
+            <span class="loot-summary-value ${profitClass}">Total: ${formatCoins(totalProfit)}</span>
+            <span class="loot-summary-value">Avg: ${formatCoins(avgPerHour)}/hr</span>
         </div>
         <div class="loot-entries">
             ${entriesHtml}
@@ -507,9 +526,12 @@ function calculateEnhanceSessionProfit(session) {
     }
     
     if (!itemHrid) {
-        // Try to detect from drops
+        // Try to detect from drops - find the enhanced item (not essences/crates)
         for (const dropKey of Object.keys(drops)) {
-            if (dropKey.includes('::') && !dropKey.includes('essence') && !dropKey.includes('crate')) {
+            if (dropKey.includes('::') && 
+                !dropKey.includes('essence') && 
+                !dropKey.includes('crate') &&
+                !dropKey.includes('fragment')) {
                 itemHrid = dropKey.split('::')[0];
                 break;
             }
@@ -518,9 +540,19 @@ function calculateEnhanceSessionProfit(session) {
     
     if (!itemHrid) return null;
     
-    // Get item data for material costs
-    const itemData = gameData.items?.[itemHrid];
-    if (!itemData) return null;
+    // Get item data for material costs - try both gameData.items and direct lookup
+    let itemData = gameData.items?.[itemHrid];
+    
+    // Also try without leading slash if needed
+    if (!itemData && itemHrid.startsWith('/items/')) {
+        const shortHrid = itemHrid.substring(7); // Remove '/items/'
+        for (const [key, val] of Object.entries(gameData.items || {})) {
+            if (key.endsWith(shortHrid) || val.hrid === itemHrid) {
+                itemData = val;
+                break;
+            }
+        }
+    }
     
     // Parse drops into level distribution
     const levelDrops = {};
@@ -535,38 +567,63 @@ function calculateEnhanceSessionProfit(session) {
     if (totalItems === 0) return null;
     
     // Calculate protection used via cascade method
-    // Protection level is typically 8 (can be configured)
     const protLevel = 8;
     const protResult = calculateProtectionFromDrops(levelDrops, protLevel);
     const protsUsed = protResult.protCount;
     
-    // Calculate material cost
-    const enhanceCosts = itemData.enhancementCosts || [];
+    // Calculate material cost from game data (ask prices only - we're buying)
     let matCostPerAction = 0;
+    let matPriceMissing = false;
+    const enhanceCosts = itemData?.enhancementCosts || [];
+    
     for (const cost of enhanceCosts) {
-        if (cost.itemHrid === '/items/coin') {
-            matCostPerAction += cost.count;
+        const costHrid = cost.itemHrid || cost.hrid;
+        const costCount = cost.count || 1;
+        
+        if (costHrid === '/items/coin') {
+            matCostPerAction += costCount;
         } else {
-            const matPrice = prices.market?.[cost.itemHrid]?.['0']?.a || 0;
-            matCostPerAction += cost.count * matPrice;
+            // Get material price - ask only (we're buying)
+            const matPrice = prices.market?.[costHrid]?.['0']?.a || 0;
+            if (matPrice === 0) matPriceMissing = true;
+            matCostPerAction += costCount * matPrice;
         }
     }
     const totalMatCost = actionCount * matCostPerAction;
     
-    // Calculate protection cost
-    // Get cheapest protection item price
+    // Calculate protection cost - use cheapest option (ask prices only - we're buying)
     const mirrorPrice = prices.market?.['/items/mirror_of_protection']?.['0']?.a || 0;
     const baseItemPrice = prices.market?.[itemHrid]?.['0']?.a || 0;
-    const protPrice = Math.min(mirrorPrice || Infinity, baseItemPrice || Infinity);
-    const totalProtCost = protsUsed * (protPrice || 0);
+    
+    // Also check item-specific protection items
+    let protPrice = Infinity;
+    let protPriceMissing = false;
+    if (mirrorPrice > 0) protPrice = Math.min(protPrice, mirrorPrice);
+    if (baseItemPrice > 0) protPrice = Math.min(protPrice, baseItemPrice);
+    
+    // Check protection item hrids from item data
+    const protItemHrids = itemData?.protectionItemHrids || [];
+    for (const protHrid of protItemHrids) {
+        const price = prices.market?.[protHrid]?.['0']?.a || 0;
+        if (price > 0) protPrice = Math.min(protPrice, price);
+    }
+    
+    if (protPrice === Infinity) {
+        protPrice = 0;
+        if (protsUsed > 0) protPriceMissing = true;
+    }
+    const totalProtCost = protsUsed * protPrice;
     
     // Calculate revenue from target levels (+8, +10, +12, +14)
+    // Use bid price only (we're selling) - no ask fallback
     let revenue = 0;
     let revenueBreakdown = {};
+    let revenuePriceMissing = false;
     for (const targetLevel of [8, 10, 12, 14]) {
         const count = levelDrops[targetLevel] || 0;
         if (count > 0) {
             const sellPrice = prices.market?.[itemHrid]?.[String(targetLevel)]?.b || 0;
+            if (sellPrice === 0) revenuePriceMissing = true;
             const value = count * sellPrice;
             revenue += value;
             revenueBreakdown[targetLevel] = { count, sellPrice, value };
@@ -579,11 +636,14 @@ function calculateEnhanceSessionProfit(session) {
     // Calculate per hour
     const durationMs = new Date(session.endTime) - new Date(session.startTime);
     const hours = durationMs / 3600000;
-    const profitPerHour = hours > 0 ? profit / hours : 0;
+    const profitPerHour = hours > 0.01 ? profit / hours : 0;
+    
+    // Get item name
+    const itemName = itemData?.name || itemHrid.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     
     return {
         itemHrid,
-        itemName: itemData.name,
+        itemName,
         actionCount,
         totalItems,
         levelDrops,
@@ -597,7 +657,11 @@ function calculateEnhanceSessionProfit(session) {
         revenueBreakdown,
         profit,
         profitPerHour,
-        hours
+        hours,
+        // Price error flags
+        matPriceMissing,
+        protPriceMissing,
+        revenuePriceMissing
     };
 }
 
