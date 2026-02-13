@@ -517,7 +517,7 @@ function renderShoppingList(r, materials) {
         const total = m.count * r.actions;
         const owned = invLoaded ? getInventoryCount(m.hrid) : 0;
         const need = Math.max(0, total - owned);
-        const pct = total > 0 ? (owned / total) * 100 : 0;
+        const pct = Math.min(total > 0 ? (owned / total) * 100 : 0, 100);
         const lineCost = need * m.price;
         totalCost += lineCost;
         totalOwned += owned;
@@ -540,7 +540,7 @@ function renderShoppingList(r, materials) {
         const total = r.protectCount;
         const owned = invLoaded ? getInventoryCount(r.protectHrid) : 0;
         const need = Math.max(0, total - owned);
-        const pct = total > 0 ? (owned / total) * 100 : 0;
+        const pct = Math.min(total > 0 ? (owned / total) * 100 : 0, 100);
         const lineCost = need * r.protectPrice;
         totalCost += lineCost;
         totalOwned += owned;
@@ -558,8 +558,8 @@ function renderShoppingList(r, materials) {
     
     if (!rows) return '';
     
-    // Overall progress bar inline with title (0-100%)
-    const overallPct = totalNeed > 0 ? (totalOwned / totalNeed) * 100 : 0;
+    // Overall progress bar inline with title (0-100%), capped at 100
+    const overallPct = Math.min(totalNeed > 0 ? (totalOwned / totalNeed) * 100 : 0, 100);
     const pctDisplay = `${overallPct.toFixed(0)}%`;
     const barWidth = overallPct.toFixed(1);
     
@@ -826,8 +826,12 @@ function renderTable() {
         // Get price age
         const priceInfo = getPriceAge(r.item_hrid, r.target_level);
         const ageStr = priceInfo ? formatAge(priceInfo.age) : '-';
-        const ageArrow = priceInfo?.direction === 'up' ? '<span class="price-up">↑</span>' : 
-                         priceInfo?.direction === 'down' ? '<span class="price-down">↓</span>' : '-';
+        const ageArrow = priceInfo?.direction === 'up' ? ' <span class="price-up">↑</span>' : 
+                         priceInfo?.direction === 'down' ? ' <span class="price-down">↓</span>' : '';
+        
+        // Material % bar in item name (from inventory)
+        const matPct = calculateMatPercent(r);
+        const matBarStyle = matPct !== null ? `width:${Math.min(matPct, 100).toFixed(1)}%` : 'display:none';
         
         let barWidth = 0;
         let barClass = 'positive';
@@ -838,8 +842,8 @@ function renderTable() {
             barClass = 'negative';
         }
         
-        html += `<tr class="data-row ${isExpanded ? 'expanded' : ''}" onclick="toggleRow('${rowId}')" data-level="${r.target_level}">
-            <td class="item-name"><span class="expand-icon">▶</span>${r.item_name}</td>
+        html += `<tr class="data-row ${isExpanded ? 'expanded' : ''}" onclick="toggleRow('${rowId}')" data-level="${r.target_level}" data-matpct="${matPct !== null ? matPct : -1}">
+            <td class="item-name"><div class="mat-pct-bar" style="${matBarStyle}"></div><span class="expand-icon">▶</span>${r.item_name}</td>
             <td><span class="level-badge">+${r.target_level}</span></td>
             <td class="number">${ageStr}${ageArrow}</td>
             <td class="number"><span class="price-source ${sourceClass}"></span>${formatCoins(r.basePrice)}</td>
