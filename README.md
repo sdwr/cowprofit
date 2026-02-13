@@ -59,17 +59,19 @@ Uses Markov chain calculation (same as [Enhancelator](https://doh-nuts.github.io
 
 ## Gear Assumptions (Hardcoded)
 
-| Slot | Item | Level |
-|------|------|-------|
-| Tool | Celestial Enhancer | +14 |
-| Gloves | Enchanted Gloves | +10 |
-| Pouch | Guzzling Pouch | +8 |
-| Top | Enhancer's Top | +8 |
-| Bottoms | Enhancer's Bottoms | +8 |
-| Necklace | Philosopher's Necklace | +7 |
-| Charm | Advanced Enhancing Charm | +6 |
-| Buffs | Enhancing + XP | Level 20 |
-| Skill | Enhancing | Level 125 |
+| Slot | Item | Level | Bonus |
+|------|------|-------|-------|
+| Tool | Celestial Enhancer | +14 | Success rate |
+| Gloves | Enchanted Gloves | +10 | Speed |
+| Pouch | Guzzling Pouch | +8 | Tea effectiveness |
+| Top | Enhancer's Top | +8 | Speed |
+| Bottoms | Enhancer's Bottoms | +8 | Speed |
+| Necklace | Philosopher's Necklace | +7 | Speed (5x scaling) |
+| Charm | Advanced Enhancing Charm | +6 | Speed |
+| House | Observatory | 8 | +8% speed, +0.4% success |
+| Buffs | Enhancing + XP | Level 20 | +29.5% speed |
+| Skill | Enhancing | Level 125 | Base level |
+| Teas | Ultra Enhancing, Blessed, Wisdom | — | +8 levels, double success, XP |
 
 ## Project Structure
 
@@ -121,14 +123,25 @@ python3 generate_site.py
 ## Roadmap
 
 ### Planned: Inventory Import
-- Import player inventory from game via MWITools userscript
+- Import player inventory from game via companion userscript
 - Show materials already owned vs need to buy
+- Material % bar on each item (value-weighted % of mats owned)
 - Filter to affordable enhancements (2x cost buffer)
+- Shopping list with owned/total/need-to-buy counts
 
-### Technical Notes
-- MWITools hooks game WebSocket, stores data in Tampermonkey + TextDB
-- `init_character_data` message contains full `characterItems` (inventory)
-- Could add `?textdb=<key>` URL param like combat sim does
+### Technical: Userscript Data Bridge
+
+The companion userscript uses **Tampermonkey's cross-site storage** (`GM_setValue`/`GM_getValue`) to bridge data between the game and CowProfit:
+
+1. Script runs on `milkywayidle.com`, hooks WebSocket
+2. Captures `init_character_data` message (contains `characterItems` inventory + `gameCoins`)
+3. Stores data via `GM_setValue('cowprofit_inventory', data)`
+4. Same script also runs on `sdwr.github.io/cowprofit/*`
+5. On CowProfit, reads via `GM_getValue('cowprofit_inventory')` and injects into page
+
+This works because Tampermonkey storage belongs to the **extension**, not the websites — it acts as a secure bridge between domains without needing external services like TextDB.
+
+**Note:** TextDB (textdb.online) is used by some MWI tools for shareable links, but local-only import is simpler and doesn't depend on external services.
 
 ## Credits
 
