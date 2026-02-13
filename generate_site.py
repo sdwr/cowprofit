@@ -1326,10 +1326,10 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                 
                 const matPct = calculateMatPercent(r);
                 const matPctStr = matPct !== null ? matPct.toFixed(0) : '';
-                const matBarStyle = matPct !== null ? \`width:\${matPct.toFixed(1)}%\` : 'display:none';
+                const matBarStyle = matPct !== null ? `width:${{matPct.toFixed(1)}}%` : 'display:none';
                 
                 html += `<tr class="data-row ${{isExpanded ? 'expanded' : ''}}" onclick="toggleRow('${{rowId}}')" data-level="${{r.target_level}}" data-matpct="${{matPct !== null ? matPct : -1}}">
-                    <td class="item-name"><div class="mat-pct-bar" style="${{matBarStyle}}"></div><span class="expand-icon">&#9654;</span>${{r.item_name}}${{matPct !== null ? \`<span class="mat-pct-label">\${matPctStr}%</span>\` : ''}}</td>
+                    <td class="item-name"><div class="mat-pct-bar" style="${{matBarStyle}}"></div><span class="expand-icon">&#9654;</span>${{r.item_name}}${{matPct !== null ? `<span class="mat-pct-label">${{matPctStr}}%</span>` : ''}}</td>
                     <td><span class="level-badge">+${{r.target_level}}</span></td>
                     <td class="number"><span class="price-source ${{sourceClass}}"></span>${{formatCoins(r.base_price)}}</td>
                     <td class="number hide-mobile">${{formatCoins(r.mat_cost)}}</td>
