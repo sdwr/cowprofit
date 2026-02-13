@@ -316,7 +316,7 @@ function renderShoppingList(r) {
         const lineCost = toBuy * (r.protect_price || 0);
         totalCost += lineCost;
         rows += `<div class="shop-row prot-row">
-            <span class="shop-name">${r.protect_name} @ ${r.protect_at}</span>
+            <span class="shop-name">${r.protect_name} - prot @ ${r.protect_at}</span>
             <span class="shop-owned ${owned >= needed ? 'complete' : ''}">${invLoaded ? owned.toLocaleString() : '-'}</span>
             <span class="shop-need">${needed.toFixed(1)}</span>
             <span class="shop-cost">${formatCoins(lineCost)}</span>
@@ -335,10 +335,11 @@ function renderShoppingList(r) {
     
     // Calculate overall material % for progress bar
     const matPct = calculateMatPercent(r);
-    const barStyle = matPct !== null ? `width:${matPct.toFixed(1)}%` : 'display:none';
+    const pctDisplay = matPct !== null ? `${matPct.toFixed(0)}%` : '';
+    const barWidth = matPct !== null ? matPct.toFixed(1) : 0;
     
     return `<div class="detail-section shopping-list">
-        <h4><div class="shop-progress-bar" style="${barStyle}"></div><span class="shop-progress-text">&#x1F6D2; Shopping List${invLoaded ? '' : ' <span class="price-note">(no inventory synced)</span>'}</span></h4>
+        <h4>&#x1F6D2; Shopping List${invLoaded ? '' : ' <span class="price-note">(no inventory)</span>'} ${matPct !== null ? `<span class="shop-pct-bar"><span class="shop-pct-fill" style="width:${barWidth}%"></span><span class="shop-pct-text">${pctDisplay}</span></span>` : ''}</h4>
         <div class="shop-header">
             <span class="shop-col">Material</span>
             <span class="shop-col">Owned</span>
@@ -424,19 +425,41 @@ function renderDetailRow(r) {
         </div>`;
     }
     
-    const priceSourceLabel = r.base_source === 'craft' ? 'Craft price' : 'Market price';
-    const altLabel = r.base_source === 'craft' ? 'Market price' : 'Craft price';
-    const altPrice = r.alt_price > 0 ? formatCoins(r.alt_price) : null;
+    const marketPrice = r.base_source === 'craft' ? r.alt_price : r.base_price;
+    const craftPrice = r.base_source === 'craft' ? r.base_price : r.alt_price;
+    const marketPriceStr = marketPrice > 0 ? formatCoins(marketPrice) : '--';
+    const craftPriceStr = craftPrice > 0 ? formatCoins(craftPrice) : '--';
+    
+    let baseItemHtml;
+    if (r.base_source === 'craft') {
+        // Craft is cheaper - show market (small) above craft (main) with breakdown
+        baseItemHtml = `
+            <div class="detail-line">
+                <span class="label">Market price</span>
+                <span class="value alt">${marketPriceStr}</span>
+            </div>
+            <div class="detail-line">
+                <span class="label">Craft price</span>
+                <span class="value">${craftPriceStr}</span>
+            </div>
+            ${craftMatsHtml}`;
+    } else {
+        // Market is cheaper - show market (main) above craft (small)
+        baseItemHtml = `
+            <div class="detail-line">
+                <span class="label">Market price</span>
+                <span class="value">${marketPriceStr}</span>
+            </div>
+            <div class="detail-line">
+                <span class="label">Craft price</span>
+                <span class="value alt">${craftPriceStr}</span>
+            </div>`;
+    }
     
     return `<div class="detail-content">
         <div class="detail-section">
             <h4>&#x1F4E6; Base Item</h4>
-            <div class="detail-line">
-                <span class="label">${priceSourceLabel}</span>
-                <span class="value">${formatCoins(r.base_price)}</span>
-            </div>
-            ${altPrice ? `<div class="detail-line"><span class="label">${altLabel}</span><span class="value alt">${altPrice}</span></div>` : ''}
-            ${r.base_source === 'craft' ? craftMatsHtml : ''}
+            ${baseItemHtml}
         </div>
         
         ${renderShoppingList(r)}

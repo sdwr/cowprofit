@@ -402,24 +402,47 @@
         }
         /* Shopping List */
         .shopping-list {
-            background: rgba(0, 50, 0, 0.3);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(74, 222, 128, 0.3);
         }
         .shopping-list h4 {
-            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .shop-progress-bar {
+        .shop-pct-bar {
+            display: inline-flex;
+            align-items: center;
+            width: 80px;
+            height: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(74, 222, 128, 0.5);
+            border-radius: 3px;
+            position: relative;
+            margin-left: auto;
+        }
+        .shop-pct-fill {
             position: absolute;
             left: 0;
             top: 0;
             bottom: 0;
-            background: linear-gradient(90deg, rgba(74, 222, 128, 0.4) 0%, rgba(74, 222, 128, 0.15) 100%);
-            border-radius: 4px;
-            z-index: 0;
+            background: linear-gradient(90deg, rgba(74, 222, 128, 0.6) 0%, rgba(74, 222, 128, 0.3) 100%);
+            border-radius: 2px;
         }
-        .shop-progress-text {
+        .shop-pct-text {
             position: relative;
             z-index: 1;
+            width: 100%;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #4ade80;
+            font-weight: bold;
+        }
+        .shopping-list .total-row {
+            background: rgba(0, 50, 0, 0.4);
+            margin: 4px -12px -12px -12px;
+            padding: 8px 12px;
+            border-radius: 0 0 8px 8px;
         }
         .shop-header {
             display: grid;
