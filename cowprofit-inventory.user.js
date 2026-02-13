@@ -82,6 +82,15 @@
             return; // Not JSON
         }
 
+        // Debug: Log all message types for discovery
+        if (DEBUG) {
+            // Only log interesting message types (skip frequent ones)
+            const skipTypes = ['client_heartbeat', 'server_heartbeat', 'chat_message'];
+            if (!skipTypes.includes(data.type)) {
+                log('WS Message:', data.type, data);
+            }
+        }
+
         if (data.type === 'init_character_data') {
             log('Received init_character_data');
             processCharacterData(data);
@@ -89,7 +98,35 @@
             // Incremental update - merge with stored data
             log('Received items_updated');
             processItemsUpdate(data);
+        } else if (data.type === 'marketplace_item_order_filled' || 
+                   data.type === 'marketplace_item_order_updated') {
+            // Market transaction - track for profit history
+            log('Market transaction:', data);
+            processMarketTransaction(data);
         }
+    }
+
+    function processMarketTransaction(data) {
+        // TODO: Implement profit tracking
+        // For now, just log to discover the format
+        const transaction = {
+            type: data.type,
+            data: data,
+            timestamp: Date.now()
+        };
+        
+        // Store recent transactions for analysis
+        const stored = GM_getValue('cowprofit_transactions', '[]');
+        const transactions = JSON.parse(stored);
+        transactions.push(transaction);
+        
+        // Keep last 100 transactions
+        if (transactions.length > 100) {
+            transactions.shift();
+        }
+        
+        GM_setValue('cowprofit_transactions', JSON.stringify(transactions));
+        log('Stored transaction, total:', transactions.length);
     }
 
     function processCharacterData(data) {

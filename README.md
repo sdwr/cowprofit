@@ -38,17 +38,31 @@ Click any item to expand:
 
 ## How It Works
 
+### Architecture (v2 - Client-Side Calculations)
+
+The site now uses client-side JavaScript for all calculations:
+
+```
+prices.js      - Market prices (updated every 30 min via cron)
+game-data.js   - Static item/recipe data  
+enhance-calc.js - Markov chain math (runs in browser)
+main.js        - UI rendering and state
+```
+
 ### Data Flow
 ```
-MWI Market API → generate_site.py → index.html → GitHub Pages
-     ↓
-price_history.json (tracks price changes over time)
+MWI Market API → generate_prices.py → prices.js → GitHub Pages
+                                           ↓
+                              Browser loads prices.js + game-data.js
+                                           ↓
+                              enhance-calc.js computes profits client-side
 ```
 
 ### Update Schedule
-- **Cron:** Every 30 minutes via Fly.io Sprite
-- Market data refreshes every ~20-30 min server-side
-- Static HTML regenerated and pushed to GitHub Pages
+- **Clawdbot cron:** Every 30 minutes (:05, :35) via Fly.io Sprite
+- Runs `generate_prices.py` to fetch market data and update `prices.js`
+- Commits and pushes to GitHub → Pages auto-deploys
+- **No GitHub Actions** — cron is managed by Clawdbot
 
 ### Math
 Uses Markov chain calculation (same as [Enhancelator](https://doh-nuts.github.io/Enhancelator/)):
@@ -77,7 +91,16 @@ Uses Markov chain calculation (same as [Enhancelator](https://doh-nuts.github.io
 
 ```
 cowprofit/
-├── generate_site.py      # Main script: fetch data, calculate, generate HTML
+├── index.html            # Main site (v2 client-side)
+├── main.js               # UI rendering and state management
+├── enhance-calc.js       # Markov chain enhancement calculations  
+├── prices.js             # Market prices (auto-updated by cron)
+├── game-data.js          # Static item/recipe data
+├── generate_prices.py    # Fetches market data, generates prices.js
+├── cowprofit-inventory.user.js  # Tampermonkey userscript for inventory import
+├── index-v1.html         # Legacy server-side version (backup)
+├── main-v1.js            # Legacy JS (backup)
+├── generate_site.py      # Legacy: fetch data, calculate, generate HTML
 ├── enhance_calc.py       # Enhancement math (Markov chains, cost calculation)
 ├── price_history.json    # Tracks bid prices over time for age display
 ├── index.html            # Generated static site (2MB+)
