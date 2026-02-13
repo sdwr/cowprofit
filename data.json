@@ -1,6 +1,6 @@
 {
-  "timestamp": 1770934242,
-  "generated": "2026-02-12T23:30:22.061730",
+  "timestamp": 1770937489,
+  "generated": "2026-02-13T00:00:26.672510",
   "modes": {
     "pessimistic": [
       {
@@ -229,69 +229,6 @@
         "last_price": 2950000000
       },
       {
-        "item_hrid": "/items/royal_fire_robe_bottoms_refined",
-        "item_name": "Royal Fire Robe Bottoms (R)",
-        "target_level": 12,
-        "base_price": 404500799.99999994,
-        "base_source": "craft",
-        "alt_price": 440000000,
-        "alt_source": "market",
-        "mat_cost": 1029673758.1970352,
-        "total_cost": 1434174558.197035,
-        "sell_price": 1600000000,
-        "market_fee": 32000000.0,
-        "profit": 165825441.80296493,
-        "profit_after_fee": 133825441.80296493,
-        "roi": 11.562430866953289,
-        "roi_after_fee": 9.331182249614221,
-        "profit_per_day": 278196407.39829314,
-        "profit_per_day_after_fee": 224511731.8747197,
-        "xp_per_day": 4014174.369341404,
-        "total_xp": 2392742.0360866264,
-        "actions": 9787.816811322025,
-        "time_hours": 14.30575844055841,
-        "time_days": 0.5960732683566005,
-        "protect_count": 71.19932658682845,
-        "protect_at": 7,
-        "protect_hrid": "/items/royal_cloth",
-        "protect_name": "Royal Cloth",
-        "protect_price": 7600000,
-        "materials": [
-          {
-            "hrid": "/items/enchanted_essence",
-            "name": "Enchanted Essence",
-            "count": 14,
-            "price": 1550
-          },
-          {
-            "hrid": "/items/radiant_fabric",
-            "name": "Radiant Fabric",
-            "count": 6,
-            "price": 3900
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/enchanted_refinement_shard",
-            "name": "Enchanted Refinement Shard",
-            "count": 88.78399999999999,
-            "price": 3700000
-          },
-          {
-            "hrid": "/items/royal_fire_robe_bottoms",
-            "name": "Royal Fire Robe Bottoms",
-            "count": 1,
-            "price": 76000000,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "pessimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
         "item_hrid": "/items/acrobatic_hood_refined",
         "item_name": "Acrobatic Hood (R)",
         "target_level": 12,
@@ -514,20 +451,20 @@
         "item_hrid": "/items/anchorbound_plate_body_refined",
         "item_name": "Anchorbound Plate Body (R)",
         "target_level": 12,
-        "base_price": 435379199.99999994,
+        "base_price": 437379199.99999994,
         "base_source": "craft",
         "alt_price": 0,
         "alt_source": "market",
         "mat_cost": 1176932870.2664828,
-        "total_cost": 1612312070.2664828,
+        "total_cost": 1614312070.2664828,
         "sell_price": 1750000000,
         "market_fee": 35000000.0,
-        "profit": 137687929.73351717,
-        "profit_after_fee": 102687929.73351717,
-        "roi": 8.539781613788957,
-        "roi_after_fee": 6.368985981513177,
-        "profit_per_day": 230991619.72676393,
-        "profit_per_day_after_fee": 172274005.8728555,
+        "profit": 135687929.73351717,
+        "profit_after_fee": 100687929.73351717,
+        "roi": 8.40530974355649,
+        "roi_after_fee": 6.237203548685359,
+        "profit_per_day": 227636327.5065406,
+        "profit_per_day_after_fee": 168918713.65263218,
         "xp_per_day": 4014174.369341404,
         "total_xp": 2392742.0360866264,
         "actions": 9787.816811322025,
@@ -564,7 +501,7 @@
             "hrid": "/items/anchorbound_plate_body",
             "name": "Anchorbound Plate Body",
             "count": 1,
-            "price": 98000000,
+            "price": 100000000,
             "is_upgrade": true
           }
         ],
@@ -758,6 +695,69 @@
           {
             "hrid": "/items/royal_nature_robe_bottoms",
             "name": "Royal Nature Robe Bottoms",
+            "count": 1,
+            "price": 76000000,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "pessimistic",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
+        "item_hrid": "/items/royal_fire_robe_bottoms_refined",
+        "item_name": "Royal Fire Robe Bottoms (R)",
+        "target_level": 12,
+        "base_price": 404500799.99999994,
+        "base_source": "craft",
+        "alt_price": 440000000,
+        "alt_source": "market",
+        "mat_cost": 1029673758.1970352,
+        "total_cost": 1434174558.197035,
+        "sell_price": 1550000000,
+        "market_fee": 31000000.0,
+        "profit": 115825441.80296493,
+        "profit_after_fee": 84825441.80296493,
+        "roi": 8.076104902360997,
+        "roi_after_fee": 5.914582804313778,
+        "profit_per_day": 194314101.89270964,
+        "profit_per_day_after_fee": 142307072.4792479,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/royal_cloth",
+        "protect_name": "Royal Cloth",
+        "protect_price": 7600000,
+        "materials": [
+          {
+            "hrid": "/items/enchanted_essence",
+            "name": "Enchanted Essence",
+            "count": 14,
+            "price": 1550
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 6,
+            "price": 3900
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/enchanted_refinement_shard",
+            "name": "Enchanted Refinement Shard",
+            "count": 88.78399999999999,
+            "price": 3700000
+          },
+          {
+            "hrid": "/items/royal_fire_robe_bottoms",
+            "name": "Royal Fire Robe Bottoms",
             "count": 1,
             "price": 76000000,
             "is_upgrade": true
@@ -1140,20 +1140,20 @@
         "item_hrid": "/items/royal_fire_robe_bottoms",
         "item_name": "Royal Fire Robe Bottoms",
         "target_level": 12,
-        "base_price": 74667344.0,
+        "base_price": 74134640.0,
         "base_source": "craft",
         "alt_price": 76000000,
         "alt_source": "market",
         "mat_cost": 1029673758.1970352,
-        "total_cost": 1104341102.1970353,
+        "total_cost": 1103808398.1970353,
         "sell_price": 1200000000,
         "market_fee": 24000000.0,
-        "profit": 95658897.80296469,
-        "profit_after_fee": 71658897.80296469,
-        "roi": 8.662078918610904,
-        "roi_after_fee": 6.488837340238686,
-        "profit_per_day": 160481777.7967134,
-        "profit_per_day_after_fee": 120218271.15403336,
+        "profit": 96191601.80296469,
+        "profit_after_fee": 72191601.80296469,
+        "roi": 8.714519835152949,
+        "roi_after_fee": 6.540229438449891,
+        "profit_per_day": 161375466.59015435,
+        "profit_per_day_after_fee": 121111959.94747429,
         "xp_per_day": 4014174.369341404,
         "total_xp": 2392742.0360866264,
         "actions": 9787.816811322025,
@@ -1190,7 +1190,7 @@
             "hrid": "/items/radiant_robe_bottoms",
             "name": "Radiant Robe Bottoms",
             "count": 26.635199999999998,
-            "price": 700000
+            "price": 680000
           },
           {
             "hrid": "/items/flaming_robe_bottoms",
@@ -1651,7 +1651,7 @@
         "target_level": 12,
         "base_price": 97253993.59999998,
         "base_source": "craft",
-        "alt_price": 100000000,
+        "alt_price": 98000000,
         "alt_source": "market",
         "mat_cost": 928132199.4951084,
         "total_cost": 1025386193.0951084,
@@ -1715,9 +1715,9 @@
           }
         ],
         "mode": "pessimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
+        "price_since_ts": 1770940815,
+        "price_direction": "down",
+        "last_price": 1200000000
       },
       {
         "item_hrid": "/items/royal_nature_robe_top",
@@ -1725,7 +1725,7 @@
         "target_level": 12,
         "base_price": 90000000,
         "base_source": "market",
-        "alt_price": 91101296.0,
+        "alt_price": 91051296.0,
         "alt_source": "craft",
         "mat_cost": 1136360961.4404452,
         "total_cost": 1226360961.4404452,
@@ -1779,7 +1779,7 @@
             "hrid": "/items/luna_robe_top",
             "name": "Luna Robe Top",
             "count": 1,
-            "price": 2850000,
+            "price": 2800000,
             "is_upgrade": true
           }
         ],
@@ -1987,20 +1987,20 @@
         "item_hrid": "/items/celestial_pot",
         "item_name": "Celestial Pot",
         "target_level": 12,
-        "base_price": 382109711.99999994,
+        "base_price": 382089711.99999994,
         "base_source": "craft",
         "alt_price": 0,
         "alt_source": "market",
         "mat_cost": 1600031422.739653,
-        "total_cost": 1982141134.739653,
+        "total_cost": 1982121134.739653,
         "sell_price": 2050000000,
         "market_fee": 41000000.0,
-        "profit": 67858865.26034689,
-        "profit_after_fee": 26858865.26034689,
-        "roi": 3.423513294337636,
-        "roi_after_fee": 1.3550430284508828,
-        "profit_per_day": 119697799.94389491,
-        "profit_per_day_after_fee": 47376964.94508986,
+        "profit": 67878865.26034689,
+        "profit_after_fee": 26878865.26034689,
+        "roi": 3.4245568583406794,
+        "roi_after_fee": 1.3560657211738658,
+        "profit_per_day": 119733078.39999188,
+        "profit_per_day_after_fee": 47412243.40118684,
         "xp_per_day": 3922329.0927735115,
         "total_xp": 2223639.879246017,
         "actions": 9513.167330152753,
@@ -2067,7 +2067,7 @@
             "hrid": "/items/holy_pot",
             "name": "Holy Pot",
             "count": 1,
-            "price": 960000,
+            "price": 940000,
             "is_upgrade": true
           }
         ],
@@ -2279,7 +2279,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_since_ts": 0,
+        "price_since_ts": 1770940815,
         "price_direction": null,
         "last_price": null
       },
@@ -2413,20 +2413,20 @@
         "item_hrid": "/items/corsair_helmet",
         "item_name": "Corsair Helmet",
         "target_level": 12,
-        "base_price": 97912928.0,
+        "base_price": 97380224.0,
         "base_source": "craft",
-        "alt_price": 105000000,
+        "alt_price": 100000000,
         "alt_source": "market",
         "mat_cost": 1003246652.8064656,
-        "total_cost": 1101159580.8064656,
+        "total_cost": 1100626876.8064656,
         "sell_price": 1150000000,
         "market_fee": 23000000.0,
-        "profit": 48840419.193534374,
-        "profit_after_fee": 25840419.193534374,
-        "roi": 4.435362507381964,
-        "roi_after_fee": 2.346655257234324,
-        "profit_per_day": 81936939.27625626,
-        "profit_per_day_after_fee": 43351078.74368786,
+        "profit": 49373123.193534374,
+        "profit_after_fee": 26373123.193534374,
+        "roi": 4.485909278973218,
+        "roi_after_fee": 2.396191093393754,
+        "profit_per_day": 82830628.06969719,
+        "profit_per_day_after_fee": 44244767.53712879,
         "xp_per_day": 4014174.369341404,
         "total_xp": 2392742.0360866264,
         "actions": 9787.816811322025,
@@ -2463,7 +2463,7 @@
             "hrid": "/items/holy_helmet",
             "name": "Holy Helmet",
             "count": 26.635199999999998,
-            "price": 740000
+            "price": 720000
           },
           {
             "hrid": "/items/vision_helmet",
@@ -2587,20 +2587,20 @@
         "item_hrid": "/items/royal_nature_robe_bottoms",
         "item_name": "Royal Nature Robe Bottoms",
         "target_level": 12,
-        "base_price": 74925312.0,
+        "base_price": 74392608.0,
         "base_source": "craft",
         "alt_price": 76000000,
         "alt_source": "market",
         "mat_cost": 1029673758.1970352,
-        "total_cost": 1104599070.1970353,
+        "total_cost": 1104066366.1970353,
         "sell_price": 1150000000,
         "market_fee": 23000000.0,
-        "profit": 45400929.80296469,
-        "profit_after_fee": 22400929.802964687,
-        "roi": 4.110172733973622,
-        "roi_after_fee": 2.027969279294149,
-        "profit_per_day": 76166693.27939667,
-        "profit_per_day_after_fee": 37580832.74682827,
+        "profit": 45933633.80296469,
+        "profit_after_fee": 22933633.802964687,
+        "roi": 4.160405135896262,
+        "roi_after_fee": 2.0771970331783365,
+        "profit_per_day": 77060382.07283759,
+        "profit_per_day_after_fee": 38474521.540269196,
         "xp_per_day": 4014174.369341404,
         "total_xp": 2392742.0360866264,
         "actions": 9787.816811322025,
@@ -2637,7 +2637,7 @@
             "hrid": "/items/radiant_robe_bottoms",
             "name": "Radiant Robe Bottoms",
             "count": 26.635199999999998,
-            "price": 700000
+            "price": 680000
           },
           {
             "hrid": "/items/luna_robe_bottoms",
@@ -2721,7 +2721,7 @@
         "target_level": 12,
         "base_price": 100000000,
         "base_source": "market",
-        "alt_price": 104486720.0,
+        "alt_price": 105818480.0,
         "alt_source": "craft",
         "mat_cost": 1205412600.9012141,
         "total_cost": 1305412600.9012141,
@@ -2769,7 +2769,7 @@
             "hrid": "/items/holy_plate_body",
             "name": "Holy Plate Body",
             "count": 26.635199999999998,
-            "price": 1000000
+            "price": 1050000
           },
           {
             "hrid": "/items/demonic_plate_body",
@@ -3084,69 +3084,6 @@
         "last_price": 760000000
       },
       {
-        "item_hrid": "/items/anchorbound_plate_body_refined",
-        "item_name": "Anchorbound Plate Body (R)",
-        "target_level": 10,
-        "base_price": 435379199.99999994,
-        "base_source": "craft",
-        "alt_price": 0,
-        "alt_source": "market",
-        "mat_cost": 286413174.66362536,
-        "total_cost": 721792374.6636252,
-        "sell_price": 760000000,
-        "market_fee": 15200000.0,
-        "profit": 38207625.33637476,
-        "profit_after_fee": 23007625.33637476,
-        "roi": 5.293437098747482,
-        "roi_after_fee": 3.1875683567725326,
-        "profit_per_day": 226073102.26584566,
-        "profit_per_day_after_fee": 136135265.92589948,
-        "xp_per_day": 3969233.1772966487,
-        "total_xp": 670822.7232292474,
-        "actions": 2775.1556043287105,
-        "time_hours": 4.056134935480685,
-        "time_days": 0.16900562231169522,
-        "protect_count": 13.797461513801899,
-        "protect_at": 7,
-        "protect_hrid": "/items/damaged_anchor",
-        "protect_name": "Damaged Anchor",
-        "protect_price": 7400000,
-        "materials": [
-          {
-            "hrid": "/items/pirate_essence",
-            "name": "Pirate Essence",
-            "count": 16,
-            "price": 1900
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 8,
-            "price": 3900
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/pirate_refinement_shard",
-            "name": "Pirate Refinement Shard",
-            "count": 88.78399999999999,
-            "price": 3800000
-          },
-          {
-            "hrid": "/items/anchorbound_plate_body",
-            "name": "Anchorbound Plate Body",
-            "count": 1,
-            "price": 98000000,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "pessimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
         "item_hrid": "/items/blazing_trident_refined",
         "item_name": "Blazing Trident (R)",
         "target_level": 12,
@@ -3207,6 +3144,69 @@
             "name": "Blazing Trident",
             "count": 1,
             "price": 255000000,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "pessimistic",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
+        "item_hrid": "/items/anchorbound_plate_body_refined",
+        "item_name": "Anchorbound Plate Body (R)",
+        "target_level": 10,
+        "base_price": 437379199.99999994,
+        "base_source": "craft",
+        "alt_price": 0,
+        "alt_source": "market",
+        "mat_cost": 286413174.66362536,
+        "total_cost": 723792374.6636252,
+        "sell_price": 760000000,
+        "market_fee": 15200000.0,
+        "profit": 36207625.33637476,
+        "profit_after_fee": 21007625.33637476,
+        "roi": 5.002487813332085,
+        "roi_after_fee": 2.9024380570654436,
+        "profit_per_day": 214239176.4316422,
+        "profit_per_day_after_fee": 124301340.09169604,
+        "xp_per_day": 3969233.1772966487,
+        "total_xp": 670822.7232292474,
+        "actions": 2775.1556043287105,
+        "time_hours": 4.056134935480685,
+        "time_days": 0.16900562231169522,
+        "protect_count": 13.797461513801899,
+        "protect_at": 7,
+        "protect_hrid": "/items/damaged_anchor",
+        "protect_name": "Damaged Anchor",
+        "protect_price": 7400000,
+        "materials": [
+          {
+            "hrid": "/items/pirate_essence",
+            "name": "Pirate Essence",
+            "count": 16,
+            "price": 1900
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 8,
+            "price": 3900
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/pirate_refinement_shard",
+            "name": "Pirate Refinement Shard",
+            "count": 88.78399999999999,
+            "price": 3800000
+          },
+          {
+            "hrid": "/items/anchorbound_plate_body",
+            "name": "Anchorbound Plate Body",
+            "count": 1,
+            "price": 100000000,
             "is_upgrade": true
           }
         ],
@@ -3282,20 +3282,20 @@
         "item_hrid": "/items/centaur_boots",
         "item_name": "Centaur Boots",
         "target_level": 14,
-        "base_price": 1296584.0,
+        "base_price": 1269948.8,
         "base_source": "craft",
         "alt_price": 1500000,
         "alt_source": "market",
-        "mat_cost": 175982968.31422928,
-        "total_cost": 177279552.31422928,
+        "mat_cost": 173635673.56078452,
+        "total_cost": 174905622.36078453,
         "sell_price": 210000000,
         "market_fee": 4200000.0,
-        "profit": 32720447.68577072,
-        "profit_after_fee": 28520447.68577072,
-        "roi": 18.45697784015919,
-        "roi_after_fee": 16.087838283356007,
-        "profit_per_day": 33934716.398689896,
-        "profit_per_day_after_fee": 29578852.742934406,
+        "profit": 35094377.63921547,
+        "profit_after_fee": 30894377.63921547,
+        "roi": 20.064751015736334,
+        "roi_after_fee": 17.663455995421607,
+        "profit_per_day": 36396743.82857545,
+        "profit_per_day_after_fee": 32040880.172819953,
         "xp_per_day": 3541512.8557651225,
         "total_xp": 3414788.700872151,
         "actions": 17915.63646784185,
@@ -3305,7 +3305,7 @@
         "protect_at": 6,
         "protect_hrid": "/items/centaur_hoof",
         "protect_name": "Centaur Hoof",
-        "protect_price": 225000,
+        "protect_price": 220000,
         "materials": [
           {
             "hrid": "/items/jungle_essence",
@@ -3326,7 +3326,7 @@
             "hrid": "/items/centaur_hoof",
             "name": "Centaur Hoof",
             "count": 5.32704,
-            "price": 225000
+            "price": 220000
           },
           {
             "hrid": "/items/beast_boots",
@@ -3790,7 +3790,7 @@
           }
         ],
         "mode": "pessimistic",
-        "price_since_ts": 0,
+        "price_since_ts": 1770940815,
         "price_direction": null,
         "last_price": null
       },
@@ -4447,9 +4447,9 @@
           }
         ],
         "mode": "pessimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
+        "price_since_ts": 1770940815,
+        "price_direction": "up",
+        "last_price": 310000000
       },
       {
         "item_hrid": "/items/bishops_codex",
@@ -4540,9 +4540,9 @@
           }
         ],
         "mode": "pessimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
+        "price_since_ts": 1770940815,
+        "price_direction": "down",
+        "last_price": 330000000
       },
       {
         "item_hrid": "/items/lumberjacks_top",
@@ -4943,16 +4943,16 @@
         "base_source": "market",
         "alt_price": 545043.84,
         "alt_source": "craft",
-        "mat_cost": 90464633.4742532,
-        "total_cost": 90914633.4742532,
+        "mat_cost": 90577752.45753744,
+        "total_cost": 91027752.45753744,
         "sell_price": 115000000,
         "market_fee": 2300000.0,
-        "profit": 24085366.525746793,
-        "profit_after_fee": 21785366.525746793,
-        "roi": 26.492287990764112,
-        "roi_after_fee": 23.96244223094883,
-        "profit_per_day": 63298727.24439787,
-        "profit_per_day_after_fee": 57254099.5860857,
+        "profit": 23972247.542462558,
+        "profit_after_fee": 21672247.542462558,
+        "roi": 26.33509769852344,
+        "roi_after_fee": 23.80839574455297,
+        "profit_per_day": 63001439.359597854,
+        "profit_per_day_after_fee": 56956811.70128568,
         "xp_per_day": 4600413.487557938,
         "total_xp": 1750471.9263945138,
         "actions": 7069.936455264288,
@@ -4968,7 +4968,7 @@
             "hrid": "/items/bear_essence",
             "name": "Bear Essence",
             "count": 8,
-            "price": 66
+            "price": 68
           },
           {
             "hrid": "/items/rainbow_cheese",
@@ -5184,6 +5184,74 @@
         "last_price": 450000000
       },
       {
+        "item_hrid": "/items/royal_fire_robe_top",
+        "item_name": "Royal Fire Robe Top",
+        "target_level": 12,
+        "base_price": 90000000,
+        "base_source": "market",
+        "alt_price": 90781640.0,
+        "alt_source": "craft",
+        "mat_cost": 1136360961.4404452,
+        "total_cost": 1226360961.4404452,
+        "sell_price": 1250000000,
+        "market_fee": 25000000.0,
+        "profit": 23639038.559554815,
+        "profit_after_fee": -1360961.4404451847,
+        "roi": 1.9275759179246166,
+        "roi_after_fee": -0.11097560043387569,
+        "profit_per_day": 39657941.0862169,
+        "profit_per_day_after_fee": -2283211.6665748386,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/royal_cloth",
+        "protect_name": "Royal Cloth",
+        "protect_price": 7600000,
+        "materials": [
+          {
+            "hrid": "/items/enchanted_essence",
+            "name": "Enchanted Essence",
+            "count": 16,
+            "price": 1550
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 8,
+            "price": 3900
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/royal_cloth",
+            "name": "Royal Cloth",
+            "count": 8.8784,
+            "price": 7600000
+          },
+          {
+            "hrid": "/items/radiant_robe_top",
+            "name": "Radiant Robe Top",
+            "count": 26.635199999999998,
+            "price": 780000
+          },
+          {
+            "hrid": "/items/flaming_robe_top",
+            "name": "Flaming Robe Top",
+            "count": 8.8784,
+            "price": 285000
+          }
+        ],
+        "mode": "pessimistic",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
         "item_hrid": "/items/dodocamel_gauntlets",
         "item_name": "Dodocamel Gauntlets",
         "target_level": 10,
@@ -5265,16 +5333,16 @@
         "base_source": "craft",
         "alt_price": 5400000,
         "alt_source": "market",
-        "mat_cost": 142067021.80846274,
-        "total_cost": 147274647.32846275,
+        "mat_cost": 142236761.64201042,
+        "total_cost": 147444387.16201043,
         "sell_price": 170000000,
         "market_fee": 3400000.0,
-        "profit": 22725352.67153725,
-        "profit_after_fee": 19325352.67153725,
-        "roi": 15.430593848820088,
-        "roi_after_fee": 13.121981971843685,
-        "profit_per_day": 152149098.88496077,
-        "profit_per_day_after_fee": 129385670.58152342,
+        "profit": 22555612.83798957,
+        "profit_after_fee": 19155612.83798957,
+        "roi": 15.29770869691071,
+        "roi_after_fee": 12.991754522972496,
+        "profit_per_day": 151012669.31696075,
+        "profit_per_day_after_fee": 128249241.01352341,
         "xp_per_day": 3710252.672661351,
         "total_xp": 554172.1975658522,
         "actions": 2828.9972257946642,
@@ -5290,7 +5358,7 @@
             "hrid": "/items/bear_essence",
             "name": "Bear Essence",
             "count": 30,
-            "price": 66
+            "price": 68
           },
           {
             "hrid": "/items/beast_leather",
@@ -5348,6 +5416,74 @@
             "name": "Bamboo Fabric",
             "count": 133.176,
             "price": 520
+          }
+        ],
+        "mode": "pessimistic",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
+        "item_hrid": "/items/royal_fire_robe_bottoms",
+        "item_name": "Royal Fire Robe Bottoms",
+        "target_level": 10,
+        "base_price": 74134640.0,
+        "base_source": "craft",
+        "alt_price": 76000000,
+        "alt_source": "market",
+        "mat_cost": 243382599.49496204,
+        "total_cost": 317517239.49496204,
+        "sell_price": 340000000,
+        "market_fee": 6800000.0,
+        "profit": 22482760.505037963,
+        "profit_after_fee": 15682760.505037963,
+        "roi": 7.080799940437468,
+        "roi_after_fee": 4.939183941628719,
+        "profit_per_day": 133029660.18238881,
+        "profit_per_day_after_fee": 92794312.3460971,
+        "xp_per_day": 3969233.1772966487,
+        "total_xp": 670822.7232292474,
+        "actions": 2775.1556043287105,
+        "time_hours": 4.056134935480685,
+        "time_days": 0.16900562231169522,
+        "protect_count": 13.797461513801899,
+        "protect_at": 7,
+        "protect_hrid": "/items/royal_cloth",
+        "protect_name": "Royal Cloth",
+        "protect_price": 7600000,
+        "materials": [
+          {
+            "hrid": "/items/enchanted_essence",
+            "name": "Enchanted Essence",
+            "count": 14,
+            "price": 1550
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 6,
+            "price": 3900
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/royal_cloth",
+            "name": "Royal Cloth",
+            "count": 7.10272,
+            "price": 7600000
+          },
+          {
+            "hrid": "/items/radiant_robe_bottoms",
+            "name": "Radiant Robe Bottoms",
+            "count": 26.635199999999998,
+            "price": 680000
+          },
+          {
+            "hrid": "/items/flaming_robe_bottoms",
+            "name": "Flaming Robe Bottoms",
+            "count": 8.8784,
+            "price": 230000
           }
         ],
         "mode": "pessimistic",
@@ -5425,80 +5561,12 @@
         "last_price": null
       },
       {
-        "item_hrid": "/items/royal_fire_robe_bottoms",
-        "item_name": "Royal Fire Robe Bottoms",
-        "target_level": 10,
-        "base_price": 74667344.0,
-        "base_source": "craft",
-        "alt_price": 76000000,
-        "alt_source": "market",
-        "mat_cost": 243382599.49496204,
-        "total_cost": 318049943.49496204,
-        "sell_price": 340000000,
-        "market_fee": 6800000.0,
-        "profit": 21950056.505037963,
-        "profit_after_fee": 15150056.505037963,
-        "roi": 6.901449584878061,
-        "roi_after_fee": 4.763420593180499,
-        "profit_per_day": 129877670.36859706,
-        "profit_per_day_after_fee": 89642322.53230534,
-        "xp_per_day": 3969233.1772966487,
-        "total_xp": 670822.7232292474,
-        "actions": 2775.1556043287105,
-        "time_hours": 4.056134935480685,
-        "time_days": 0.16900562231169522,
-        "protect_count": 13.797461513801899,
-        "protect_at": 7,
-        "protect_hrid": "/items/royal_cloth",
-        "protect_name": "Royal Cloth",
-        "protect_price": 7600000,
-        "materials": [
-          {
-            "hrid": "/items/enchanted_essence",
-            "name": "Enchanted Essence",
-            "count": 14,
-            "price": 1550
-          },
-          {
-            "hrid": "/items/radiant_fabric",
-            "name": "Radiant Fabric",
-            "count": 6,
-            "price": 3900
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/royal_cloth",
-            "name": "Royal Cloth",
-            "count": 7.10272,
-            "price": 7600000
-          },
-          {
-            "hrid": "/items/radiant_robe_bottoms",
-            "name": "Radiant Robe Bottoms",
-            "count": 26.635199999999998,
-            "price": 700000
-          },
-          {
-            "hrid": "/items/flaming_robe_bottoms",
-            "name": "Flaming Robe Bottoms",
-            "count": 8.8784,
-            "price": 230000
-          }
-        ],
-        "mode": "pessimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
         "item_hrid": "/items/knights_aegis",
         "item_name": "Knight's Aegis",
         "target_level": 10,
         "base_price": 97253993.59999998,
         "base_source": "craft",
-        "alt_price": 100000000,
+        "alt_price": 98000000,
         "alt_source": "market",
         "mat_cost": 220982155.60774112,
         "total_cost": 318236149.2077411,
@@ -5631,9 +5699,9 @@
           }
         ],
         "mode": "pessimistic",
-        "price_since_ts": 1770933614,
-        "price_direction": "up",
-        "last_price": 400000000
+        "price_since_ts": 1770940815,
+        "price_direction": "down",
+        "last_price": 410000000
       },
       {
         "item_hrid": "/items/rippling_trident",
@@ -5884,6 +5952,156 @@
         "last_price": 640000000
       },
       {
+        "item_hrid": "/items/anchorbound_plate_body",
+        "item_name": "Anchorbound Plate Body",
+        "target_level": 10,
+        "base_price": 96496160.0,
+        "base_source": "craft",
+        "alt_price": 100000000,
+        "alt_source": "market",
+        "mat_cost": 286413174.66362536,
+        "total_cost": 382909334.66362536,
+        "sell_price": 400000000,
+        "market_fee": 8000000.0,
+        "profit": 17090665.33637464,
+        "profit_after_fee": 9090665.33637464,
+        "roi": 4.463371296860206,
+        "roi_after_fee": 2.3741038709230016,
+        "profit_per_day": 101124833.02392457,
+        "profit_per_day_after_fee": 53789129.6871108,
+        "xp_per_day": 3969233.1772966487,
+        "total_xp": 670822.7232292474,
+        "actions": 2775.1556043287105,
+        "time_hours": 4.056134935480685,
+        "time_days": 0.16900562231169522,
+        "protect_count": 13.797461513801899,
+        "protect_at": 7,
+        "protect_hrid": "/items/damaged_anchor",
+        "protect_name": "Damaged Anchor",
+        "protect_price": 7400000,
+        "materials": [
+          {
+            "hrid": "/items/pirate_essence",
+            "name": "Pirate Essence",
+            "count": 16,
+            "price": 1900
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 8,
+            "price": 3900
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/damaged_anchor",
+            "name": "Damaged Anchor",
+            "count": 8.8784,
+            "price": 7400000
+          },
+          {
+            "hrid": "/items/holy_plate_body",
+            "name": "Holy Plate Body",
+            "count": 8.8784,
+            "price": 1050000
+          },
+          {
+            "hrid": "/items/griffin_tunic",
+            "name": "Griffin Tunic",
+            "count": 0.88784,
+            "price": 14500000
+          },
+          {
+            "hrid": "/items/colossus_plate_body",
+            "name": "Colossus Plate Body",
+            "count": 1,
+            "price": 8600000,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "pessimistic",
+        "price_since_ts": 1770940815,
+        "price_direction": "up",
+        "last_price": 420000000
+      },
+      {
+        "item_hrid": "/items/corsair_helmet",
+        "item_name": "Corsair Helmet",
+        "target_level": 10,
+        "base_price": 97380224.0,
+        "base_source": "craft",
+        "alt_price": 100000000,
+        "alt_source": "market",
+        "mat_cost": 235889679.3632745,
+        "total_cost": 333269903.3632745,
+        "sell_price": 350000000,
+        "market_fee": 7000000.0,
+        "profit": 16730096.636725485,
+        "profit_after_fee": 9730096.636725485,
+        "roi": 5.019984243368404,
+        "roi_after_fee": 2.9195845585010356,
+        "profit_per_day": 98991361.39903294,
+        "profit_per_day_after_fee": 57572620.979320884,
+        "xp_per_day": 3969233.1772966487,
+        "total_xp": 670822.7232292474,
+        "actions": 2775.1556043287105,
+        "time_hours": 4.056134935480685,
+        "time_days": 0.16900562231169522,
+        "protect_count": 13.797461513801899,
+        "protect_at": 7,
+        "protect_hrid": "/items/corsair_crest",
+        "protect_name": "Corsair Crest",
+        "protect_price": 7600000,
+        "materials": [
+          {
+            "hrid": "/items/pirate_essence",
+            "name": "Pirate Essence",
+            "count": 10,
+            "price": 1900
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 6,
+            "price": 3900
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/corsair_crest",
+            "name": "Corsair Crest",
+            "count": 8.8784,
+            "price": 7600000
+          },
+          {
+            "hrid": "/items/holy_helmet",
+            "name": "Holy Helmet",
+            "count": 26.635199999999998,
+            "price": 720000
+          },
+          {
+            "hrid": "/items/vision_helmet",
+            "name": "Vision Helmet",
+            "count": 8.8784,
+            "price": 600000
+          },
+          {
+            "hrid": "/items/fluffy_red_hat",
+            "name": "Fluffy Red Hat",
+            "count": 1,
+            "price": 5400000,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "pessimistic",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
         "item_hrid": "/items/anchorbound_plate_legs",
         "item_name": "Anchorbound Plate Legs",
         "target_level": 10,
@@ -6125,7 +6343,7 @@
         "target_level": 10,
         "base_price": 90000000,
         "base_source": "market",
-        "alt_price": 91101296.0,
+        "alt_price": 91051296.0,
         "alt_source": "craft",
         "mat_cost": 273631795.582145,
         "total_cost": 363631795.582145,
@@ -6179,7 +6397,7 @@
             "hrid": "/items/luna_robe_top",
             "name": "Luna Robe Top",
             "count": 1,
-            "price": 2850000,
+            "price": 2800000,
             "is_upgrade": true
           }
         ],
@@ -6317,81 +6535,6 @@
             "name": "Demonic Plate Legs",
             "count": 1,
             "price": 6800000,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "pessimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
-        "item_hrid": "/items/corsair_helmet",
-        "item_name": "Corsair Helmet",
-        "target_level": 10,
-        "base_price": 97912928.0,
-        "base_source": "craft",
-        "alt_price": 105000000,
-        "alt_source": "market",
-        "mat_cost": 235889679.3632745,
-        "total_cost": 333802607.3632745,
-        "sell_price": 350000000,
-        "market_fee": 7000000.0,
-        "profit": 16197392.636725485,
-        "profit_after_fee": 9197392.636725485,
-        "roi": 4.852386494122858,
-        "roi_after_fee": 2.755338764240401,
-        "profit_per_day": 95839371.58524118,
-        "profit_per_day_after_fee": 54420631.165529124,
-        "xp_per_day": 3969233.1772966487,
-        "total_xp": 670822.7232292474,
-        "actions": 2775.1556043287105,
-        "time_hours": 4.056134935480685,
-        "time_days": 0.16900562231169522,
-        "protect_count": 13.797461513801899,
-        "protect_at": 7,
-        "protect_hrid": "/items/corsair_crest",
-        "protect_name": "Corsair Crest",
-        "protect_price": 7600000,
-        "materials": [
-          {
-            "hrid": "/items/pirate_essence",
-            "name": "Pirate Essence",
-            "count": 10,
-            "price": 1900
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 6,
-            "price": 3900
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/corsair_crest",
-            "name": "Corsair Crest",
-            "count": 8.8784,
-            "price": 7600000
-          },
-          {
-            "hrid": "/items/holy_helmet",
-            "name": "Holy Helmet",
-            "count": 26.635199999999998,
-            "price": 740000
-          },
-          {
-            "hrid": "/items/vision_helmet",
-            "name": "Vision Helmet",
-            "count": 8.8784,
-            "price": 600000
-          },
-          {
-            "hrid": "/items/fluffy_red_hat",
-            "name": "Fluffy Red Hat",
-            "count": 1,
-            "price": 5400000,
             "is_upgrade": true
           }
         ],
@@ -6622,20 +6765,20 @@
         "item_hrid": "/items/celestial_pot",
         "item_name": "Celestial Pot",
         "target_level": 10,
-        "base_price": 382109711.99999994,
+        "base_price": 382089711.99999994,
         "base_source": "craft",
         "alt_price": 0,
         "alt_source": "market",
         "mat_cost": 383278283.745728,
-        "total_cost": 765387995.745728,
+        "total_cost": 765367995.745728,
         "sell_price": 780000000,
         "market_fee": 15600000.0,
-        "profit": 14612004.254271984,
-        "profit_after_fee": -987995.7457280159,
-        "roi": 1.909097651843273,
-        "roi_after_fee": -0.1290843011935924,
-        "profit_per_day": 90282894.35024542,
-        "profit_per_day_after_fee": -6104509.27729343,
+        "profit": 14632004.254271984,
+        "profit_after_fee": -967995.7457280159,
+        "roi": 1.9117606609635474,
+        "roi_after_fee": -0.12647455225572368,
+        "profit_per_day": 90406467.9446397,
+        "profit_per_day_after_fee": -5980935.682899149,
         "xp_per_day": 3877514.1658067685,
         "total_xp": 627563.5478296379,
         "actions": 2715.8703090660706,
@@ -6702,7 +6845,7 @@
             "hrid": "/items/holy_pot",
             "name": "Holy Pot",
             "count": 1,
-            "price": 960000,
+            "price": 940000,
             "is_upgrade": true
           }
         ],
@@ -6710,6 +6853,92 @@
         "price_since_ts": 1770909728,
         "price_direction": null,
         "last_price": null
+      },
+      {
+        "item_hrid": "/items/dairyhands_top",
+        "item_name": "Dairyhand's Top",
+        "target_level": 8,
+        "base_price": 189394028.79999998,
+        "base_source": "craft",
+        "alt_price": 0,
+        "alt_source": "market",
+        "mat_cost": 31070646.918904506,
+        "total_cost": 220464675.7189045,
+        "sell_price": 235000000,
+        "market_fee": 4700000.0,
+        "profit": 14535324.281095505,
+        "profit_after_fee": 9835324.281095505,
+        "roi": 6.593040011374994,
+        "roi_after_fee": 4.461179211147495,
+        "profit_per_day": 210502346.62807077,
+        "profit_per_day_after_fee": 142436370.93885374,
+        "xp_per_day": 3794750.291977074,
+        "total_xp": 262029.98181832733,
+        "actions": 1158.7039686333958,
+        "time_hours": 1.6572156478742683,
+        "time_days": 0.06905065199476118,
+        "protect_count": 0,
+        "protect_at": 8,
+        "protect_hrid": "/items/thread_of_expertise",
+        "protect_name": "Thread Of Expertise",
+        "protect_price": 11000000,
+        "materials": [
+          {
+            "hrid": "/items/milking_essence",
+            "name": "Milking Essence",
+            "count": 30,
+            "price": 350
+          },
+          {
+            "hrid": "/items/umbral_leather",
+            "name": "Umbral Leather",
+            "count": 2,
+            "price": 2700
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 2,
+            "price": 3900
+          }
+        ],
+        "coin_cost": 3115,
+        "craft_materials": [
+          {
+            "hrid": "/items/thread_of_expertise",
+            "name": "Thread Of Expertise",
+            "count": 7.10272,
+            "price": 11000000
+          },
+          {
+            "hrid": "/items/butter_of_proficiency",
+            "name": "Butter Of Proficiency",
+            "count": 5.32704,
+            "price": 12500000
+          },
+          {
+            "hrid": "/items/milking_essence",
+            "name": "Milking Essence",
+            "count": 124297.59999999999,
+            "price": 350
+          },
+          {
+            "hrid": "/items/umbral_leather",
+            "name": "Umbral Leather",
+            "count": 177.56799999999998,
+            "price": 2700
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 177.56799999999998,
+            "price": 3900
+          }
+        ],
+        "mode": "pessimistic",
+        "price_since_ts": 1770915617,
+        "price_direction": "up",
+        "last_price": 240000000
       },
       {
         "item_hrid": "/items/lumberjacks_bottoms",
@@ -6879,100 +7108,139 @@
         "last_price": 640000000
       },
       {
-        "item_hrid": "/items/collectors_boots",
-        "item_name": "Collector's Boots",
-        "target_level": 12,
-        "base_price": 4346864.64,
+        "item_hrid": "/items/royal_water_robe_bottoms",
+        "item_name": "Royal Water Robe Bottoms",
+        "target_level": 10,
+        "base_price": 74090248.0,
         "base_source": "craft",
-        "alt_price": 4400000,
+        "alt_price": 76000000,
         "alt_source": "market",
-        "mat_cost": 122780432.70168015,
-        "total_cost": 127127297.34168015,
-        "sell_price": 140000000,
-        "market_fee": 2800000.0,
-        "profit": 12872702.658319846,
-        "profit_after_fee": 10072702.658319846,
-        "roi": 10.125836800983718,
-        "roi_after_fee": 7.923320064964044,
-        "profit_per_day": 86184365.89239152,
-        "profit_per_day_after_fee": 67438013.17191371,
-        "xp_per_day": 3710252.672661351,
-        "total_xp": 554172.1975658522,
-        "actions": 2828.9972257946642,
-        "time_hours": 3.584697300963148,
-        "time_days": 0.14936238754013118,
-        "protect_count": 173.18643041571033,
-        "protect_at": 5,
-        "protect_hrid": "/items/gobo_rag",
-        "protect_name": "Gobo Rag",
-        "protect_price": 420000,
+        "mat_cost": 243382599.49496204,
+        "total_cost": 317472847.49496204,
+        "sell_price": 330000000,
+        "market_fee": 6600000.0,
+        "profit": 12527152.505037963,
+        "profit_after_fee": 5927152.505037963,
+        "roi": 3.945897296063014,
+        "roi_after_fee": 1.8669793501417535,
+        "profit_per_day": 74122696.82918757,
+        "profit_per_day_after_fee": 35070741.57631621,
+        "xp_per_day": 3969233.1772966487,
+        "total_xp": 670822.7232292474,
+        "actions": 2775.1556043287105,
+        "time_hours": 4.056134935480685,
+        "time_days": 0.16900562231169522,
+        "protect_count": 13.797461513801899,
+        "protect_at": 7,
+        "protect_hrid": "/items/royal_cloth",
+        "protect_name": "Royal Cloth",
+        "protect_price": 7600000,
         "materials": [
           {
-            "hrid": "/items/gobo_essence",
-            "name": "Gobo Essence",
-            "count": 30,
-            "price": 115
+            "hrid": "/items/enchanted_essence",
+            "name": "Enchanted Essence",
+            "count": 14,
+            "price": 1550
           },
           {
-            "hrid": "/items/gobo_leather",
-            "name": "Gobo Leather",
-            "count": 4,
-            "price": 1250
-          },
-          {
-            "hrid": "/items/bamboo_fabric",
-            "name": "Bamboo Fabric",
-            "count": 4,
-            "price": 520
-          },
-          {
-            "hrid": "/items/reptile_leather",
-            "name": "Reptile Leather",
-            "count": 4,
-            "price": 1150
-          },
-          {
-            "hrid": "/items/linen_fabric",
-            "name": "Linen Fabric",
-            "count": 4,
-            "price": 560
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 6,
+            "price": 3900
           }
         ],
-        "coin_cost": 319,
+        "coin_cost": 4815,
         "craft_materials": [
           {
-            "hrid": "/items/gobo_rag",
-            "name": "Gobo Rag",
+            "hrid": "/items/royal_cloth",
+            "name": "Royal Cloth",
+            "count": 7.10272,
+            "price": 7600000
+          },
+          {
+            "hrid": "/items/radiant_robe_bottoms",
+            "name": "Radiant Robe Bottoms",
+            "count": 26.635199999999998,
+            "price": 680000
+          },
+          {
+            "hrid": "/items/icy_robe_bottoms",
+            "name": "Icy Robe Bottoms",
             "count": 8.8784,
-            "price": 420000
-          },
-          {
-            "hrid": "/items/gobo_leather",
-            "name": "Gobo Leather",
-            "count": 177.56799999999998,
-            "price": 1250
-          },
-          {
-            "hrid": "/items/bamboo_fabric",
-            "name": "Bamboo Fabric",
-            "count": 177.56799999999998,
-            "price": 520
-          },
-          {
-            "hrid": "/items/reptile_leather",
-            "name": "Reptile Leather",
-            "count": 177.56799999999998,
-            "price": 1150
-          },
-          {
-            "hrid": "/items/linen_fabric",
-            "name": "Linen Fabric",
-            "count": 177.56799999999998,
-            "price": 560
+            "price": 225000
           }
         ],
         "mode": "pessimistic",
-        "price_since_ts": 0,
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
+        "item_hrid": "/items/royal_nature_robe_bottoms",
+        "item_name": "Royal Nature Robe Bottoms",
+        "target_level": 10,
+        "base_price": 74392608.0,
+        "base_source": "craft",
+        "alt_price": 76000000,
+        "alt_source": "market",
+        "mat_cost": 243382599.49496204,
+        "total_cost": 317775207.49496204,
+        "sell_price": 330000000,
+        "market_fee": 6600000.0,
+        "profit": 12224792.505037963,
+        "profit_after_fee": 5624792.505037963,
+        "roi": 3.846993792060312,
+        "roi_after_fee": 1.7700539162191053,
+        "profit_per_day": 72333643.9215727,
+        "profit_per_day_after_fee": 33281688.66870133,
+        "xp_per_day": 3969233.1772966487,
+        "total_xp": 670822.7232292474,
+        "actions": 2775.1556043287105,
+        "time_hours": 4.056134935480685,
+        "time_days": 0.16900562231169522,
+        "protect_count": 13.797461513801899,
+        "protect_at": 7,
+        "protect_hrid": "/items/royal_cloth",
+        "protect_name": "Royal Cloth",
+        "protect_price": 7600000,
+        "materials": [
+          {
+            "hrid": "/items/enchanted_essence",
+            "name": "Enchanted Essence",
+            "count": 14,
+            "price": 1550
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 6,
+            "price": 3900
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/royal_cloth",
+            "name": "Royal Cloth",
+            "count": 7.10272,
+            "price": 7600000
+          },
+          {
+            "hrid": "/items/radiant_robe_bottoms",
+            "name": "Radiant Robe Bottoms",
+            "count": 26.635199999999998,
+            "price": 680000
+          },
+          {
+            "hrid": "/items/luna_robe_bottoms",
+            "name": "Luna Robe Bottoms",
+            "count": 1,
+            "price": 2300000,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "pessimistic",
+        "price_since_ts": 1770909728,
         "price_direction": null,
         "last_price": null
       },
@@ -7070,74 +7338,6 @@
         "last_price": null
       },
       {
-        "item_hrid": "/items/royal_water_robe_bottoms",
-        "item_name": "Royal Water Robe Bottoms",
-        "target_level": 10,
-        "base_price": 74622952.0,
-        "base_source": "craft",
-        "alt_price": 76000000,
-        "alt_source": "market",
-        "mat_cost": 243382599.49496204,
-        "total_cost": 318005551.49496204,
-        "sell_price": 330000000,
-        "market_fee": 6600000.0,
-        "profit": 11994448.505037963,
-        "profit_after_fee": 5394448.505037963,
-        "roi": 3.7717733066770007,
-        "roi_after_fee": 1.696337840543461,
-        "profit_per_day": 70970707.01539582,
-        "profit_per_day_after_fee": 31918751.762524452,
-        "xp_per_day": 3969233.1772966487,
-        "total_xp": 670822.7232292474,
-        "actions": 2775.1556043287105,
-        "time_hours": 4.056134935480685,
-        "time_days": 0.16900562231169522,
-        "protect_count": 13.797461513801899,
-        "protect_at": 7,
-        "protect_hrid": "/items/royal_cloth",
-        "protect_name": "Royal Cloth",
-        "protect_price": 7600000,
-        "materials": [
-          {
-            "hrid": "/items/enchanted_essence",
-            "name": "Enchanted Essence",
-            "count": 14,
-            "price": 1550
-          },
-          {
-            "hrid": "/items/radiant_fabric",
-            "name": "Radiant Fabric",
-            "count": 6,
-            "price": 3900
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/royal_cloth",
-            "name": "Royal Cloth",
-            "count": 7.10272,
-            "price": 7600000
-          },
-          {
-            "hrid": "/items/radiant_robe_bottoms",
-            "name": "Radiant Robe Bottoms",
-            "count": 26.635199999999998,
-            "price": 700000
-          },
-          {
-            "hrid": "/items/icy_robe_bottoms",
-            "name": "Icy Robe Bottoms",
-            "count": 8.8784,
-            "price": 225000
-          }
-        ],
-        "mode": "pessimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
         "item_hrid": "/items/manticore_shield",
         "item_name": "Manticore Shield",
         "target_level": 10,
@@ -7199,223 +7399,6 @@
         "price_since_ts": 1770909728,
         "price_direction": null,
         "last_price": null
-      },
-      {
-        "item_hrid": "/items/royal_nature_robe_bottoms",
-        "item_name": "Royal Nature Robe Bottoms",
-        "target_level": 10,
-        "base_price": 74925312.0,
-        "base_source": "craft",
-        "alt_price": 76000000,
-        "alt_source": "market",
-        "mat_cost": 243382599.49496204,
-        "total_cost": 318307911.49496204,
-        "sell_price": 330000000,
-        "market_fee": 6600000.0,
-        "profit": 11692088.505037963,
-        "profit_after_fee": 5092088.505037963,
-        "roi": 3.6732007225723695,
-        "roi_after_fee": 1.599736708120922,
-        "profit_per_day": 69181654.10778093,
-        "profit_per_day_after_fee": 30129698.854909573,
-        "xp_per_day": 3969233.1772966487,
-        "total_xp": 670822.7232292474,
-        "actions": 2775.1556043287105,
-        "time_hours": 4.056134935480685,
-        "time_days": 0.16900562231169522,
-        "protect_count": 13.797461513801899,
-        "protect_at": 7,
-        "protect_hrid": "/items/royal_cloth",
-        "protect_name": "Royal Cloth",
-        "protect_price": 7600000,
-        "materials": [
-          {
-            "hrid": "/items/enchanted_essence",
-            "name": "Enchanted Essence",
-            "count": 14,
-            "price": 1550
-          },
-          {
-            "hrid": "/items/radiant_fabric",
-            "name": "Radiant Fabric",
-            "count": 6,
-            "price": 3900
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/royal_cloth",
-            "name": "Royal Cloth",
-            "count": 7.10272,
-            "price": 7600000
-          },
-          {
-            "hrid": "/items/radiant_robe_bottoms",
-            "name": "Radiant Robe Bottoms",
-            "count": 26.635199999999998,
-            "price": 700000
-          },
-          {
-            "hrid": "/items/luna_robe_bottoms",
-            "name": "Luna Robe Bottoms",
-            "count": 1,
-            "price": 2300000,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "pessimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
-        "item_hrid": "/items/enchanted_gloves",
-        "item_name": "Enchanted Gloves",
-        "target_level": 12,
-        "base_price": 9819510.4,
-        "base_source": "craft",
-        "alt_price": 10000000,
-        "alt_source": "market",
-        "mat_cost": 229886493.30232212,
-        "total_cost": 239706003.70232213,
-        "sell_price": 250000000,
-        "market_fee": 5000000.0,
-        "profit": 10293996.297677875,
-        "profit_after_fee": 5293996.297677875,
-        "roi": 4.294425729303564,
-        "roi_after_fee": 2.2085372147174924,
-        "profit_per_day": 41673922.33985066,
-        "profit_per_day_after_fee": 21432064.302048814,
-        "xp_per_day": 3348833.640712776,
-        "total_xp": 827205.1000601825,
-        "actions": 4678.546002207028,
-        "time_hours": 5.928309534426088,
-        "time_days": 0.24701289726775366,
-        "protect_count": 113.06787817321481,
-        "protect_at": 6,
-        "protect_hrid": "/items/chrono_sphere",
-        "protect_name": "Chrono Sphere",
-        "protect_price": 1000000,
-        "materials": [
-          {
-            "hrid": "/items/sorcerer_essence",
-            "name": "Sorcerer Essence",
-            "count": 30,
-            "price": 115
-          },
-          {
-            "hrid": "/items/umbral_leather",
-            "name": "Umbral Leather",
-            "count": 2,
-            "price": 2700
-          },
-          {
-            "hrid": "/items/radiant_fabric",
-            "name": "Radiant Fabric",
-            "count": 2,
-            "price": 3900
-          },
-          {
-            "hrid": "/items/beast_leather",
-            "name": "Beast Leather",
-            "count": 2,
-            "price": 1600
-          },
-          {
-            "hrid": "/items/silk_fabric",
-            "name": "Silk Fabric",
-            "count": 2,
-            "price": 2400
-          }
-        ],
-        "coin_cost": 319,
-        "craft_materials": [
-          {
-            "hrid": "/items/chrono_sphere",
-            "name": "Chrono Sphere",
-            "count": 8.8784,
-            "price": 1000000
-          },
-          {
-            "hrid": "/items/umbral_leather",
-            "name": "Umbral Leather",
-            "count": 88.78399999999999,
-            "price": 2700
-          },
-          {
-            "hrid": "/items/radiant_fabric",
-            "name": "Radiant Fabric",
-            "count": 88.78399999999999,
-            "price": 3900
-          },
-          {
-            "hrid": "/items/beast_leather",
-            "name": "Beast Leather",
-            "count": 88.78399999999999,
-            "price": 1600
-          },
-          {
-            "hrid": "/items/silk_fabric",
-            "name": "Silk Fabric",
-            "count": 88.78399999999999,
-            "price": 2400
-          }
-        ],
-        "mode": "pessimistic",
-        "price_since_ts": 1770921696,
-        "price_direction": "up",
-        "last_price": 270000000
-      },
-      {
-        "item_hrid": "/items/cheese_boots",
-        "item_name": "Cheese Boots",
-        "target_level": 14,
-        "base_price": 4119.5776,
-        "base_source": "craft",
-        "alt_price": 4800,
-        "alt_source": "market",
-        "mat_cost": 7758781.937653629,
-        "total_cost": 7762901.51525363,
-        "sell_price": 18000000,
-        "market_fee": 360000.0,
-        "profit": 10237098.48474637,
-        "profit_after_fee": 9877098.48474637,
-        "roi": 131.87206439024243,
-        "roi_after_fee": 127.23462310243757,
-        "profit_per_day": 72317925.67014001,
-        "profit_per_day_after_fee": 69774777.9921097,
-        "xp_per_day": 1103673.1540335244,
-        "total_xp": 156232.5062301523,
-        "actions": 3282.4902305576943,
-        "time_hours": 3.397364641715078,
-        "time_days": 0.1415568600714616,
-        "protect_count": 949.5399206559457,
-        "protect_at": 3,
-        "protect_hrid": "/items/cheese_boots",
-        "protect_name": "Cheese Boots",
-        "protect_price": 4119.5776,
-        "materials": [
-          {
-            "hrid": "/items/cheese",
-            "name": "Cheese",
-            "count": 2,
-            "price": 580
-          }
-        ],
-        "coin_cost": 12,
-        "craft_materials": [
-          {
-            "hrid": "/items/cheese",
-            "name": "Cheese",
-            "count": 7.10272,
-            "price": 580
-          }
-        ],
-        "mode": "pessimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
       }
     ],
     "midpoint": [
@@ -7423,20 +7406,20 @@
         "item_hrid": "/items/corsair_helmet",
         "item_name": "Corsair Helmet",
         "target_level": 14,
-        "base_price": 96469952.0,
+        "base_price": 96037248.0,
         "base_source": "craft",
-        "alt_price": 100500000.0,
+        "alt_price": 98000000.0,
         "alt_source": "market",
         "mat_cost": 4163174103.104492,
-        "total_cost": 4259644055.104492,
+        "total_cost": 4259211351.104492,
         "sell_price": 5200000000,
         "market_fee": 104000000.0,
-        "profit": 940355944.8955078,
-        "profit_after_fee": 836355944.8955078,
-        "roi": 22.075927770740464,
-        "roi_after_fee": 19.634409215325654,
-        "profit_per_day": 402931848.29037523,
-        "profit_per_day_after_fee": 358369028.8073172,
+        "profit": 940788648.8955078,
+        "profit_after_fee": 836788648.8955078,
+        "roi": 22.088329771462124,
+        "roi_after_fee": 19.646563176032885,
+        "profit_per_day": 403117257.0426983,
+        "profit_per_day_after_fee": 358554437.5596402,
         "xp_per_day": 4034272.370670894,
         "total_xp": 9415120.75350805,
         "actions": 38321.885172666116,
@@ -7473,7 +7456,7 @@
             "hrid": "/items/holy_helmet",
             "name": "Holy Helmet",
             "count": 26.635199999999998,
-            "price": 730000.0
+            "price": 710000.0
           },
           {
             "hrid": "/items/vision_helmet",
@@ -7485,7 +7468,7 @@
             "hrid": "/items/fluffy_red_hat",
             "name": "Fluffy Red Hat",
             "count": 1,
-            "price": 5200000.0,
+            "price": 5300000.0,
             "is_upgrade": true
           }
         ],
@@ -7498,20 +7481,20 @@
         "item_hrid": "/items/colossus_plate_body",
         "item_name": "Colossus Plate Body",
         "target_level": 12,
-        "base_price": 8359071.999999999,
+        "base_price": 8384071.999999999,
         "base_source": "craft",
         "alt_price": 8400000.0,
         "alt_source": "market",
         "mat_cost": 236189540.34020478,
-        "total_cost": 244548612.34020478,
+        "total_cost": 244573612.34020478,
         "sell_price": 840000000,
         "market_fee": 16800000.0,
-        "profit": 595451387.6597953,
-        "profit_after_fee": 578651387.6597953,
-        "roi": 243.48998833468363,
-        "roi_after_fee": 236.62018856798994,
-        "profit_per_day": 1885371144.3983219,
-        "profit_per_day_after_fee": 1832177490.1684177,
+        "profit": 595426387.6597953,
+        "profit_after_fee": 578626387.6597953,
+        "roi": 243.4548772299892,
+        "roi_after_fee": 236.5857796853894,
+        "profit_per_day": 1885291987.1747656,
+        "profit_per_day_after_fee": 1832098332.9448614,
         "xp_per_day": 4018257.0405092794,
         "total_xp": 1269074.6529424407,
         "actions": 5413.432921818623,
@@ -7548,7 +7531,7 @@
             "hrid": "/items/holy_plate_body",
             "name": "Holy Plate Body",
             "count": 1,
-            "price": 990000.0,
+            "price": 1015000.0,
             "is_upgrade": true
           }
         ],
@@ -8391,81 +8374,6 @@
         "last_price": 2300000000
       },
       {
-        "item_hrid": "/items/anchorbound_plate_body",
-        "item_name": "Anchorbound Plate Body",
-        "target_level": 12,
-        "base_price": 93543856.0,
-        "base_source": "craft",
-        "alt_price": 96000000.0,
-        "alt_source": "market",
-        "mat_cost": 1161982684.1587424,
-        "total_cost": 1255526540.1587424,
-        "sell_price": 1550000000,
-        "market_fee": 31000000.0,
-        "profit": 294473459.8412576,
-        "profit_after_fee": 263473459.84125757,
-        "roi": 23.45418041135362,
-        "roi_after_fee": 20.985096803126545,
-        "profit_per_day": 494022254.43381065,
-        "profit_per_day_after_fee": 442015225.0203489,
-        "xp_per_day": 4014174.369341404,
-        "total_xp": 2392742.0360866264,
-        "actions": 9787.816811322025,
-        "time_hours": 14.30575844055841,
-        "time_days": 0.5960732683566005,
-        "protect_count": 71.19932658682845,
-        "protect_at": 7,
-        "protect_hrid": "/items/damaged_anchor",
-        "protect_name": "Damaged Anchor",
-        "protect_price": 7300000.0,
-        "materials": [
-          {
-            "hrid": "/items/pirate_essence",
-            "name": "Pirate Essence",
-            "count": 16,
-            "price": 1875.0
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 8,
-            "price": 3850.0
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/damaged_anchor",
-            "name": "Damaged Anchor",
-            "count": 8.8784,
-            "price": 7300000.0
-          },
-          {
-            "hrid": "/items/holy_plate_body",
-            "name": "Holy Plate Body",
-            "count": 8.8784,
-            "price": 990000.0
-          },
-          {
-            "hrid": "/items/griffin_tunic",
-            "name": "Griffin Tunic",
-            "count": 0.88784,
-            "price": 13000000.0
-          },
-          {
-            "hrid": "/items/colossus_plate_body",
-            "name": "Colossus Plate Body",
-            "count": 1,
-            "price": 8400000.0,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770911948,
-        "price_direction": "up",
-        "last_price": 1450000000
-      },
-      {
         "item_hrid": "/items/blooming_trident_refined",
         "item_name": "Blooming Trident (R)",
         "target_level": 12,
@@ -8533,6 +8441,81 @@
         "price_since_ts": 1770909728,
         "price_direction": null,
         "last_price": null
+      },
+      {
+        "item_hrid": "/items/anchorbound_plate_body",
+        "item_name": "Anchorbound Plate Body",
+        "target_level": 12,
+        "base_price": 94431696.0,
+        "base_source": "craft",
+        "alt_price": 98000000.0,
+        "alt_source": "market",
+        "mat_cost": 1161982684.1587424,
+        "total_cost": 1256414380.1587424,
+        "sell_price": 1550000000,
+        "market_fee": 31000000.0,
+        "profit": 293585619.8412576,
+        "profit_after_fee": 262585619.84125757,
+        "roi": 23.36694202784947,
+        "roi_after_fee": 20.899603187292477,
+        "profit_per_day": 492532773.1114091,
+        "profit_per_day_after_fee": 440525743.6979474,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/damaged_anchor",
+        "protect_name": "Damaged Anchor",
+        "protect_price": 7300000.0,
+        "materials": [
+          {
+            "hrid": "/items/pirate_essence",
+            "name": "Pirate Essence",
+            "count": 16,
+            "price": 1875.0
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 8,
+            "price": 3850.0
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/damaged_anchor",
+            "name": "Damaged Anchor",
+            "count": 8.8784,
+            "price": 7300000.0
+          },
+          {
+            "hrid": "/items/holy_plate_body",
+            "name": "Holy Plate Body",
+            "count": 8.8784,
+            "price": 1015000.0
+          },
+          {
+            "hrid": "/items/griffin_tunic",
+            "name": "Griffin Tunic",
+            "count": 0.88784,
+            "price": 13750000.0
+          },
+          {
+            "hrid": "/items/colossus_plate_body",
+            "name": "Colossus Plate Body",
+            "count": 1,
+            "price": 8400000.0,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770911948,
+        "price_direction": "up",
+        "last_price": 1450000000
       },
       {
         "item_hrid": "/items/sundering_crossbow_refined",
@@ -8856,20 +8839,20 @@
         "item_hrid": "/items/anchorbound_plate_body_refined",
         "item_name": "Anchorbound Plate Body (R)",
         "target_level": 12,
-        "base_price": 428939999.99999994,
+        "base_price": 430939999.99999994,
         "base_source": "craft",
         "alt_price": 0,
         "alt_source": "market",
         "mat_cost": 1161982684.1587424,
-        "total_cost": 1590922684.1587424,
+        "total_cost": 1592922684.1587424,
         "sell_price": 1850000000.0,
         "market_fee": 37000000.0,
-        "profit": 259077315.84125757,
-        "profit_after_fee": 222077315.84125757,
-        "roi": 16.28472071087817,
-        "roi_after_fee": 13.959026296660603,
-        "profit_per_day": 434640051.13925815,
-        "profit_per_day_after_fee": 372567145.06512636,
+        "profit": 257077315.84125757,
+        "profit_after_fee": 220077315.84125757,
+        "roi": 16.13871899733952,
+        "roi_after_fee": 13.81594461739273,
+        "profit_per_day": 431284758.91903484,
+        "profit_per_day_after_fee": 369211852.84490305,
         "xp_per_day": 4014174.369341404,
         "total_xp": 2392742.0360866264,
         "actions": 9787.816811322025,
@@ -8906,7 +8889,7 @@
             "hrid": "/items/anchorbound_plate_body",
             "name": "Anchorbound Plate Body",
             "count": 1,
-            "price": 96000000.0,
+            "price": 98000000.0,
             "is_upgrade": true
           }
         ],
@@ -9371,69 +9354,6 @@
         "last_price": null
       },
       {
-        "item_hrid": "/items/royal_fire_robe_bottoms_refined",
-        "item_name": "Royal Fire Robe Bottoms (R)",
-        "target_level": 12,
-        "base_price": 396061599.99999994,
-        "base_source": "craft",
-        "alt_price": 440000000,
-        "alt_source": "market",
-        "mat_cost": 1016191744.6109929,
-        "total_cost": 1412253344.610993,
-        "sell_price": 1625000000.0,
-        "market_fee": 32500000.0,
-        "profit": 212746655.3890071,
-        "profit_after_fee": 180246655.3890071,
-        "roi": 15.064340700684156,
-        "roi_after_fee": 12.763053886670475,
-        "profit_per_day": 356913598.85263556,
-        "profit_per_day_after_fee": 302390100.2740063,
-        "xp_per_day": 4014174.369341404,
-        "total_xp": 2392742.0360866264,
-        "actions": 9787.816811322025,
-        "time_hours": 14.30575844055841,
-        "time_days": 0.5960732683566005,
-        "protect_count": 71.19932658682845,
-        "protect_at": 7,
-        "protect_hrid": "/items/royal_cloth",
-        "protect_name": "Royal Cloth",
-        "protect_price": 7500000.0,
-        "materials": [
-          {
-            "hrid": "/items/enchanted_essence",
-            "name": "Enchanted Essence",
-            "count": 14,
-            "price": 1525.0
-          },
-          {
-            "hrid": "/items/radiant_fabric",
-            "name": "Radiant Fabric",
-            "count": 6,
-            "price": 3850.0
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/enchanted_refinement_shard",
-            "name": "Enchanted Refinement Shard",
-            "count": 88.78399999999999,
-            "price": 3650000.0
-          },
-          {
-            "hrid": "/items/royal_fire_robe_bottoms",
-            "name": "Royal Fire Robe Bottoms",
-            "count": 1,
-            "price": 72000000.0,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
         "item_hrid": "/items/furious_spear",
         "item_name": "Furious Spear",
         "target_level": 12,
@@ -9593,20 +9513,20 @@
         "item_hrid": "/items/celestial_pot",
         "item_name": "Celestial Pot",
         "target_level": 12,
-        "base_price": 377152199.99999994,
+        "base_price": 377142199.99999994,
         "base_source": "craft",
         "alt_price": 0,
         "alt_source": "market",
         "mat_cost": 1572923809.3205001,
-        "total_cost": 1950076009.3205001,
+        "total_cost": 1950066009.3205001,
         "sell_price": 2150000000.0,
         "market_fee": 43000000.0,
-        "profit": 199923990.67949986,
-        "profit_after_fee": 156923990.67949986,
-        "roi": 10.252112724014433,
-        "roi_after_fee": 8.047070469534145,
-        "profit_per_day": 352650486.39596945,
-        "profit_per_day_after_fee": 276801805.7874666,
+        "profit": 199933990.67949986,
+        "profit_after_fee": 156933990.67949986,
+        "roi": 10.252678100325783,
+        "roi_after_fee": 8.047624538319267,
+        "profit_per_day": 352668125.62401795,
+        "profit_per_day_after_fee": 276819445.0155151,
         "xp_per_day": 3922329.0927735115,
         "total_xp": 2223639.879246017,
         "actions": 9513.167330152753,
@@ -9673,7 +9593,7 @@
             "hrid": "/items/holy_pot",
             "name": "Holy Pot",
             "count": 1,
-            "price": 930000.0,
+            "price": 920000.0,
             "is_upgrade": true
           }
         ],
@@ -9920,6 +9840,69 @@
         "last_price": null
       },
       {
+        "item_hrid": "/items/royal_fire_robe_bottoms_refined",
+        "item_name": "Royal Fire Robe Bottoms (R)",
+        "target_level": 12,
+        "base_price": 396061599.99999994,
+        "base_source": "craft",
+        "alt_price": 440000000,
+        "alt_source": "market",
+        "mat_cost": 1016191744.6109929,
+        "total_cost": 1412253344.610993,
+        "sell_price": 1600000000.0,
+        "market_fee": 32000000.0,
+        "profit": 187746655.3890071,
+        "profit_after_fee": 155746655.3890071,
+        "roi": 13.294120074519785,
+        "roi_after_fee": 11.02823767302939,
+        "profit_per_day": 314972446.09984386,
+        "profit_per_day_after_fee": 261287770.57627043,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/royal_cloth",
+        "protect_name": "Royal Cloth",
+        "protect_price": 7500000.0,
+        "materials": [
+          {
+            "hrid": "/items/enchanted_essence",
+            "name": "Enchanted Essence",
+            "count": 14,
+            "price": 1525.0
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 6,
+            "price": 3850.0
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/enchanted_refinement_shard",
+            "name": "Enchanted Refinement Shard",
+            "count": 88.78399999999999,
+            "price": 3650000.0
+          },
+          {
+            "hrid": "/items/royal_fire_robe_bottoms",
+            "name": "Royal Fire Robe Bottoms",
+            "count": 1,
+            "price": 72000000.0,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
         "item_hrid": "/items/marksman_bracers_refined",
         "item_name": "Marksman Bracers (R)",
         "target_level": 12,
@@ -9981,6 +9964,75 @@
         "price_since_ts": 1770911948,
         "price_direction": "up",
         "last_price": 1450000000
+      },
+      {
+        "item_hrid": "/items/blazing_trident_refined",
+        "item_name": "Blazing Trident (R)",
+        "target_level": 12,
+        "base_price": 1246320000.0,
+        "base_source": "craft",
+        "alt_price": 0,
+        "alt_source": "market",
+        "mat_cost": 1469402434.147001,
+        "total_cost": 2715722434.1470013,
+        "sell_price": 2900000000.0,
+        "market_fee": 58000000.0,
+        "profit": 184277565.85299873,
+        "profit_after_fee": 126277565.85299873,
+        "roi": 6.785581749295363,
+        "roi_after_fee": 4.649870114309457,
+        "profit_per_day": 309152541.53413033,
+        "profit_per_day_after_fee": 211849067.1476535,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/mirror_of_protection",
+        "protect_name": "Mirror Of Protection",
+        "protect_price": 11250000.0,
+        "materials": [
+          {
+            "hrid": "/items/pirate_essence",
+            "name": "Pirate Essence",
+            "count": 18,
+            "price": 1875.0
+          },
+          {
+            "hrid": "/items/arcane_lumber",
+            "name": "Arcane Lumber",
+            "count": 9,
+            "price": 3050.0
+          },
+          {
+            "hrid": "/items/crushed_amethyst",
+            "name": "Crushed Amethyst",
+            "count": 1,
+            "price": 2275.0
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/pirate_refinement_shard",
+            "name": "Pirate Refinement Shard",
+            "count": 266.352,
+            "price": 3750000.0
+          },
+          {
+            "hrid": "/items/blazing_trident",
+            "name": "Blazing Trident",
+            "count": 1,
+            "price": 247500000.0,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
       },
       {
         "item_hrid": "/items/rippling_trident",
@@ -10064,92 +10116,23 @@
         "last_price": null
       },
       {
-        "item_hrid": "/items/blazing_trident_refined",
-        "item_name": "Blazing Trident (R)",
-        "target_level": 12,
-        "base_price": 1248820000.0,
-        "base_source": "craft",
-        "alt_price": 0,
-        "alt_source": "market",
-        "mat_cost": 1469402434.147001,
-        "total_cost": 2718222434.1470013,
-        "sell_price": 2900000000.0,
-        "market_fee": 58000000.0,
-        "profit": 181777565.85299873,
-        "profit_after_fee": 123777565.85299873,
-        "roi": 6.687369053005476,
-        "roi_after_fee": 4.553621671945367,
-        "profit_per_day": 304958426.2588512,
-        "profit_per_day_after_fee": 207654951.87237433,
-        "xp_per_day": 4014174.369341404,
-        "total_xp": 2392742.0360866264,
-        "actions": 9787.816811322025,
-        "time_hours": 14.30575844055841,
-        "time_days": 0.5960732683566005,
-        "protect_count": 71.19932658682845,
-        "protect_at": 7,
-        "protect_hrid": "/items/mirror_of_protection",
-        "protect_name": "Mirror Of Protection",
-        "protect_price": 11250000.0,
-        "materials": [
-          {
-            "hrid": "/items/pirate_essence",
-            "name": "Pirate Essence",
-            "count": 18,
-            "price": 1875.0
-          },
-          {
-            "hrid": "/items/arcane_lumber",
-            "name": "Arcane Lumber",
-            "count": 9,
-            "price": 3050.0
-          },
-          {
-            "hrid": "/items/crushed_amethyst",
-            "name": "Crushed Amethyst",
-            "count": 1,
-            "price": 2275.0
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/pirate_refinement_shard",
-            "name": "Pirate Refinement Shard",
-            "count": 266.352,
-            "price": 3750000.0
-          },
-          {
-            "hrid": "/items/blazing_trident",
-            "name": "Blazing Trident",
-            "count": 1,
-            "price": 250000000.0,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
         "item_hrid": "/items/corsair_helmet_refined",
         "item_name": "Corsair Helmet (R)",
         "target_level": 12,
-        "base_price": 433439999.99999994,
+        "base_price": 430939999.99999994,
         "base_source": "craft",
         "alt_price": 0,
         "alt_source": "market",
         "mat_cost": 990743420.9015557,
-        "total_cost": 1424183420.9015555,
+        "total_cost": 1421683420.9015555,
         "sell_price": 1600000000,
         "market_fee": 32000000.0,
-        "profit": 175816579.09844446,
-        "profit_after_fee": 143816579.09844446,
-        "roi": 12.345079750131251,
-        "roi_after_fee": 10.098178155128625,
-        "profit_per_day": 294958000.017646,
-        "profit_per_day_after_fee": 241273324.49407256,
+        "profit": 178316579.09844446,
+        "profit_after_fee": 146316579.09844446,
+        "roi": 12.542636178831264,
+        "roi_after_fee": 10.291783455254638,
+        "profit_per_day": 299152115.2929252,
+        "profit_per_day_after_fee": 245467439.76935175,
         "xp_per_day": 4014174.369341404,
         "total_xp": 2392742.0360866264,
         "actions": 9787.816811322025,
@@ -10186,12 +10169,87 @@
             "hrid": "/items/corsair_helmet",
             "name": "Corsair Helmet",
             "count": 1,
-            "price": 100500000.0,
+            "price": 98000000.0,
             "is_upgrade": true
           }
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
+        "item_hrid": "/items/anchorbound_plate_legs",
+        "item_name": "Anchorbound Plate Legs",
+        "target_level": 12,
+        "base_price": 77960848.0,
+        "base_source": "craft",
+        "alt_price": 80000000.0,
+        "alt_source": "market",
+        "mat_cost": 1049912181.6691052,
+        "total_cost": 1127873029.669105,
+        "sell_price": 1300000000.0,
+        "market_fee": 26000000.0,
+        "profit": 172126970.33089495,
+        "profit_after_fee": 146126970.33089495,
+        "roi": 15.261201022015172,
+        "roi_after_fee": 12.955977001574869,
+        "profit_per_day": 288768142.22093266,
+        "profit_per_day_after_fee": 245149343.35802925,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/damaged_anchor",
+        "protect_name": "Damaged Anchor",
+        "protect_price": 7300000.0,
+        "materials": [
+          {
+            "hrid": "/items/pirate_essence",
+            "name": "Pirate Essence",
+            "count": 14,
+            "price": 1875.0
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 6,
+            "price": 3850.0
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/damaged_anchor",
+            "name": "Damaged Anchor",
+            "count": 7.10272,
+            "price": 7300000.0
+          },
+          {
+            "hrid": "/items/holy_plate_legs",
+            "name": "Holy Plate Legs",
+            "count": 8.8784,
+            "price": 980000.0
+          },
+          {
+            "hrid": "/items/griffin_chaps",
+            "name": "Griffin Chaps",
+            "count": 0.88784,
+            "price": 11500000.0
+          },
+          {
+            "hrid": "/items/colossus_plate_legs",
+            "name": "Colossus Plate Legs",
+            "count": 1,
+            "price": 7200000,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770940815,
         "price_direction": null,
         "last_price": null
       },
@@ -10203,16 +10261,16 @@
         "base_source": "craft",
         "alt_price": 0,
         "alt_source": "market",
-        "mat_cost": 730150376.5094578,
-        "total_cost": 951620376.5094578,
+        "mat_cost": 734012039.2037331,
+        "total_cost": 955482039.2037331,
         "sell_price": 1125000000.0,
         "market_fee": 22500000.0,
-        "profit": 173379623.49054217,
-        "profit_after_fee": 150879623.49054217,
-        "roi": 18.219410572785165,
-        "roi_after_fee": 15.855022361329462,
-        "profit_per_day": 184724961.73530105,
-        "profit_per_day_after_fee": 160752642.75474334,
+        "profit": 169517960.7962669,
+        "profit_after_fee": 147017960.7962669,
+        "roi": 17.7416166752373,
+        "roi_after_fee": 15.386784341732554,
+        "profit_per_day": 180610605.739635,
+        "profit_per_day_after_fee": 156638286.75907728,
         "xp_per_day": 3943823.22139329,
         "total_xp": 3701603.610118682,
         "actions": 15411.987813930073,
@@ -10222,7 +10280,7 @@
         "protect_at": 8,
         "protect_hrid": "/items/dodocamel_plume",
         "protect_name": "Dodocamel Plume",
-        "protect_price": 7200000.0,
+        "protect_price": 7300000.0,
         "materials": [
           {
             "hrid": "/items/chimerical_essence",
@@ -10391,6 +10449,69 @@
         "last_price": null
       },
       {
+        "item_hrid": "/items/knights_aegis_refined",
+        "item_name": "Knight's Aegis (R)",
+        "target_level": 12,
+        "base_price": 421061599.99999994,
+        "base_source": "craft",
+        "alt_price": 0,
+        "alt_source": "market",
+        "mat_cost": 915139576.7496324,
+        "total_cost": 1336201176.7496324,
+        "sell_price": 1500000000,
+        "market_fee": 30000000.0,
+        "profit": 163798823.25036764,
+        "profit_after_fee": 133798823.25036764,
+        "roi": 12.258545052984868,
+        "roi_after_fee": 10.01337415192517,
+        "profit_per_day": 274796458.6668481,
+        "profit_per_day_after_fee": 224467075.36349806,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/knights_ingot",
+        "protect_name": "Knight's Ingot",
+        "protect_price": 6500000.0,
+        "materials": [
+          {
+            "hrid": "/items/enchanted_essence",
+            "name": "Enchanted Essence",
+            "count": 12,
+            "price": 1525.0
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 6,
+            "price": 3850.0
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/enchanted_refinement_shard",
+            "name": "Enchanted Refinement Shard",
+            "count": 88.78399999999999,
+            "price": 3650000.0
+          },
+          {
+            "hrid": "/items/knights_aegis",
+            "name": "Knight's Aegis",
+            "count": 1,
+            "price": 97000000.0,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
         "item_hrid": "/items/cursed_bow",
         "item_name": "Cursed Bow",
         "target_level": 12,
@@ -10472,69 +10593,6 @@
         "last_price": null
       },
       {
-        "item_hrid": "/items/knights_aegis_refined",
-        "item_name": "Knight's Aegis (R)",
-        "target_level": 12,
-        "base_price": 422061599.99999994,
-        "base_source": "craft",
-        "alt_price": 0,
-        "alt_source": "market",
-        "mat_cost": 915139576.7496324,
-        "total_cost": 1337201176.7496324,
-        "sell_price": 1500000000,
-        "market_fee": 30000000.0,
-        "profit": 162798823.25036764,
-        "profit_after_fee": 132798823.25036764,
-        "roi": 12.174594674384503,
-        "roi_after_fee": 9.931102780896813,
-        "profit_per_day": 273118812.55673647,
-        "profit_per_day_after_fee": 222789429.2533864,
-        "xp_per_day": 4014174.369341404,
-        "total_xp": 2392742.0360866264,
-        "actions": 9787.816811322025,
-        "time_hours": 14.30575844055841,
-        "time_days": 0.5960732683566005,
-        "protect_count": 71.19932658682845,
-        "protect_at": 7,
-        "protect_hrid": "/items/knights_ingot",
-        "protect_name": "Knight's Ingot",
-        "protect_price": 6500000.0,
-        "materials": [
-          {
-            "hrid": "/items/enchanted_essence",
-            "name": "Enchanted Essence",
-            "count": 12,
-            "price": 1525.0
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 6,
-            "price": 3850.0
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/enchanted_refinement_shard",
-            "name": "Enchanted Refinement Shard",
-            "count": 88.78399999999999,
-            "price": 3650000.0
-          },
-          {
-            "hrid": "/items/knights_aegis",
-            "name": "Knight's Aegis",
-            "count": 1,
-            "price": 98000000.0,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
         "item_hrid": "/items/royal_nature_robe_bottoms_refined",
         "item_name": "Royal Nature Robe Bottoms (R)",
         "target_level": 12,
@@ -10603,7 +10661,7 @@
         "target_level": 12,
         "base_price": 262500000.0,
         "base_source": "market",
-        "alt_price": 300410256.0,
+        "alt_price": 300854176.0,
         "alt_source": "craft",
         "mat_cost": 1469402434.147001,
         "total_cost": 1731902434.147001,
@@ -10960,143 +11018,6 @@
         "last_price": null
       },
       {
-        "item_hrid": "/items/knights_aegis",
-        "item_name": "Knight's Aegis",
-        "target_level": 12,
-        "base_price": 95868963.19999999,
-        "base_source": "craft",
-        "alt_price": 98000000.0,
-        "alt_source": "market",
-        "mat_cost": 915139576.7496324,
-        "total_cost": 1011008539.9496324,
-        "sell_price": 1150000000.0,
-        "market_fee": 23000000.0,
-        "profit": 138991460.0503676,
-        "profit_after_fee": 115991460.0503676,
-        "roi": 13.747802769034179,
-        "roi_after_fee": 11.472846713653496,
-        "profit_per_day": 233178482.29224068,
-        "profit_per_day_after_fee": 194592621.75967228,
-        "xp_per_day": 4014174.369341404,
-        "total_xp": 2392742.0360866264,
-        "actions": 9787.816811322025,
-        "time_hours": 14.30575844055841,
-        "time_days": 0.5960732683566005,
-        "protect_count": 71.19932658682845,
-        "protect_at": 7,
-        "protect_hrid": "/items/knights_ingot",
-        "protect_name": "Knight's Ingot",
-        "protect_price": 6500000.0,
-        "materials": [
-          {
-            "hrid": "/items/enchanted_essence",
-            "name": "Enchanted Essence",
-            "count": 12,
-            "price": 1525.0
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 6,
-            "price": 3850.0
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/knights_ingot",
-            "name": "Knight's Ingot",
-            "count": 8.8784,
-            "price": 6500000.0
-          },
-          {
-            "hrid": "/items/holy_buckler",
-            "name": "Holy Buckler",
-            "count": 26.635199999999998,
-            "price": 830000.0
-          },
-          {
-            "hrid": "/items/gobo_defender",
-            "name": "Gobo Defender",
-            "count": 1.77568,
-            "price": 415000.0
-          },
-          {
-            "hrid": "/items/vision_shield",
-            "name": "Vision Shield",
-            "count": 8.8784,
-            "price": 1725000.0
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
-        "item_hrid": "/items/anchorbound_plate_legs_refined",
-        "item_name": "Anchorbound Plate Legs (R)",
-        "target_level": 12,
-        "base_price": 411939999.99999994,
-        "base_source": "craft",
-        "alt_price": 0,
-        "alt_source": "market",
-        "mat_cost": 1049912181.6691052,
-        "total_cost": 1461852181.669105,
-        "sell_price": 1600000000.0,
-        "market_fee": 32000000.0,
-        "profit": 138147818.33089495,
-        "profit_after_fee": 106147818.33089495,
-        "roi": 9.450190659712348,
-        "roi_after_fee": 7.261186846518101,
-        "profit_per_day": 231763150.04323947,
-        "profit_per_day_after_fee": 178078474.51966608,
-        "xp_per_day": 4014174.369341404,
-        "total_xp": 2392742.0360866264,
-        "actions": 9787.816811322025,
-        "time_hours": 14.30575844055841,
-        "time_days": 0.5960732683566005,
-        "protect_count": 71.19932658682845,
-        "protect_at": 7,
-        "protect_hrid": "/items/damaged_anchor",
-        "protect_name": "Damaged Anchor",
-        "protect_price": 7300000.0,
-        "materials": [
-          {
-            "hrid": "/items/pirate_essence",
-            "name": "Pirate Essence",
-            "count": 14,
-            "price": 1875.0
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 6,
-            "price": 3850.0
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/pirate_refinement_shard",
-            "name": "Pirate Refinement Shard",
-            "count": 88.78399999999999,
-            "price": 3750000.0
-          },
-          {
-            "hrid": "/items/anchorbound_plate_legs",
-            "name": "Anchorbound Plate Legs",
-            "count": 1,
-            "price": 79000000.0,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
         "item_hrid": "/items/royal_water_robe_bottoms_refined",
         "item_name": "Royal Water Robe Bottoms (R)",
         "target_level": 12,
@@ -11160,12 +11081,75 @@
         "last_price": null
       },
       {
+        "item_hrid": "/items/anchorbound_plate_legs_refined",
+        "item_name": "Anchorbound Plate Legs (R)",
+        "target_level": 12,
+        "base_price": 412939999.99999994,
+        "base_source": "craft",
+        "alt_price": 0,
+        "alt_source": "market",
+        "mat_cost": 1049912181.6691052,
+        "total_cost": 1462852181.669105,
+        "sell_price": 1600000000.0,
+        "market_fee": 32000000.0,
+        "profit": 137147818.33089495,
+        "profit_after_fee": 105147818.33089495,
+        "roi": 9.375370939694683,
+        "roi_after_fee": 7.187863520900789,
+        "profit_per_day": 230085503.93312782,
+        "profit_per_day_after_fee": 176400828.4095544,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/damaged_anchor",
+        "protect_name": "Damaged Anchor",
+        "protect_price": 7300000.0,
+        "materials": [
+          {
+            "hrid": "/items/pirate_essence",
+            "name": "Pirate Essence",
+            "count": 14,
+            "price": 1875.0
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 6,
+            "price": 3850.0
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/pirate_refinement_shard",
+            "name": "Pirate Refinement Shard",
+            "count": 88.78399999999999,
+            "price": 3750000.0
+          },
+          {
+            "hrid": "/items/anchorbound_plate_legs",
+            "name": "Anchorbound Plate Legs",
+            "count": 1,
+            "price": 80000000.0,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
         "item_hrid": "/items/royal_fire_robe_bottoms",
         "item_name": "Royal Fire Robe Bottoms",
         "target_level": 12,
         "base_price": 72000000.0,
         "base_source": "market",
-        "alt_price": 73291192.0,
+        "alt_price": 73024840.0,
         "alt_source": "craft",
         "mat_cost": 1016191744.6109929,
         "total_cost": 1088191744.610993,
@@ -11213,7 +11197,7 @@
             "hrid": "/items/radiant_robe_bottoms",
             "name": "Radiant Robe Bottoms",
             "count": 26.635199999999998,
-            "price": 680000.0
+            "price": 670000.0
           },
           {
             "hrid": "/items/flaming_robe_bottoms",
@@ -11226,105 +11210,6 @@
         "price_since_ts": 1770909728,
         "price_direction": null,
         "last_price": null
-      },
-      {
-        "item_hrid": "/items/celestial_shears",
-        "item_name": "Celestial Shears",
-        "target_level": 12,
-        "base_price": 355000000.0,
-        "base_source": "market",
-        "alt_price": 395080959.99999994,
-        "alt_source": "craft",
-        "mat_cost": 1614972008.9197755,
-        "total_cost": 1969972008.9197755,
-        "sell_price": 2100000000.0,
-        "market_fee": 42000000.0,
-        "profit": 130027991.08022451,
-        "profit_after_fee": 88027991.08022451,
-        "roi": 6.600499422909299,
-        "roi_after_fee": 4.468489434451114,
-        "profit_per_day": 229359338.73509786,
-        "profit_per_day_after_fee": 155274580.9314439,
-        "xp_per_day": 3922329.0927735115,
-        "total_xp": 2223639.879246017,
-        "actions": 9513.167330152753,
-        "time_hours": 13.606037596444489,
-        "time_days": 0.5669182331851871,
-        "protect_count": 70.3777843560006,
-        "protect_at": 7,
-        "protect_hrid": "/items/mirror_of_protection",
-        "protect_name": "Mirror Of Protection",
-        "protect_price": 11250000.0,
-        "materials": [
-          {
-            "hrid": "/items/foraging_essence",
-            "name": "Foraging Essence",
-            "count": 100,
-            "price": 325.0
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 12,
-            "price": 3850.0
-          },
-          {
-            "hrid": "/items/arcane_log",
-            "name": "Arcane Log",
-            "count": 8,
-            "price": 590.0
-          }
-        ],
-        "coin_cost": 3115,
-        "craft_materials": [
-          {
-            "hrid": "/items/butter_of_proficiency",
-            "name": "Butter Of Proficiency",
-            "count": 8.8784,
-            "price": 12250000.0
-          },
-          {
-            "hrid": "/items/branch_of_insight",
-            "name": "Branch Of Insight",
-            "count": 8.8784,
-            "price": 25750000.0
-          },
-          {
-            "hrid": "/items/sunstone",
-            "name": "Sunstone",
-            "count": 4.4392,
-            "price": 550000.0
-          },
-          {
-            "hrid": "/items/moonstone",
-            "name": "Moonstone",
-            "count": 22.195999999999998,
-            "price": 55000.0
-          },
-          {
-            "hrid": "/items/star_fragment",
-            "name": "Star Fragment",
-            "count": 88.78399999999999,
-            "price": 13750.0
-          },
-          {
-            "hrid": "/items/foraging_essence",
-            "name": "Foraging Essence",
-            "count": 159811.19999999998,
-            "price": 325.0
-          },
-          {
-            "hrid": "/items/holy_shears",
-            "name": "Holy Shears",
-            "count": 1,
-            "price": 880000.0,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770930019,
-        "price_direction": "up",
-        "last_price": 2150000000
       },
       {
         "item_hrid": "/items/kraken_tunic",
@@ -11463,7 +11348,7 @@
         "target_level": 12,
         "base_price": 87000000.0,
         "base_source": "market",
-        "alt_price": 89847103.99999999,
+        "alt_price": 89822103.99999999,
         "alt_source": "craft",
         "mat_cost": 1121410775.3327048,
         "total_cost": 1208410775.3327048,
@@ -11517,82 +11402,8 @@
             "hrid": "/items/luna_robe_top",
             "name": "Luna Robe Top",
             "count": 1,
-            "price": 2750000.0,
+            "price": 2725000.0,
             "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
-        "item_hrid": "/items/dodocamel_gauntlets",
-        "item_name": "Dodocamel Gauntlets",
-        "target_level": 12,
-        "base_price": 54286976.8,
-        "base_source": "craft",
-        "alt_price": 55000000.0,
-        "alt_source": "market",
-        "mat_cost": 730150376.5094578,
-        "total_cost": 784437353.3094578,
-        "sell_price": 900000000.0,
-        "market_fee": 18000000.0,
-        "profit": 115562646.69054222,
-        "profit_after_fee": 97562646.69054222,
-        "roi": 14.731915327973063,
-        "roi_after_fee": 12.437277021413601,
-        "profit_per_day": 123124650.16458534,
-        "profit_per_day_after_fee": 103946794.98013917,
-        "xp_per_day": 3943823.22139329,
-        "total_xp": 3701603.610118682,
-        "actions": 15411.987813930073,
-        "time_hours": 22.52598092149352,
-        "time_days": 0.9385825383955634,
-        "protect_count": 38.61662694275266,
-        "protect_at": 8,
-        "protect_hrid": "/items/dodocamel_plume",
-        "protect_name": "Dodocamel Plume",
-        "protect_price": 7200000.0,
-        "materials": [
-          {
-            "hrid": "/items/chimerical_essence",
-            "name": "Chimerical Essence",
-            "count": 16,
-            "price": 570.0
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 4,
-            "price": 3850.0
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/dodocamel_plume",
-            "name": "Dodocamel Plume",
-            "count": 5.32704,
-            "price": 7200000.0
-          },
-          {
-            "hrid": "/items/holy_gauntlets",
-            "name": "Holy Gauntlets",
-            "count": 26.635199999999998,
-            "price": 520000.0
-          },
-          {
-            "hrid": "/items/panda_gloves",
-            "name": "Panda Gloves",
-            "count": 4.4392,
-            "price": 400000.0
-          },
-          {
-            "hrid": "/items/pincer_gloves",
-            "name": "Pincer Gloves",
-            "count": 8.8784,
-            "price": 34500.0
           }
         ],
         "mode": "midpoint",
@@ -11694,23 +11505,97 @@
         "last_price": null
       },
       {
+        "item_hrid": "/items/knights_aegis",
+        "item_name": "Knight's Aegis",
+        "target_level": 12,
+        "base_price": 95868963.19999999,
+        "base_source": "craft",
+        "alt_price": 97000000.0,
+        "alt_source": "market",
+        "mat_cost": 915139576.7496324,
+        "total_cost": 1011008539.9496324,
+        "sell_price": 1125000000.0,
+        "market_fee": 22500000.0,
+        "profit": 113991460.0503676,
+        "profit_after_fee": 91491460.0503676,
+        "roi": 11.27502444796822,
+        "roi_after_fee": 9.049523959008855,
+        "profit_per_day": 191237329.53944895,
+        "profit_per_day_after_fee": 153490292.0619364,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/knights_ingot",
+        "protect_name": "Knight's Ingot",
+        "protect_price": 6500000.0,
+        "materials": [
+          {
+            "hrid": "/items/enchanted_essence",
+            "name": "Enchanted Essence",
+            "count": 12,
+            "price": 1525.0
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 6,
+            "price": 3850.0
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/knights_ingot",
+            "name": "Knight's Ingot",
+            "count": 8.8784,
+            "price": 6500000.0
+          },
+          {
+            "hrid": "/items/holy_buckler",
+            "name": "Holy Buckler",
+            "count": 26.635199999999998,
+            "price": 830000.0
+          },
+          {
+            "hrid": "/items/gobo_defender",
+            "name": "Gobo Defender",
+            "count": 1.77568,
+            "price": 415000.0
+          },
+          {
+            "hrid": "/items/vision_shield",
+            "name": "Vision Shield",
+            "count": 8.8784,
+            "price": 1725000.0
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770940815,
+        "price_direction": "down",
+        "last_price": 1200000000
+      },
+      {
         "item_hrid": "/items/corsair_helmet",
         "item_name": "Corsair Helmet",
         "target_level": 12,
-        "base_price": 96469952.0,
+        "base_price": 96037248.0,
         "base_source": "craft",
-        "alt_price": 100500000.0,
+        "alt_price": 98000000.0,
         "alt_source": "market",
         "mat_cost": 990743420.9015557,
-        "total_cost": 1087213372.9015555,
+        "total_cost": 1086780668.9015555,
         "sell_price": 1200000000.0,
         "market_fee": 24000000.0,
-        "profit": 112786627.09844446,
-        "profit_after_fee": 88786627.09844446,
-        "roi": 10.373918304319552,
-        "roi_after_fee": 8.166439938233161,
-        "profit_per_day": 189216046.22432074,
-        "profit_per_day_after_fee": 148952539.5816407,
+        "profit": 113219331.09844446,
+        "profit_after_fee": 89219331.09844446,
+        "roi": 10.41786391111271,
+        "roi_after_fee": 8.209506632890456,
+        "profit_per_day": 189941970.4067505,
+        "profit_per_day_after_fee": 149678463.76407045,
         "xp_per_day": 4014174.369341404,
         "total_xp": 2392742.0360866264,
         "actions": 9787.816811322025,
@@ -11747,7 +11632,7 @@
             "hrid": "/items/holy_helmet",
             "name": "Holy Helmet",
             "count": 26.635199999999998,
-            "price": 730000.0
+            "price": 710000.0
           },
           {
             "hrid": "/items/vision_helmet",
@@ -11759,7 +11644,7 @@
             "hrid": "/items/fluffy_red_hat",
             "name": "Fluffy Red Hat",
             "count": 1,
-            "price": 5200000.0,
+            "price": 5300000.0,
             "is_upgrade": true
           }
         ],
@@ -11930,12 +11815,86 @@
         "last_price": 1050000000
       },
       {
+        "item_hrid": "/items/dodocamel_gauntlets",
+        "item_name": "Dodocamel Gauntlets",
+        "target_level": 12,
+        "base_price": 54819680.8,
+        "base_source": "craft",
+        "alt_price": 55000000.0,
+        "alt_source": "market",
+        "mat_cost": 734012039.2037331,
+        "total_cost": 788831720.003733,
+        "sell_price": 900000000.0,
+        "market_fee": 18000000.0,
+        "profit": 111168279.99626696,
+        "profit_after_fee": 93168279.99626696,
+        "roi": 14.092775071943212,
+        "roi_after_fee": 11.810919570504346,
+        "profit_per_day": 118442731.93735398,
+        "profit_per_day_after_fee": 99264876.75290781,
+        "xp_per_day": 3943823.22139329,
+        "total_xp": 3701603.610118682,
+        "actions": 15411.987813930073,
+        "time_hours": 22.52598092149352,
+        "time_days": 0.9385825383955634,
+        "protect_count": 38.61662694275266,
+        "protect_at": 8,
+        "protect_hrid": "/items/dodocamel_plume",
+        "protect_name": "Dodocamel Plume",
+        "protect_price": 7300000.0,
+        "materials": [
+          {
+            "hrid": "/items/chimerical_essence",
+            "name": "Chimerical Essence",
+            "count": 16,
+            "price": 570.0
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 4,
+            "price": 3850.0
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/dodocamel_plume",
+            "name": "Dodocamel Plume",
+            "count": 5.32704,
+            "price": 7300000.0
+          },
+          {
+            "hrid": "/items/holy_gauntlets",
+            "name": "Holy Gauntlets",
+            "count": 26.635199999999998,
+            "price": 520000.0
+          },
+          {
+            "hrid": "/items/panda_gloves",
+            "name": "Panda Gloves",
+            "count": 4.4392,
+            "price": 400000.0
+          },
+          {
+            "hrid": "/items/pincer_gloves",
+            "name": "Pincer Gloves",
+            "count": 8.8784,
+            "price": 34500.0
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
         "item_hrid": "/items/maelstrom_plate_body",
         "item_name": "Maelstrom Plate Body",
         "target_level": 12,
         "base_price": 99000000.0,
         "base_source": "market",
-        "alt_price": 103132528.0,
+        "alt_price": 103798408.0,
         "alt_source": "craft",
         "mat_cost": 1190462414.7934737,
         "total_cost": 1289462414.7934737,
@@ -11983,7 +11942,7 @@
             "hrid": "/items/holy_plate_body",
             "name": "Holy Plate Body",
             "count": 26.635199999999998,
-            "price": 990000.0
+            "price": 1015000.0
           },
           {
             "hrid": "/items/demonic_plate_body",
@@ -11999,92 +11958,23 @@
         "last_price": null
       },
       {
-        "item_hrid": "/items/kraken_chaps",
-        "item_name": "Kraken Chaps",
-        "target_level": 12,
-        "base_price": 78581392.0,
-        "base_source": "craft",
-        "alt_price": 79000000.0,
-        "alt_source": "market",
-        "mat_cost": 1037867534.4187477,
-        "total_cost": 1116448926.4187477,
-        "sell_price": 1225000000.0,
-        "market_fee": 24500000.0,
-        "profit": 108551073.58125234,
-        "profit_after_fee": 84051073.58125234,
-        "roi": 9.722887542151478,
-        "roi_after_fee": 7.528429791308448,
-        "profit_per_day": 182110286.3420336,
-        "profit_per_day_after_fee": 141007956.6442977,
-        "xp_per_day": 4014174.369341404,
-        "total_xp": 2392742.0360866264,
-        "actions": 9787.816811322025,
-        "time_hours": 14.30575844055841,
-        "time_days": 0.5960732683566005,
-        "protect_count": 71.19932658682845,
-        "protect_at": 7,
-        "protect_hrid": "/items/kraken_leather",
-        "protect_name": "Kraken Leather",
-        "protect_price": 8100000.0,
-        "materials": [
-          {
-            "hrid": "/items/pirate_essence",
-            "name": "Pirate Essence",
-            "count": 14,
-            "price": 1875.0
-          },
-          {
-            "hrid": "/items/umbral_leather",
-            "name": "Umbral Leather",
-            "count": 6,
-            "price": 2675.0
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/kraken_leather",
-            "name": "Kraken Leather",
-            "count": 7.10272,
-            "price": 8100000.0
-          },
-          {
-            "hrid": "/items/umbral_chaps",
-            "name": "Umbral Chaps",
-            "count": 26.635199999999998,
-            "price": 550000.0
-          },
-          {
-            "hrid": "/items/revenant_chaps",
-            "name": "Revenant Chaps",
-            "count": 1,
-            "price": 6400000.0,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770933614,
-        "price_direction": "down",
-        "last_price": 1300000000
-      },
-      {
         "item_hrid": "/items/blazing_trident_refined",
         "item_name": "Blazing Trident (R)",
         "target_level": 10,
-        "base_price": 1248820000.0,
+        "base_price": 1246320000.0,
         "base_source": "craft",
         "alt_price": 0,
         "alt_source": "market",
         "mat_cost": 344736818.249879,
-        "total_cost": 1593556818.249879,
+        "total_cost": 1591056818.249879,
         "sell_price": 1700000000.0,
         "market_fee": 34000000.0,
-        "profit": 106443181.75012112,
-        "profit_after_fee": 72443181.75012112,
-        "roi": 6.679597522416689,
-        "roi_after_fee": 4.5460055719683545,
-        "profit_per_day": 629820359.1937854,
-        "profit_per_day_after_fee": 428643620.01232684,
+        "profit": 108943181.75012112,
+        "profit_after_fee": 74943181.75012112,
+        "roi": 6.8472213248773715,
+        "roi_after_fee": 4.710276898379825,
+        "profit_per_day": 644612766.4865397,
+        "profit_per_day_after_fee": 443436027.3050812,
         "xp_per_day": 3969233.1772966487,
         "total_xp": 670822.7232292474,
         "actions": 2775.1556043287105,
@@ -12127,7 +12017,7 @@
             "hrid": "/items/blazing_trident",
             "name": "Blazing Trident",
             "count": 1,
-            "price": 250000000.0,
+            "price": 247500000.0,
             "is_upgrade": true
           }
         ],
@@ -12135,6 +12025,75 @@
         "price_since_ts": 1770909728,
         "price_direction": null,
         "last_price": null
+      },
+      {
+        "item_hrid": "/items/kraken_chaps",
+        "item_name": "Kraken Chaps",
+        "target_level": 12,
+        "base_price": 78681392.0,
+        "base_source": "craft",
+        "alt_price": 79000000.0,
+        "alt_source": "market",
+        "mat_cost": 1037867534.4187477,
+        "total_cost": 1116548926.4187477,
+        "sell_price": 1225000000.0,
+        "market_fee": 24500000.0,
+        "profit": 108451073.58125234,
+        "profit_after_fee": 83951073.58125234,
+        "roi": 9.71306057577804,
+        "roi_after_fee": 7.518799364262479,
+        "profit_per_day": 181942521.73102242,
+        "profit_per_day_after_fee": 140840192.0332865,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/kraken_leather",
+        "protect_name": "Kraken Leather",
+        "protect_price": 8100000.0,
+        "materials": [
+          {
+            "hrid": "/items/pirate_essence",
+            "name": "Pirate Essence",
+            "count": 14,
+            "price": 1875.0
+          },
+          {
+            "hrid": "/items/umbral_leather",
+            "name": "Umbral Leather",
+            "count": 6,
+            "price": 2675.0
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/kraken_leather",
+            "name": "Kraken Leather",
+            "count": 7.10272,
+            "price": 8100000.0
+          },
+          {
+            "hrid": "/items/umbral_chaps",
+            "name": "Umbral Chaps",
+            "count": 26.635199999999998,
+            "price": 550000.0
+          },
+          {
+            "hrid": "/items/revenant_chaps",
+            "name": "Revenant Chaps",
+            "count": 1,
+            "price": 6500000.0,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770933614,
+        "price_direction": "down",
+        "last_price": 1300000000
       },
       {
         "item_hrid": "/items/maelstrom_plate_legs_refined",
@@ -12269,6 +12228,105 @@
         "last_price": null
       },
       {
+        "item_hrid": "/items/celestial_shears",
+        "item_name": "Celestial Shears",
+        "target_level": 12,
+        "base_price": 380000000.0,
+        "base_source": "market",
+        "alt_price": 395080959.99999994,
+        "alt_source": "craft",
+        "mat_cost": 1614972008.9197755,
+        "total_cost": 1994972008.9197755,
+        "sell_price": 2100000000.0,
+        "market_fee": 42000000.0,
+        "profit": 105027991.08022451,
+        "profit_after_fee": 63027991.080224514,
+        "roi": 5.264634822475248,
+        "roi_after_fee": 3.159342126025743,
+        "profit_per_day": 185261268.61387527,
+        "profit_per_day_after_fee": 111176510.8102213,
+        "xp_per_day": 3922329.0927735115,
+        "total_xp": 2223639.879246017,
+        "actions": 9513.167330152753,
+        "time_hours": 13.606037596444489,
+        "time_days": 0.5669182331851871,
+        "protect_count": 70.3777843560006,
+        "protect_at": 7,
+        "protect_hrid": "/items/mirror_of_protection",
+        "protect_name": "Mirror Of Protection",
+        "protect_price": 11250000.0,
+        "materials": [
+          {
+            "hrid": "/items/foraging_essence",
+            "name": "Foraging Essence",
+            "count": 100,
+            "price": 325.0
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 12,
+            "price": 3850.0
+          },
+          {
+            "hrid": "/items/arcane_log",
+            "name": "Arcane Log",
+            "count": 8,
+            "price": 590.0
+          }
+        ],
+        "coin_cost": 3115,
+        "craft_materials": [
+          {
+            "hrid": "/items/butter_of_proficiency",
+            "name": "Butter Of Proficiency",
+            "count": 8.8784,
+            "price": 12250000.0
+          },
+          {
+            "hrid": "/items/branch_of_insight",
+            "name": "Branch Of Insight",
+            "count": 8.8784,
+            "price": 25750000.0
+          },
+          {
+            "hrid": "/items/sunstone",
+            "name": "Sunstone",
+            "count": 4.4392,
+            "price": 550000.0
+          },
+          {
+            "hrid": "/items/moonstone",
+            "name": "Moonstone",
+            "count": 22.195999999999998,
+            "price": 55000.0
+          },
+          {
+            "hrid": "/items/star_fragment",
+            "name": "Star Fragment",
+            "count": 88.78399999999999,
+            "price": 13750.0
+          },
+          {
+            "hrid": "/items/foraging_essence",
+            "name": "Foraging Essence",
+            "count": 159811.19999999998,
+            "price": 325.0
+          },
+          {
+            "hrid": "/items/holy_shears",
+            "name": "Holy Shears",
+            "count": 1,
+            "price": 880000.0,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770930019,
+        "price_direction": "up",
+        "last_price": 2150000000
+      },
+      {
         "item_hrid": "/items/griffin_chaps",
         "item_name": "Griffin Chaps",
         "target_level": 8,
@@ -12342,105 +12400,6 @@
         "price_since_ts": 1770909728,
         "price_direction": null,
         "last_price": null
-      },
-      {
-        "item_hrid": "/items/celestial_shears",
-        "item_name": "Celestial Shears",
-        "target_level": 10,
-        "base_price": 355000000.0,
-        "base_source": "market",
-        "alt_price": 395080959.99999994,
-        "alt_source": "craft",
-        "mat_cost": 389141587.9634361,
-        "total_cost": 744141587.9634361,
-        "sell_price": 840000000.0,
-        "market_fee": 16800000.0,
-        "profit": 95858412.03656387,
-        "profit_after_fee": 79058412.03656387,
-        "roi": 12.881743687906063,
-        "roi_after_fee": 10.624108814147942,
-        "profit_per_day": 592278426.4143083,
-        "profit_per_day_after_fee": 488476607.1231126,
-        "xp_per_day": 3877514.1658067685,
-        "total_xp": 627563.5478296379,
-        "actions": 2715.8703090660706,
-        "time_hours": 3.8843249834465943,
-        "time_days": 0.16184687431027475,
-        "protect_count": 13.699888957191442,
-        "protect_at": 7,
-        "protect_hrid": "/items/mirror_of_protection",
-        "protect_name": "Mirror Of Protection",
-        "protect_price": 11250000.0,
-        "materials": [
-          {
-            "hrid": "/items/foraging_essence",
-            "name": "Foraging Essence",
-            "count": 100,
-            "price": 325.0
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 12,
-            "price": 3850.0
-          },
-          {
-            "hrid": "/items/arcane_log",
-            "name": "Arcane Log",
-            "count": 8,
-            "price": 590.0
-          }
-        ],
-        "coin_cost": 3115,
-        "craft_materials": [
-          {
-            "hrid": "/items/butter_of_proficiency",
-            "name": "Butter Of Proficiency",
-            "count": 8.8784,
-            "price": 12250000.0
-          },
-          {
-            "hrid": "/items/branch_of_insight",
-            "name": "Branch Of Insight",
-            "count": 8.8784,
-            "price": 25750000.0
-          },
-          {
-            "hrid": "/items/sunstone",
-            "name": "Sunstone",
-            "count": 4.4392,
-            "price": 550000.0
-          },
-          {
-            "hrid": "/items/moonstone",
-            "name": "Moonstone",
-            "count": 22.195999999999998,
-            "price": 55000.0
-          },
-          {
-            "hrid": "/items/star_fragment",
-            "name": "Star Fragment",
-            "count": 88.78399999999999,
-            "price": 13750.0
-          },
-          {
-            "hrid": "/items/foraging_essence",
-            "name": "Foraging Essence",
-            "count": 159811.19999999998,
-            "price": 325.0
-          },
-          {
-            "hrid": "/items/holy_shears",
-            "name": "Holy Shears",
-            "count": 1,
-            "price": 880000.0,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770928217,
-        "price_direction": "down",
-        "last_price": 880000000
       },
       {
         "item_hrid": "/items/blooming_trident_refined",
@@ -12605,6 +12564,74 @@
         "last_price": null
       },
       {
+        "item_hrid": "/items/royal_fire_robe_top",
+        "item_name": "Royal Fire Robe Top",
+        "target_level": 12,
+        "base_price": 88000000.0,
+        "base_source": "market",
+        "alt_price": 89605251.99999999,
+        "alt_source": "craft",
+        "mat_cost": 1121410775.3327048,
+        "total_cost": 1209410775.3327048,
+        "sell_price": 1300000000.0,
+        "market_fee": 26000000.0,
+        "profit": 90589224.66729522,
+        "profit_after_fee": 64589224.66729522,
+        "roi": 7.490360307264042,
+        "roi_after_fee": 5.340553101118761,
+        "profit_per_day": 151976660.3811199,
+        "profit_per_day_after_fee": 108357861.5182165,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/royal_cloth",
+        "protect_name": "Royal Cloth",
+        "protect_price": 7500000.0,
+        "materials": [
+          {
+            "hrid": "/items/enchanted_essence",
+            "name": "Enchanted Essence",
+            "count": 16,
+            "price": 1525.0
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 8,
+            "price": 3850.0
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/royal_cloth",
+            "name": "Royal Cloth",
+            "count": 8.8784,
+            "price": 7500000.0
+          },
+          {
+            "hrid": "/items/radiant_robe_top",
+            "name": "Radiant Robe Top",
+            "count": 26.635199999999998,
+            "price": 770000.0
+          },
+          {
+            "hrid": "/items/flaming_robe_top",
+            "name": "Flaming Robe Top",
+            "count": 8.8784,
+            "price": 282500.0
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
         "item_hrid": "/items/griffin_bulwark",
         "item_name": "Griffin Bulwark",
         "target_level": 12,
@@ -12697,7 +12724,7 @@
         "target_level": 12,
         "base_price": 72000000.0,
         "base_source": "market",
-        "alt_price": 73582336.0,
+        "alt_price": 73315984.0,
         "alt_source": "craft",
         "mat_cost": 1016191744.6109929,
         "total_cost": 1088191744.610993,
@@ -12745,106 +12772,13 @@
             "hrid": "/items/radiant_robe_bottoms",
             "name": "Radiant Robe Bottoms",
             "count": 26.635199999999998,
-            "price": 680000.0
+            "price": 670000.0
           },
           {
             "hrid": "/items/luna_robe_bottoms",
             "name": "Luna Robe Bottoms",
             "count": 1,
             "price": 2200000.0,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
-        "item_hrid": "/items/celestial_needle",
-        "item_name": "Celestial Needle",
-        "target_level": 8,
-        "base_price": 381866535.99999994,
-        "base_source": "craft",
-        "alt_price": 0,
-        "alt_source": "market",
-        "mat_cost": 93470268.41126883,
-        "total_cost": 475336804.4112688,
-        "sell_price": 560000000,
-        "market_fee": 11200000.0,
-        "profit": 84663195.58873123,
-        "profit_after_fee": 73463195.58873123,
-        "roi": 17.81120140562045,
-        "roi_after_fee": 15.454977377508039,
-        "profit_per_day": 1595814277.04216,
-        "profit_per_day_after_fee": 1384705780.8581214,
-        "xp_per_day": 3813851.7772430205,
-        "total_xp": 202337.3794860625,
-        "actions": 890.2603294381747,
-        "time_hours": 1.2732789293599407,
-        "time_days": 0.053053288723330864,
-        "protect_count": 1.5729564863234309,
-        "protect_at": 7,
-        "protect_hrid": "/items/mirror_of_protection",
-        "protect_name": "Mirror Of Protection",
-        "protect_price": 11250000.0,
-        "materials": [
-          {
-            "hrid": "/items/tailoring_essence",
-            "name": "Tailoring Essence",
-            "count": 100,
-            "price": 242.5
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 15,
-            "price": 3850.0
-          }
-        ],
-        "coin_cost": 3115,
-        "craft_materials": [
-          {
-            "hrid": "/items/butter_of_proficiency",
-            "name": "Butter Of Proficiency",
-            "count": 8.8784,
-            "price": 12250000.0
-          },
-          {
-            "hrid": "/items/branch_of_insight",
-            "name": "Branch Of Insight",
-            "count": 8.8784,
-            "price": 25750000.0
-          },
-          {
-            "hrid": "/items/sunstone",
-            "name": "Sunstone",
-            "count": 4.4392,
-            "price": 550000.0
-          },
-          {
-            "hrid": "/items/moonstone",
-            "name": "Moonstone",
-            "count": 22.195999999999998,
-            "price": 55000.0
-          },
-          {
-            "hrid": "/items/star_fragment",
-            "name": "Star Fragment",
-            "count": 88.78399999999999,
-            "price": 13750.0
-          },
-          {
-            "hrid": "/items/tailoring_essence",
-            "name": "Tailoring Essence",
-            "count": 159811.19999999998,
-            "price": 242.5
-          },
-          {
-            "hrid": "/items/holy_needle",
-            "name": "Holy Needle",
-            "count": 1,
-            "price": 850000.0,
             "is_upgrade": true
           }
         ],
@@ -12945,18 +12879,18 @@
         "target_level": 10,
         "base_price": 172500.0,
         "base_source": "market",
-        "alt_price": 216747.75999999998,
+        "alt_price": 215416.0,
         "alt_source": "craft",
-        "mat_cost": 13157526.83856599,
-        "total_cost": 13330026.83856599,
+        "mat_cost": 13101919.514724355,
+        "total_cost": 13274419.514724355,
         "sell_price": 90000000,
         "market_fee": 1800000.0,
-        "profit": 76669973.16143401,
-        "profit_after_fee": 74869973.16143401,
-        "roi": 575.1674328187771,
-        "roi_after_fee": 561.6640841624017,
-        "profit_per_day": 2256415812.3888583,
-        "profit_per_day_after_fee": 2203441378.0069904,
+        "profit": 76725580.48527564,
+        "profit_after_fee": 74925580.48527564,
+        "roi": 577.9957488925937,
+        "roi_after_fee": 564.4358339147418,
+        "profit_per_day": 2258052349.3488584,
+        "profit_per_day_after_fee": 2205077914.9669905,
         "xp_per_day": 1830029.558253234,
         "total_xp": 62181.9419743219,
         "actions": 741.4309845551431,
@@ -12972,13 +12906,13 @@
             "hrid": "/items/reptile_leather",
             "name": "Reptile Leather",
             "count": 5,
-            "price": 1100.0
+            "price": 1075.0
           },
           {
             "hrid": "/items/linen_fabric",
             "name": "Linen Fabric",
             "count": 5,
-            "price": 540.0
+            "price": 550.0
           }
         ],
         "coin_cost": 54,
@@ -12987,13 +12921,13 @@
             "hrid": "/items/reptile_leather",
             "name": "Reptile Leather",
             "count": 88.78399999999999,
-            "price": 1100.0
+            "price": 1075.0
           },
           {
             "hrid": "/items/linen_fabric",
             "name": "Linen Fabric",
             "count": 88.78399999999999,
-            "price": 540.0
+            "price": 550.0
           },
           {
             "hrid": "/items/coin",
@@ -13011,81 +12945,6 @@
         ],
         "mode": "midpoint",
         "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
-        "item_hrid": "/items/anchorbound_plate_legs",
-        "item_name": "Anchorbound Plate Legs",
-        "target_level": 12,
-        "base_price": 77960848.0,
-        "base_source": "craft",
-        "alt_price": 79000000.0,
-        "alt_source": "market",
-        "mat_cost": 1049912181.6691052,
-        "total_cost": 1127873029.669105,
-        "sell_price": 1200000000,
-        "market_fee": 24000000.0,
-        "profit": 72126970.33089495,
-        "profit_after_fee": 48126970.33089495,
-        "roi": 6.394954789552466,
-        "roi_after_fee": 4.267055693761417,
-        "profit_per_day": 121003531.2097657,
-        "profit_per_day_after_fee": 80740024.56708562,
-        "xp_per_day": 4014174.369341404,
-        "total_xp": 2392742.0360866264,
-        "actions": 9787.816811322025,
-        "time_hours": 14.30575844055841,
-        "time_days": 0.5960732683566005,
-        "protect_count": 71.19932658682845,
-        "protect_at": 7,
-        "protect_hrid": "/items/damaged_anchor",
-        "protect_name": "Damaged Anchor",
-        "protect_price": 7300000.0,
-        "materials": [
-          {
-            "hrid": "/items/pirate_essence",
-            "name": "Pirate Essence",
-            "count": 14,
-            "price": 1875.0
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 6,
-            "price": 3850.0
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/damaged_anchor",
-            "name": "Damaged Anchor",
-            "count": 7.10272,
-            "price": 7300000.0
-          },
-          {
-            "hrid": "/items/holy_plate_legs",
-            "name": "Holy Plate Legs",
-            "count": 8.8784,
-            "price": 980000.0
-          },
-          {
-            "hrid": "/items/griffin_chaps",
-            "name": "Griffin Chaps",
-            "count": 0.88784,
-            "price": 11500000.0
-          },
-          {
-            "hrid": "/items/colossus_plate_legs",
-            "name": "Colossus Plate Legs",
-            "count": 1,
-            "price": 7200000,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 0,
         "price_direction": null,
         "last_price": null
       },
@@ -13151,6 +13010,105 @@
         "price_since_ts": 1770919221,
         "price_direction": "down",
         "last_price": 450000000
+      },
+      {
+        "item_hrid": "/items/celestial_shears",
+        "item_name": "Celestial Shears",
+        "target_level": 10,
+        "base_price": 380000000.0,
+        "base_source": "market",
+        "alt_price": 395080959.99999994,
+        "alt_source": "craft",
+        "mat_cost": 389141587.9634361,
+        "total_cost": 769141587.9634361,
+        "sell_price": 840000000.0,
+        "market_fee": 16800000.0,
+        "profit": 70858412.03656387,
+        "profit_after_fee": 54058412.03656387,
+        "roi": 9.212661640646115,
+        "roi_after_fee": 7.028408407833192,
+        "profit_per_day": 437811433.4214576,
+        "profit_per_day_after_fee": 334009614.13026196,
+        "xp_per_day": 3877514.1658067685,
+        "total_xp": 627563.5478296379,
+        "actions": 2715.8703090660706,
+        "time_hours": 3.8843249834465943,
+        "time_days": 0.16184687431027475,
+        "protect_count": 13.699888957191442,
+        "protect_at": 7,
+        "protect_hrid": "/items/mirror_of_protection",
+        "protect_name": "Mirror Of Protection",
+        "protect_price": 11250000.0,
+        "materials": [
+          {
+            "hrid": "/items/foraging_essence",
+            "name": "Foraging Essence",
+            "count": 100,
+            "price": 325.0
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 12,
+            "price": 3850.0
+          },
+          {
+            "hrid": "/items/arcane_log",
+            "name": "Arcane Log",
+            "count": 8,
+            "price": 590.0
+          }
+        ],
+        "coin_cost": 3115,
+        "craft_materials": [
+          {
+            "hrid": "/items/butter_of_proficiency",
+            "name": "Butter Of Proficiency",
+            "count": 8.8784,
+            "price": 12250000.0
+          },
+          {
+            "hrid": "/items/branch_of_insight",
+            "name": "Branch Of Insight",
+            "count": 8.8784,
+            "price": 25750000.0
+          },
+          {
+            "hrid": "/items/sunstone",
+            "name": "Sunstone",
+            "count": 4.4392,
+            "price": 550000.0
+          },
+          {
+            "hrid": "/items/moonstone",
+            "name": "Moonstone",
+            "count": 22.195999999999998,
+            "price": 55000.0
+          },
+          {
+            "hrid": "/items/star_fragment",
+            "name": "Star Fragment",
+            "count": 88.78399999999999,
+            "price": 13750.0
+          },
+          {
+            "hrid": "/items/foraging_essence",
+            "name": "Foraging Essence",
+            "count": 159811.19999999998,
+            "price": 325.0
+          },
+          {
+            "hrid": "/items/holy_shears",
+            "name": "Holy Shears",
+            "count": 1,
+            "price": 880000.0,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770928217,
+        "price_direction": "down",
+        "last_price": 880000000
       },
       {
         "item_hrid": "/items/celestial_hatchet",
@@ -13342,20 +13300,20 @@
         "item_hrid": "/items/collectors_boots",
         "item_name": "Collector's Boots",
         "target_level": 14,
-        "base_price": 4279388.8,
-        "base_source": "craft",
-        "alt_price": 4300000.0,
-        "alt_source": "market",
-        "mat_cost": 461611540.62037915,
-        "total_cost": 465890929.42037916,
+        "base_price": 4300000.0,
+        "base_source": "market",
+        "alt_price": 4325556.4799999995,
+        "alt_source": "craft",
+        "mat_cost": 464668093.88789123,
+        "total_cost": 468968093.88789123,
         "sell_price": 535000000.0,
         "market_fee": 10700000.0,
-        "profit": 69109070.57962084,
-        "profit_after_fee": 58409070.57962084,
-        "roi": 14.833744598891485,
-        "roi_after_fee": 12.537069706913655,
-        "profit_per_day": 125905097.3559825,
-        "profit_per_day_after_fee": 106411497.8847392,
+        "profit": 66031906.11210877,
+        "profit_after_fee": 55331906.11210877,
+        "roi": 14.08025555953791,
+        "roi_after_fee": 11.79865044834715,
+        "profit_per_day": 120299021.5020739,
+        "profit_per_day_after_fee": 100805422.0308306,
         "xp_per_day": 3777126.3634482278,
         "total_xp": 2073257.5401744598,
         "actions": 10396.4007908835,
@@ -13365,19 +13323,19 @@
         "protect_at": 5,
         "protect_hrid": "/items/gobo_rag",
         "protect_name": "Gobo Rag",
-        "protect_price": 415000.0,
+        "protect_price": 420000.0,
         "materials": [
           {
             "hrid": "/items/gobo_essence",
             "name": "Gobo Essence",
             "count": 30,
-            "price": 112.5
+            "price": 110.0
           },
           {
             "hrid": "/items/gobo_leather",
             "name": "Gobo Leather",
             "count": 4,
-            "price": 1200.0
+            "price": 1225.0
           },
           {
             "hrid": "/items/bamboo_fabric",
@@ -13389,13 +13347,13 @@
             "hrid": "/items/reptile_leather",
             "name": "Reptile Leather",
             "count": 4,
-            "price": 1100.0
+            "price": 1075.0
           },
           {
             "hrid": "/items/linen_fabric",
             "name": "Linen Fabric",
             "count": 4,
-            "price": 540.0
+            "price": 550.0
           }
         ],
         "coin_cost": 319,
@@ -13404,13 +13362,13 @@
             "hrid": "/items/gobo_rag",
             "name": "Gobo Rag",
             "count": 8.8784,
-            "price": 415000.0
+            "price": 420000.0
           },
           {
             "hrid": "/items/gobo_leather",
             "name": "Gobo Leather",
             "count": 177.56799999999998,
-            "price": 1200.0
+            "price": 1225.0
           },
           {
             "hrid": "/items/bamboo_fabric",
@@ -13422,13 +13380,13 @@
             "hrid": "/items/reptile_leather",
             "name": "Reptile Leather",
             "count": 177.56799999999998,
-            "price": 1100.0
+            "price": 1075.0
           },
           {
             "hrid": "/items/linen_fabric",
             "name": "Linen Fabric",
             "count": 177.56799999999998,
-            "price": 540.0
+            "price": 550.0
           }
         ],
         "mode": "midpoint",
@@ -13660,6 +13618,92 @@
         "last_price": null
       },
       {
+        "item_hrid": "/items/cheesemakers_bottoms",
+        "item_name": "Cheesemaker's Bottoms",
+        "target_level": 10,
+        "base_price": 270618071.2,
+        "base_source": "craft",
+        "alt_price": 0,
+        "alt_source": "market",
+        "mat_cost": 182042486.0387977,
+        "total_cost": 452660557.23879766,
+        "sell_price": 515000000.0,
+        "market_fee": 10300000.0,
+        "profit": 62339442.761202335,
+        "profit_after_fee": 52039442.761202335,
+        "roi": 13.771785892163702,
+        "roi_after_fee": 11.496350174320428,
+        "profit_per_day": 255759912.16365835,
+        "profit_per_day_after_fee": 213502121.933214,
+        "xp_per_day": 3828421.6701323926,
+        "total_xp": 933147.3081608176,
+        "actions": 4090.1115486033914,
+        "time_hours": 5.849808961896601,
+        "time_days": 0.24374204007902503,
+        "protect_count": 5.647379251114243,
+        "protect_at": 8,
+        "protect_hrid": "/items/thread_of_expertise",
+        "protect_name": "Thread Of Expertise",
+        "protect_price": 10750000.0,
+        "materials": [
+          {
+            "hrid": "/items/cheesesmithing_essence",
+            "name": "Cheesesmithing Essence",
+            "count": 30,
+            "price": 450.0
+          },
+          {
+            "hrid": "/items/umbral_leather",
+            "name": "Umbral Leather",
+            "count": 2,
+            "price": 2675.0
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 2,
+            "price": 3850.0
+          }
+        ],
+        "coin_cost": 3115,
+        "craft_materials": [
+          {
+            "hrid": "/items/thread_of_expertise",
+            "name": "Thread Of Expertise",
+            "count": 7.10272,
+            "price": 10750000.0
+          },
+          {
+            "hrid": "/items/branch_of_insight",
+            "name": "Branch Of Insight",
+            "count": 5.32704,
+            "price": 25750000.0
+          },
+          {
+            "hrid": "/items/cheesesmithing_essence",
+            "name": "Cheesesmithing Essence",
+            "count": 124297.59999999999,
+            "price": 450.0
+          },
+          {
+            "hrid": "/items/umbral_leather",
+            "name": "Umbral Leather",
+            "count": 177.56799999999998,
+            "price": 2675.0
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 177.56799999999998,
+            "price": 3850.0
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770940815,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
         "item_hrid": "/items/chefs_top",
         "item_name": "Chef's Top",
         "target_level": 10,
@@ -13746,12 +13790,75 @@
         "last_price": null
       },
       {
+        "item_hrid": "/items/centaur_boots",
+        "item_name": "Centaur Boots",
+        "target_level": 14,
+        "base_price": 1175725.6,
+        "base_source": "craft",
+        "alt_price": 1220000.0,
+        "alt_source": "market",
+        "mat_cost": 164381035.00859302,
+        "total_cost": 165556760.60859302,
+        "sell_price": 227500000.0,
+        "market_fee": 4550000.0,
+        "profit": 61943239.39140698,
+        "profit_after_fee": 57393239.39140698,
+        "roi": 37.41510715944263,
+        "roi_after_fee": 34.666805016253775,
+        "profit_per_day": 64241977.42495038,
+        "profit_per_day_after_fee": 59523125.13121527,
+        "xp_per_day": 3541512.8557651225,
+        "total_xp": 3414788.700872151,
+        "actions": 17915.63646784185,
+        "time_hours": 23.14122019563466,
+        "time_days": 0.9642175081514441,
+        "protect_count": 469.4589506889526,
+        "protect_at": 6,
+        "protect_hrid": "/items/centaur_hoof",
+        "protect_name": "Centaur Hoof",
+        "protect_price": 202500.0,
+        "materials": [
+          {
+            "hrid": "/items/jungle_essence",
+            "name": "Jungle Essence",
+            "count": 8,
+            "price": 35.0
+          },
+          {
+            "hrid": "/items/beast_leather",
+            "name": "Beast Leather",
+            "count": 2,
+            "price": 1575.0
+          }
+        ],
+        "coin_cost": 439,
+        "craft_materials": [
+          {
+            "hrid": "/items/centaur_hoof",
+            "name": "Centaur Hoof",
+            "count": 5.32704,
+            "price": 202500.0
+          },
+          {
+            "hrid": "/items/beast_boots",
+            "name": "Beast Boots",
+            "count": 1,
+            "price": 97000.0,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
         "item_hrid": "/items/royal_water_robe_bottoms",
         "item_name": "Royal Water Robe Bottoms",
         "target_level": 12,
         "base_price": 72000000.0,
         "base_source": "market",
-        "alt_price": 73268996.0,
+        "alt_price": 73002644.0,
         "alt_source": "craft",
         "mat_cost": 1016191744.6109929,
         "total_cost": 1088191744.610993,
@@ -13799,76 +13906,13 @@
             "hrid": "/items/radiant_robe_bottoms",
             "name": "Radiant Robe Bottoms",
             "count": 26.635199999999998,
-            "price": 680000.0
+            "price": 670000.0
           },
           {
             "hrid": "/items/icy_robe_bottoms",
             "name": "Icy Robe Bottoms",
             "count": 8.8784,
             "price": 212500.0
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
-        "item_hrid": "/items/centaur_boots",
-        "item_name": "Centaur Boots",
-        "target_level": 14,
-        "base_price": 1189043.2,
-        "base_source": "craft",
-        "alt_price": 1220000.0,
-        "alt_source": "market",
-        "mat_cost": 165554682.3853154,
-        "total_cost": 166743725.58531538,
-        "sell_price": 227500000.0,
-        "market_fee": 4550000.0,
-        "profit": 60756274.41468462,
-        "profit_after_fee": 56206274.41468462,
-        "roi": 36.4369179118517,
-        "roi_after_fee": 33.70817955361466,
-        "profit_per_day": 63010963.71000762,
-        "profit_per_day_after_fee": 58292111.416272506,
-        "xp_per_day": 3541512.8557651225,
-        "total_xp": 3414788.700872151,
-        "actions": 17915.63646784185,
-        "time_hours": 23.14122019563466,
-        "time_days": 0.9642175081514441,
-        "protect_count": 469.4589506889526,
-        "protect_at": 6,
-        "protect_hrid": "/items/centaur_hoof",
-        "protect_name": "Centaur Hoof",
-        "protect_price": 205000.0,
-        "materials": [
-          {
-            "hrid": "/items/jungle_essence",
-            "name": "Jungle Essence",
-            "count": 8,
-            "price": 35.0
-          },
-          {
-            "hrid": "/items/beast_leather",
-            "name": "Beast Leather",
-            "count": 2,
-            "price": 1575.0
-          }
-        ],
-        "coin_cost": 439,
-        "craft_materials": [
-          {
-            "hrid": "/items/centaur_hoof",
-            "name": "Centaur Hoof",
-            "count": 5.32704,
-            "price": 205000.0
-          },
-          {
-            "hrid": "/items/beast_boots",
-            "name": "Beast Boots",
-            "count": 1,
-            "price": 97000.0,
-            "is_upgrade": true
           }
         ],
         "mode": "midpoint",
@@ -13967,69 +14011,6 @@
             "name": "Holy Hammer",
             "count": 1,
             "price": 840000.0,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
-        "item_hrid": "/items/anchorbound_plate_body_refined",
-        "item_name": "Anchorbound Plate Body (R)",
-        "target_level": 10,
-        "base_price": 428939999.99999994,
-        "base_source": "craft",
-        "alt_price": 0,
-        "alt_source": "market",
-        "mat_cost": 282813304.0287822,
-        "total_cost": 711753304.0287821,
-        "sell_price": 770000000.0,
-        "market_fee": 15400000.0,
-        "profit": 58246695.97121787,
-        "profit_after_fee": 42846695.97121787,
-        "roi": 8.183551188525634,
-        "roi_after_fee": 6.019880164755122,
-        "profit_per_day": 344643540.1053944,
-        "profit_per_day_after_fee": 253522311.18202788,
-        "xp_per_day": 3969233.1772966487,
-        "total_xp": 670822.7232292474,
-        "actions": 2775.1556043287105,
-        "time_hours": 4.056134935480685,
-        "time_days": 0.16900562231169522,
-        "protect_count": 13.797461513801899,
-        "protect_at": 7,
-        "protect_hrid": "/items/damaged_anchor",
-        "protect_name": "Damaged Anchor",
-        "protect_price": 7300000.0,
-        "materials": [
-          {
-            "hrid": "/items/pirate_essence",
-            "name": "Pirate Essence",
-            "count": 16,
-            "price": 1875.0
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 8,
-            "price": 3850.0
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/pirate_refinement_shard",
-            "name": "Pirate Refinement Shard",
-            "count": 88.78399999999999,
-            "price": 3750000.0
-          },
-          {
-            "hrid": "/items/anchorbound_plate_body",
-            "name": "Anchorbound Plate Body",
-            "count": 1,
-            "price": 96000000.0,
             "is_upgrade": true
           }
         ],
@@ -14260,6 +14241,69 @@
             "name": "Vampiric Bow",
             "count": 1,
             "price": 11000000.0,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "midpoint",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
+        "item_hrid": "/items/anchorbound_plate_body_refined",
+        "item_name": "Anchorbound Plate Body (R)",
+        "target_level": 10,
+        "base_price": 430939999.99999994,
+        "base_source": "craft",
+        "alt_price": 0,
+        "alt_source": "market",
+        "mat_cost": 282813304.0287822,
+        "total_cost": 713753304.0287821,
+        "sell_price": 770000000.0,
+        "market_fee": 15400000.0,
+        "profit": 56246695.97121787,
+        "profit_after_fee": 40846695.97121787,
+        "roi": 7.880411292491855,
+        "roi_after_fee": 5.722803066642018,
+        "profit_per_day": 332809614.27119094,
+        "profit_per_day_after_fee": 241688385.34782445,
+        "xp_per_day": 3969233.1772966487,
+        "total_xp": 670822.7232292474,
+        "actions": 2775.1556043287105,
+        "time_hours": 4.056134935480685,
+        "time_days": 0.16900562231169522,
+        "protect_count": 13.797461513801899,
+        "protect_at": 7,
+        "protect_hrid": "/items/damaged_anchor",
+        "protect_name": "Damaged Anchor",
+        "protect_price": 7300000.0,
+        "materials": [
+          {
+            "hrid": "/items/pirate_essence",
+            "name": "Pirate Essence",
+            "count": 16,
+            "price": 1875.0
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 8,
+            "price": 3850.0
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/pirate_refinement_shard",
+            "name": "Pirate Refinement Shard",
+            "count": 88.78399999999999,
+            "price": 3750000.0
+          },
+          {
+            "hrid": "/items/anchorbound_plate_body",
+            "name": "Anchorbound Plate Body",
+            "count": 1,
+            "price": 98000000.0,
             "is_upgrade": true
           }
         ],
@@ -14932,92 +14976,6 @@
         "price_since_ts": 1770909728,
         "price_direction": null,
         "last_price": null
-      },
-      {
-        "item_hrid": "/items/crafters_bottoms",
-        "item_name": "Crafter's Bottoms",
-        "target_level": 8,
-        "base_price": 235000000.0,
-        "base_source": "market",
-        "alt_price": 267510631.20000002,
-        "alt_source": "craft",
-        "mat_cost": 33503925.25303464,
-        "total_cost": 268503925.25303465,
-        "sell_price": 320000000.0,
-        "market_fee": 6400000.0,
-        "profit": 51496074.74696535,
-        "profit_after_fee": 45096074.74696535,
-        "roi": 19.17889084803364,
-        "roi_after_fee": 16.79531303107297,
-        "profit_per_day": 745772462.0887333,
-        "profit_per_day_after_fee": 653086878.1715016,
-        "xp_per_day": 3794750.291977074,
-        "total_xp": 262029.98181832733,
-        "actions": 1158.7039686333958,
-        "time_hours": 1.6572156478742683,
-        "time_days": 0.06905065199476118,
-        "protect_count": 0,
-        "protect_at": 8,
-        "protect_hrid": "/items/thread_of_expertise",
-        "protect_name": "Thread Of Expertise",
-        "protect_price": 10750000.0,
-        "materials": [
-          {
-            "hrid": "/items/crafting_essence",
-            "name": "Crafting Essence",
-            "count": 30,
-            "price": 425.0
-          },
-          {
-            "hrid": "/items/umbral_leather",
-            "name": "Umbral Leather",
-            "count": 2,
-            "price": 2675.0
-          },
-          {
-            "hrid": "/items/radiant_fabric",
-            "name": "Radiant Fabric",
-            "count": 2,
-            "price": 3850.0
-          }
-        ],
-        "coin_cost": 3115,
-        "craft_materials": [
-          {
-            "hrid": "/items/thread_of_expertise",
-            "name": "Thread Of Expertise",
-            "count": 7.10272,
-            "price": 10750000.0
-          },
-          {
-            "hrid": "/items/branch_of_insight",
-            "name": "Branch Of Insight",
-            "count": 5.32704,
-            "price": 25750000.0
-          },
-          {
-            "hrid": "/items/crafting_essence",
-            "name": "Crafting Essence",
-            "count": 124297.59999999999,
-            "price": 425.0
-          },
-          {
-            "hrid": "/items/umbral_leather",
-            "name": "Umbral Leather",
-            "count": 177.56799999999998,
-            "price": 2675.0
-          },
-          {
-            "hrid": "/items/radiant_fabric",
-            "name": "Radiant Fabric",
-            "count": 177.56799999999998,
-            "price": 3850.0
-          }
-        ],
-        "mode": "midpoint",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
       }
     ],
     "optimistic": [
@@ -15027,7 +14985,7 @@
         "target_level": 12,
         "base_price": 5000000,
         "base_source": "market",
-        "alt_price": 1230502400.0,
+        "alt_price": 1225502400.0,
         "alt_source": "craft",
         "mat_cost": 1010728514.7775992,
         "total_cost": 1015728514.7775992,
@@ -15081,7 +15039,7 @@
             "hrid": "/items/blazing_trident",
             "name": "Blazing Trident",
             "count": 1,
-            "price": 245000000,
+            "price": 240000000,
             "is_upgrade": true
           }
         ],
@@ -15234,7 +15192,7 @@
         "target_level": 10,
         "base_price": 5000000,
         "base_source": "market",
-        "alt_price": 1230502400.0,
+        "alt_price": 1225502400.0,
         "alt_source": "craft",
         "mat_cost": 254680881.68240047,
         "total_cost": 259680881.68240047,
@@ -15288,7 +15246,7 @@
             "hrid": "/items/blazing_trident",
             "name": "Blazing Trident",
             "count": 1,
-            "price": 245000000,
+            "price": 240000000,
             "is_upgrade": true
           }
         ],
@@ -15816,7 +15774,7 @@
         "target_level": 12,
         "base_price": 4500000,
         "base_source": "market",
-        "alt_price": 422500799.99999994,
+        "alt_price": 424500799.99999994,
         "alt_source": "craft",
         "mat_cost": 933695713.1650257,
         "total_cost": 938195713.1650257,
@@ -15864,7 +15822,7 @@
             "hrid": "/items/anchorbound_plate_body",
             "name": "Anchorbound Plate Body",
             "count": 1,
-            "price": 94000000,
+            "price": 96000000,
             "is_upgrade": true
           }
         ],
@@ -15877,20 +15835,20 @@
         "item_hrid": "/items/corsair_helmet",
         "item_name": "Corsair Helmet",
         "target_level": 14,
-        "base_price": 95026976.0,
+        "base_price": 94694272.0,
         "base_source": "craft",
         "alt_price": 96000000,
         "alt_source": "market",
         "mat_cost": 4110431955.1725655,
-        "total_cost": 4205458931.1725655,
+        "total_cost": 4205126227.1725655,
         "sell_price": 5200000000,
         "market_fee": 104000000.0,
-        "profit": 994541068.8274345,
-        "profit_after_fee": 890541068.8274345,
-        "roi": 23.64881182064324,
-        "roi_after_fee": 21.175835584230377,
-        "profit_per_day": 426149558.83312124,
-        "profit_per_day_after_fee": 381586739.35006315,
+        "profit": 994873772.8274345,
+        "profit_after_fee": 890873772.8274345,
+        "roi": 23.658594750349877,
+        "roi_after_fee": 21.185422855342885,
+        "profit_per_day": 426292118.72055674,
+        "profit_per_day_after_fee": 381729299.23749864,
         "xp_per_day": 4034272.370670894,
         "total_xp": 9415120.75350805,
         "actions": 38321.885172666116,
@@ -15927,7 +15885,7 @@
             "hrid": "/items/holy_helmet",
             "name": "Holy Helmet",
             "count": 26.635199999999998,
-            "price": 720000
+            "price": 700000
           },
           {
             "hrid": "/items/vision_helmet",
@@ -15939,7 +15897,7 @@
             "hrid": "/items/fluffy_red_hat",
             "name": "Fluffy Red Hat",
             "count": 1,
-            "price": 5000000,
+            "price": 5200000,
             "is_upgrade": true
           }
         ],
@@ -16912,7 +16870,7 @@
         "target_level": 10,
         "base_price": 4500000,
         "base_source": "market",
-        "alt_price": 422500799.99999994,
+        "alt_price": 424500799.99999994,
         "alt_source": "craft",
         "mat_cost": 236235396.36255568,
         "total_cost": 240735396.36255568,
@@ -16960,7 +16918,7 @@
             "hrid": "/items/anchorbound_plate_body",
             "name": "Anchorbound Plate Body",
             "count": 1,
-            "price": 94000000,
+            "price": 96000000,
             "is_upgrade": true
           }
         ],
@@ -18880,105 +18838,6 @@
         "last_price": null
       },
       {
-        "item_hrid": "/items/celestial_shears",
-        "item_name": "Celestial Shears",
-        "target_level": 12,
-        "base_price": 280000000,
-        "base_source": "market",
-        "alt_price": 389733919.99999994,
-        "alt_source": "craft",
-        "mat_cost": 1586152025.381195,
-        "total_cost": 1866152025.381195,
-        "sell_price": 2200000000,
-        "market_fee": 44000000.0,
-        "profit": 333847974.61880493,
-        "profit_after_fee": 289847974.61880493,
-        "roi": 17.889645113484818,
-        "roi_after_fee": 15.531852211215122,
-        "profit_per_day": 588882055.782728,
-        "profit_per_day_after_fee": 511269452.36937624,
-        "xp_per_day": 3922329.0927735115,
-        "total_xp": 2223639.879246017,
-        "actions": 9513.167330152753,
-        "time_hours": 13.606037596444489,
-        "time_days": 0.5669182331851871,
-        "protect_count": 70.3777843560006,
-        "protect_at": 7,
-        "protect_hrid": "/items/mirror_of_protection",
-        "protect_name": "Mirror Of Protection",
-        "protect_price": 11000000,
-        "materials": [
-          {
-            "hrid": "/items/foraging_essence",
-            "name": "Foraging Essence",
-            "count": 100,
-            "price": 320
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 12,
-            "price": 3800
-          },
-          {
-            "hrid": "/items/arcane_log",
-            "name": "Arcane Log",
-            "count": 8,
-            "price": 580
-          }
-        ],
-        "coin_cost": 3115,
-        "craft_materials": [
-          {
-            "hrid": "/items/butter_of_proficiency",
-            "name": "Butter Of Proficiency",
-            "count": 8.8784,
-            "price": 12000000
-          },
-          {
-            "hrid": "/items/branch_of_insight",
-            "name": "Branch Of Insight",
-            "count": 8.8784,
-            "price": 25500000
-          },
-          {
-            "hrid": "/items/sunstone",
-            "name": "Sunstone",
-            "count": 4.4392,
-            "price": 540000
-          },
-          {
-            "hrid": "/items/moonstone",
-            "name": "Moonstone",
-            "count": 22.195999999999998,
-            "price": 54000
-          },
-          {
-            "hrid": "/items/star_fragment",
-            "name": "Star Fragment",
-            "count": 88.78399999999999,
-            "price": 13500
-          },
-          {
-            "hrid": "/items/foraging_essence",
-            "name": "Foraging Essence",
-            "count": 159811.19999999998,
-            "price": 320
-          },
-          {
-            "hrid": "/items/holy_shears",
-            "name": "Holy Shears",
-            "count": 1,
-            "price": 860000,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "optimistic",
-        "price_since_ts": 1770930019,
-        "price_direction": "up",
-        "last_price": 2150000000
-      },
-      {
         "item_hrid": "/items/magicians_hat_refined",
         "item_name": "Magician's Hat (R)",
         "target_level": 12,
@@ -19114,20 +18973,20 @@
         "item_hrid": "/items/anchorbound_plate_body",
         "item_name": "Anchorbound Plate Body",
         "target_level": 12,
-        "base_price": 91479392.0,
+        "base_price": 92367232.0,
         "base_source": "craft",
-        "alt_price": 94000000,
+        "alt_price": 96000000,
         "alt_source": "market",
         "mat_cost": 1147032498.051002,
-        "total_cost": 1238511890.051002,
+        "total_cost": 1239399730.051002,
         "sell_price": 1550000000,
         "market_fee": 31000000.0,
-        "profit": 311488109.948998,
-        "profit_after_fee": 280488109.948998,
-        "roi": 25.150191326477362,
-        "roi_after_fee": 22.647187499947815,
-        "profit_per_day": 522566816.00197244,
-        "profit_per_day_after_fee": 470559786.5885107,
+        "profit": 310600269.948998,
+        "profit_after_fee": 279600269.948998,
+        "roi": 25.060540390485368,
+        "roi_after_fee": 22.559329582675662,
+        "profit_per_day": 521077334.6795709,
+        "profit_per_day_after_fee": 469070305.26610917,
         "xp_per_day": 4014174.369341404,
         "total_xp": 2392742.0360866264,
         "actions": 9787.816811322025,
@@ -19170,7 +19029,7 @@
             "hrid": "/items/griffin_tunic",
             "name": "Griffin Tunic",
             "count": 0.88784,
-            "price": 12000000
+            "price": 13000000
           },
           {
             "hrid": "/items/colossus_plate_body",
@@ -19428,6 +19287,81 @@
         "last_price": 960000000
       },
       {
+        "item_hrid": "/items/anchorbound_plate_legs",
+        "item_name": "Anchorbound Plate Legs",
+        "target_level": 12,
+        "base_price": 76629088.0,
+        "base_source": "craft",
+        "alt_price": 78000000,
+        "alt_source": "market",
+        "mat_cost": 1036430168.083063,
+        "total_cost": 1113059256.0830631,
+        "sell_price": 1400000000,
+        "market_fee": 28000000.0,
+        "profit": 286940743.9169369,
+        "profit_after_fee": 258940743.91693687,
+        "roi": 25.77946702736226,
+        "roi_after_fee": 23.26387768681501,
+        "profit_per_day": 481385022.86479783,
+        "profit_per_day_after_fee": 434410931.78167105,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/damaged_anchor",
+        "protect_name": "Damaged Anchor",
+        "protect_price": 7200000,
+        "materials": [
+          {
+            "hrid": "/items/pirate_essence",
+            "name": "Pirate Essence",
+            "count": 14,
+            "price": 1850
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 6,
+            "price": 3800
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/damaged_anchor",
+            "name": "Damaged Anchor",
+            "count": 7.10272,
+            "price": 7200000
+          },
+          {
+            "hrid": "/items/holy_plate_legs",
+            "name": "Holy Plate Legs",
+            "count": 8.8784,
+            "price": 960000
+          },
+          {
+            "hrid": "/items/griffin_chaps",
+            "name": "Griffin Chaps",
+            "count": 0.88784,
+            "price": 11000000
+          },
+          {
+            "hrid": "/items/colossus_plate_legs",
+            "name": "Colossus Plate Legs",
+            "count": 1,
+            "price": 7200000,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "optimistic",
+        "price_since_ts": 1770940815,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
         "item_hrid": "/items/celestial_alembic",
         "item_name": "Celestial Alembic",
         "target_level": 8,
@@ -19519,6 +19453,105 @@
         "price_since_ts": 1770909728,
         "price_direction": null,
         "last_price": null
+      },
+      {
+        "item_hrid": "/items/celestial_shears",
+        "item_name": "Celestial Shears",
+        "target_level": 12,
+        "base_price": 330000000,
+        "base_source": "market",
+        "alt_price": 389733919.99999994,
+        "alt_source": "craft",
+        "mat_cost": 1586152025.381195,
+        "total_cost": 1916152025.381195,
+        "sell_price": 2200000000,
+        "market_fee": 44000000.0,
+        "profit": 283847974.61880493,
+        "profit_after_fee": 239847974.61880493,
+        "roi": 14.813437079051015,
+        "roi_after_fee": 12.517168337469991,
+        "profit_per_day": 500685915.5402828,
+        "profit_per_day_after_fee": 423073312.1269311,
+        "xp_per_day": 3922329.0927735115,
+        "total_xp": 2223639.879246017,
+        "actions": 9513.167330152753,
+        "time_hours": 13.606037596444489,
+        "time_days": 0.5669182331851871,
+        "protect_count": 70.3777843560006,
+        "protect_at": 7,
+        "protect_hrid": "/items/mirror_of_protection",
+        "protect_name": "Mirror Of Protection",
+        "protect_price": 11000000,
+        "materials": [
+          {
+            "hrid": "/items/foraging_essence",
+            "name": "Foraging Essence",
+            "count": 100,
+            "price": 320
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 12,
+            "price": 3800
+          },
+          {
+            "hrid": "/items/arcane_log",
+            "name": "Arcane Log",
+            "count": 8,
+            "price": 580
+          }
+        ],
+        "coin_cost": 3115,
+        "craft_materials": [
+          {
+            "hrid": "/items/butter_of_proficiency",
+            "name": "Butter Of Proficiency",
+            "count": 8.8784,
+            "price": 12000000
+          },
+          {
+            "hrid": "/items/branch_of_insight",
+            "name": "Branch Of Insight",
+            "count": 8.8784,
+            "price": 25500000
+          },
+          {
+            "hrid": "/items/sunstone",
+            "name": "Sunstone",
+            "count": 4.4392,
+            "price": 540000
+          },
+          {
+            "hrid": "/items/moonstone",
+            "name": "Moonstone",
+            "count": 22.195999999999998,
+            "price": 54000
+          },
+          {
+            "hrid": "/items/star_fragment",
+            "name": "Star Fragment",
+            "count": 88.78399999999999,
+            "price": 13500
+          },
+          {
+            "hrid": "/items/foraging_essence",
+            "name": "Foraging Essence",
+            "count": 159811.19999999998,
+            "price": 320
+          },
+          {
+            "hrid": "/items/holy_shears",
+            "name": "Holy Shears",
+            "count": 1,
+            "price": 860000,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "optimistic",
+        "price_since_ts": 1770930019,
+        "price_direction": "up",
+        "last_price": 2150000000
       },
       {
         "item_hrid": "/items/acrobatic_hood_refined",
@@ -20423,69 +20456,6 @@
         "last_price": 490000000
       },
       {
-        "item_hrid": "/items/dodocamel_gauntlets_refined",
-        "item_name": "Dodocamel Gauntlets (R)",
-        "target_level": 12,
-        "base_price": 218250399.99999997,
-        "base_source": "craft",
-        "alt_price": 0,
-        "alt_source": "market",
-        "mat_cost": 716878735.5078925,
-        "total_cost": 935129135.5078925,
-        "sell_price": 1150000000,
-        "market_fee": 23000000.0,
-        "profit": 214870864.4921075,
-        "profit_after_fee": 191870864.4921075,
-        "roi": 22.97766761115893,
-        "roi_after_fee": 20.518114258935753,
-        "profit_per_day": 228931240.14368856,
-        "profit_per_day_after_fee": 204426202.9635629,
-        "xp_per_day": 3943823.22139329,
-        "total_xp": 3701603.610118682,
-        "actions": 15411.987813930073,
-        "time_hours": 22.52598092149352,
-        "time_days": 0.9385825383955634,
-        "protect_count": 38.61662694275266,
-        "protect_at": 8,
-        "protect_hrid": "/items/dodocamel_plume",
-        "protect_name": "Dodocamel Plume",
-        "protect_price": 7000000,
-        "materials": [
-          {
-            "hrid": "/items/chimerical_essence",
-            "name": "Chimerical Essence",
-            "count": 16,
-            "price": 560
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 4,
-            "price": 3800
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/chimerical_refinement_shard",
-            "name": "Chimerical Refinement Shard",
-            "count": 88.78399999999999,
-            "price": 1850000
-          },
-          {
-            "hrid": "/items/dodocamel_gauntlets",
-            "name": "Dodocamel Gauntlets",
-            "count": 1,
-            "price": 54000000,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "optimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
         "item_hrid": "/items/rippling_trident",
         "item_name": "Rippling Trident",
         "target_level": 12,
@@ -20630,23 +20600,86 @@
         "last_price": null
       },
       {
+        "item_hrid": "/items/dodocamel_gauntlets_refined",
+        "item_name": "Dodocamel Gauntlets (R)",
+        "target_level": 12,
+        "base_price": 218250399.99999997,
+        "base_source": "craft",
+        "alt_price": 0,
+        "alt_source": "market",
+        "mat_cost": 724602060.896443,
+        "total_cost": 942852460.896443,
+        "sell_price": 1150000000,
+        "market_fee": 23000000.0,
+        "profit": 207147539.103557,
+        "profit_after_fee": 184147539.103557,
+        "roi": 21.970302639567354,
+        "roi_after_fee": 19.53089658677601,
+        "profit_per_day": 220702528.15235645,
+        "profit_per_day_after_fee": 196197490.97223076,
+        "xp_per_day": 3943823.22139329,
+        "total_xp": 3701603.610118682,
+        "actions": 15411.987813930073,
+        "time_hours": 22.52598092149352,
+        "time_days": 0.9385825383955634,
+        "protect_count": 38.61662694275266,
+        "protect_at": 8,
+        "protect_hrid": "/items/dodocamel_plume",
+        "protect_name": "Dodocamel Plume",
+        "protect_price": 7200000,
+        "materials": [
+          {
+            "hrid": "/items/chimerical_essence",
+            "name": "Chimerical Essence",
+            "count": 16,
+            "price": 560
+          },
+          {
+            "hrid": "/items/holy_cheese",
+            "name": "Holy Cheese",
+            "count": 4,
+            "price": 3800
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/chimerical_refinement_shard",
+            "name": "Chimerical Refinement Shard",
+            "count": 88.78399999999999,
+            "price": 1850000
+          },
+          {
+            "hrid": "/items/dodocamel_gauntlets",
+            "name": "Dodocamel Gauntlets",
+            "count": 1,
+            "price": 54000000,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "optimistic",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
         "item_hrid": "/items/anchorbound_plate_legs_refined",
         "item_name": "Anchorbound Plate Legs (R)",
         "target_level": 12,
-        "base_price": 404500799.99999994,
+        "base_price": 406500799.99999994,
         "base_source": "craft",
         "alt_price": 0,
         "alt_source": "market",
         "mat_cost": 1036430168.083063,
-        "total_cost": 1440930968.083063,
+        "total_cost": 1442930968.083063,
         "sell_price": 1650000000,
         "market_fee": 33000000.0,
-        "profit": 209069031.9169371,
-        "profit_after_fee": 176069031.9169371,
-        "roi": 14.509302426546588,
-        "roi_after_fee": 12.219116378015658,
-        "profit_per_day": 350743848.140262,
-        "profit_per_day_after_fee": 295381526.5065769,
+        "profit": 207069031.9169371,
+        "profit_after_fee": 174069031.9169371,
+        "roi": 14.350584781753545,
+        "roi_after_fee": 12.063573086118474,
+        "profit_per_day": 347388555.92003864,
+        "profit_per_day_after_fee": 292026234.2863536,
         "xp_per_day": 4014174.369341404,
         "total_xp": 2392742.0360866264,
         "actions": 9787.816811322025,
@@ -20683,7 +20716,7 @@
             "hrid": "/items/anchorbound_plate_legs",
             "name": "Anchorbound Plate Legs",
             "count": 1,
-            "price": 76000000,
+            "price": 78000000,
             "is_upgrade": true
           }
         ],
@@ -21022,80 +21055,6 @@
         "last_price": null
       },
       {
-        "item_hrid": "/items/knights_aegis",
-        "item_name": "Knight's Aegis",
-        "target_level": 12,
-        "base_price": 94483932.79999998,
-        "base_source": "craft",
-        "alt_price": 96000000,
-        "alt_source": "market",
-        "mat_cost": 902146954.0041562,
-        "total_cost": 996630886.8041562,
-        "sell_price": 1200000000,
-        "market_fee": 24000000.0,
-        "profit": 203369113.19584382,
-        "profit_after_fee": 179369113.19584382,
-        "roi": 20.40566029896754,
-        "roi_after_fee": 17.99754709298819,
-        "profit_per_day": 341181401.66986716,
-        "profit_per_day_after_fee": 300917895.0271871,
-        "xp_per_day": 4014174.369341404,
-        "total_xp": 2392742.0360866264,
-        "actions": 9787.816811322025,
-        "time_hours": 14.30575844055841,
-        "time_days": 0.5960732683566005,
-        "protect_count": 71.19932658682845,
-        "protect_at": 7,
-        "protect_hrid": "/items/knights_ingot",
-        "protect_name": "Knight's Ingot",
-        "protect_price": 6400000,
-        "materials": [
-          {
-            "hrid": "/items/enchanted_essence",
-            "name": "Enchanted Essence",
-            "count": 12,
-            "price": 1500
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 6,
-            "price": 3800
-          }
-        ],
-        "coin_cost": 4815,
-        "craft_materials": [
-          {
-            "hrid": "/items/knights_ingot",
-            "name": "Knight's Ingot",
-            "count": 8.8784,
-            "price": 6400000
-          },
-          {
-            "hrid": "/items/holy_buckler",
-            "name": "Holy Buckler",
-            "count": 26.635199999999998,
-            "price": 820000
-          },
-          {
-            "hrid": "/items/gobo_defender",
-            "name": "Gobo Defender",
-            "count": 1.77568,
-            "price": 410000
-          },
-          {
-            "hrid": "/items/vision_shield",
-            "name": "Vision Shield",
-            "count": 8.8784,
-            "price": 1700000
-          }
-        ],
-        "mode": "optimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
         "item_hrid": "/items/celestial_chisel",
         "item_name": "Celestial Chisel",
         "target_level": 8,
@@ -21195,111 +21154,12 @@
         "last_price": null
       },
       {
-        "item_hrid": "/items/celestial_shears",
-        "item_name": "Celestial Shears",
-        "target_level": 10,
-        "base_price": 280000000,
-        "base_source": "market",
-        "alt_price": 389733919.99999994,
-        "alt_source": "craft",
-        "mat_cost": 382511888.7594403,
-        "total_cost": 662511888.7594403,
-        "sell_price": 860000000,
-        "market_fee": 17200000.0,
-        "profit": 197488111.2405597,
-        "profit_after_fee": 180288111.2405597,
-        "roi": 29.808991293780107,
-        "roi_after_fee": 27.2128114679045,
-        "profit_per_day": 1220215787.8066742,
-        "profit_per_day_after_fee": 1113942496.627593,
-        "xp_per_day": 3877514.1658067685,
-        "total_xp": 627563.5478296379,
-        "actions": 2715.8703090660706,
-        "time_hours": 3.8843249834465943,
-        "time_days": 0.16184687431027475,
-        "protect_count": 13.699888957191442,
-        "protect_at": 7,
-        "protect_hrid": "/items/mirror_of_protection",
-        "protect_name": "Mirror Of Protection",
-        "protect_price": 11000000,
-        "materials": [
-          {
-            "hrid": "/items/foraging_essence",
-            "name": "Foraging Essence",
-            "count": 100,
-            "price": 320
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 12,
-            "price": 3800
-          },
-          {
-            "hrid": "/items/arcane_log",
-            "name": "Arcane Log",
-            "count": 8,
-            "price": 580
-          }
-        ],
-        "coin_cost": 3115,
-        "craft_materials": [
-          {
-            "hrid": "/items/butter_of_proficiency",
-            "name": "Butter Of Proficiency",
-            "count": 8.8784,
-            "price": 12000000
-          },
-          {
-            "hrid": "/items/branch_of_insight",
-            "name": "Branch Of Insight",
-            "count": 8.8784,
-            "price": 25500000
-          },
-          {
-            "hrid": "/items/sunstone",
-            "name": "Sunstone",
-            "count": 4.4392,
-            "price": 540000
-          },
-          {
-            "hrid": "/items/moonstone",
-            "name": "Moonstone",
-            "count": 22.195999999999998,
-            "price": 54000
-          },
-          {
-            "hrid": "/items/star_fragment",
-            "name": "Star Fragment",
-            "count": 88.78399999999999,
-            "price": 13500
-          },
-          {
-            "hrid": "/items/foraging_essence",
-            "name": "Foraging Essence",
-            "count": 159811.19999999998,
-            "price": 320
-          },
-          {
-            "hrid": "/items/holy_shears",
-            "name": "Holy Shears",
-            "count": 1,
-            "price": 860000,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "optimistic",
-        "price_since_ts": 1770928217,
-        "price_direction": "down",
-        "last_price": 880000000
-      },
-      {
         "item_hrid": "/items/blooming_trident",
         "item_name": "Blooming Trident",
         "target_level": 12,
         "base_price": 260000000,
         "base_source": "market",
-        "alt_price": 291454944.0,
+        "alt_price": 290454944.0,
         "alt_source": "craft",
         "mat_cost": 1442548871.949821,
         "total_cost": 1702548871.949821,
@@ -21365,7 +21225,7 @@
             "hrid": "/items/jackalope_staff",
             "name": "Jackalope Staff",
             "count": 1,
-            "price": 37000000,
+            "price": 36000000,
             "is_upgrade": true
           }
         ],
@@ -21825,105 +21685,6 @@
         "last_price": null
       },
       {
-        "item_hrid": "/items/celestial_shears",
-        "item_name": "Celestial Shears",
-        "target_level": 8,
-        "base_price": 280000000,
-        "base_source": "market",
-        "alt_price": 389733919.99999994,
-        "alt_source": "craft",
-        "mat_cost": 93290691.76875314,
-        "total_cost": 373290691.7687532,
-        "sell_price": 560000000,
-        "market_fee": 11200000.0,
-        "profit": 186709308.23124683,
-        "profit_after_fee": 175509308.23124683,
-        "roi": 50.0171347285857,
-        "roi_after_fee": 47.01679203401398,
-        "profit_per_day": 3519278686.094704,
-        "profit_per_day_after_fee": 3308170189.9106655,
-        "xp_per_day": 3813851.7772430205,
-        "total_xp": 202337.3794860625,
-        "actions": 890.2603294381747,
-        "time_hours": 1.2732789293599407,
-        "time_days": 0.053053288723330864,
-        "protect_count": 1.5729564863234309,
-        "protect_at": 7,
-        "protect_hrid": "/items/mirror_of_protection",
-        "protect_name": "Mirror Of Protection",
-        "protect_price": 11000000,
-        "materials": [
-          {
-            "hrid": "/items/foraging_essence",
-            "name": "Foraging Essence",
-            "count": 100,
-            "price": 320
-          },
-          {
-            "hrid": "/items/holy_cheese",
-            "name": "Holy Cheese",
-            "count": 12,
-            "price": 3800
-          },
-          {
-            "hrid": "/items/arcane_log",
-            "name": "Arcane Log",
-            "count": 8,
-            "price": 580
-          }
-        ],
-        "coin_cost": 3115,
-        "craft_materials": [
-          {
-            "hrid": "/items/butter_of_proficiency",
-            "name": "Butter Of Proficiency",
-            "count": 8.8784,
-            "price": 12000000
-          },
-          {
-            "hrid": "/items/branch_of_insight",
-            "name": "Branch Of Insight",
-            "count": 8.8784,
-            "price": 25500000
-          },
-          {
-            "hrid": "/items/sunstone",
-            "name": "Sunstone",
-            "count": 4.4392,
-            "price": 540000
-          },
-          {
-            "hrid": "/items/moonstone",
-            "name": "Moonstone",
-            "count": 22.195999999999998,
-            "price": 54000
-          },
-          {
-            "hrid": "/items/star_fragment",
-            "name": "Star Fragment",
-            "count": 88.78399999999999,
-            "price": 13500
-          },
-          {
-            "hrid": "/items/foraging_essence",
-            "name": "Foraging Essence",
-            "count": 159811.19999999998,
-            "price": 320
-          },
-          {
-            "hrid": "/items/holy_shears",
-            "name": "Holy Shears",
-            "count": 1,
-            "price": 860000,
-            "is_upgrade": true
-          }
-        ],
-        "mode": "optimistic",
-        "price_since_ts": 1770909728,
-        "price_direction": null,
-        "last_price": null
-      },
-      {
         "item_hrid": "/items/celestial_pot",
         "item_name": "Celestial Pot",
         "target_level": 10,
@@ -22280,20 +22041,20 @@
         "item_hrid": "/items/corsair_helmet",
         "item_name": "Corsair Helmet",
         "target_level": 12,
-        "base_price": 95026976.0,
+        "base_price": 94694272.0,
         "base_source": "craft",
         "alt_price": 96000000,
         "alt_source": "market",
         "mat_cost": 978240188.9966457,
-        "total_cost": 1073267164.9966457,
+        "total_cost": 1072934460.9966457,
         "sell_price": 1250000000,
         "market_fee": 25000000.0,
-        "profit": 176732835.0033543,
-        "profit_after_fee": 151732835.0033543,
-        "roi": 16.466807218863035,
-        "roi_after_fee": 14.137471074485774,
-        "profit_per_day": 296495153.17238486,
-        "profit_per_day_after_fee": 254554000.41959313,
+        "profit": 177065539.0033543,
+        "profit_after_fee": 152065539.0033543,
+        "roi": 16.502922167201028,
+        "roi_after_fee": 14.172863723857008,
+        "profit_per_day": 297053312.74380344,
+        "profit_per_day_after_fee": 255112159.9910117,
         "xp_per_day": 4014174.369341404,
         "total_xp": 2392742.0360866264,
         "actions": 9787.816811322025,
@@ -22330,7 +22091,7 @@
             "hrid": "/items/holy_helmet",
             "name": "Holy Helmet",
             "count": 26.635199999999998,
-            "price": 720000
+            "price": 700000
           },
           {
             "hrid": "/items/vision_helmet",
@@ -22342,7 +22103,7 @@
             "hrid": "/items/fluffy_red_hat",
             "name": "Fluffy Red Hat",
             "count": 1,
-            "price": 5000000,
+            "price": 5200000,
             "is_upgrade": true
           }
         ],
@@ -22939,6 +22700,173 @@
             "count": 1,
             "price": 10000000,
             "is_upgrade": true
+          }
+        ],
+        "mode": "optimistic",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
+        "item_hrid": "/items/blazing_trident",
+        "item_name": "Blazing Trident",
+        "target_level": 12,
+        "base_price": 240000000,
+        "base_source": "market",
+        "alt_price": 262791423.99999997,
+        "alt_source": "craft",
+        "mat_cost": 1442548871.949821,
+        "total_cost": 1682548871.949821,
+        "sell_price": 1850000000,
+        "market_fee": 37000000.0,
+        "profit": 167451128.050179,
+        "profit_after_fee": 130451128.050179,
+        "roi": 9.9522296702222,
+        "roi_after_fee": 7.753185076817755,
+        "profit_per_day": 280923733.6071939,
+        "profit_per_day_after_fee": 218850827.5330621,
+        "xp_per_day": 4014174.369341404,
+        "total_xp": 2392742.0360866264,
+        "actions": 9787.816811322025,
+        "time_hours": 14.30575844055841,
+        "time_days": 0.5960732683566005,
+        "protect_count": 71.19932658682845,
+        "protect_at": 7,
+        "protect_hrid": "/items/mirror_of_protection",
+        "protect_name": "Mirror Of Protection",
+        "protect_price": 11000000,
+        "materials": [
+          {
+            "hrid": "/items/pirate_essence",
+            "name": "Pirate Essence",
+            "count": 18,
+            "price": 1850
+          },
+          {
+            "hrid": "/items/arcane_lumber",
+            "name": "Arcane Lumber",
+            "count": 9,
+            "price": 3000
+          },
+          {
+            "hrid": "/items/crushed_amethyst",
+            "name": "Crushed Amethyst",
+            "count": 1,
+            "price": 2250
+          }
+        ],
+        "coin_cost": 4815,
+        "craft_materials": [
+          {
+            "hrid": "/items/kraken_fang",
+            "name": "Kraken Fang",
+            "count": 17.7568,
+            "price": 11000000
+          },
+          {
+            "hrid": "/items/arcane_fire_staff",
+            "name": "Arcane Fire Staff",
+            "count": 53.270399999999995,
+            "price": 1000000
+          },
+          {
+            "hrid": "/items/amethyst",
+            "name": "Amethyst",
+            "count": 88.78399999999999,
+            "price": 36000
+          },
+          {
+            "hrid": "/items/infernal_battlestaff",
+            "name": "Infernal Battlestaff",
+            "count": 1,
+            "price": 11000000,
+            "is_upgrade": true
+          }
+        ],
+        "mode": "optimistic",
+        "price_since_ts": 1770909728,
+        "price_direction": null,
+        "last_price": null
+      },
+      {
+        "item_hrid": "/items/alchemists_bottoms",
+        "item_name": "Alchemist's Bottoms",
+        "target_level": 10,
+        "base_price": 170000000,
+        "base_source": "market",
+        "alt_price": 271226241.59999996,
+        "alt_source": "craft",
+        "mat_cost": 183698224.88747168,
+        "total_cost": 353698224.8874717,
+        "sell_price": 520000000,
+        "market_fee": 10400000.0,
+        "profit": 166301775.11252832,
+        "profit_after_fee": 155901775.11252832,
+        "roi": 47.01798409235355,
+        "roi_after_fee": 44.07762441050648,
+        "profit_per_day": 682285973.558811,
+        "profit_per_day_after_fee": 639617913.5203041,
+        "xp_per_day": 3828421.6701323926,
+        "total_xp": 933147.3081608176,
+        "actions": 4090.1115486033914,
+        "time_hours": 5.849808961896601,
+        "time_days": 0.24374204007902503,
+        "protect_count": 5.647379251114243,
+        "protect_at": 8,
+        "protect_hrid": "/items/thread_of_expertise",
+        "protect_name": "Thread Of Expertise",
+        "protect_price": 10500000,
+        "materials": [
+          {
+            "hrid": "/items/alchemy_essence",
+            "name": "Alchemy Essence",
+            "count": 30,
+            "price": 480
+          },
+          {
+            "hrid": "/items/umbral_leather",
+            "name": "Umbral Leather",
+            "count": 2,
+            "price": 2650
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 2,
+            "price": 3800
+          }
+        ],
+        "coin_cost": 3115,
+        "craft_materials": [
+          {
+            "hrid": "/items/thread_of_expertise",
+            "name": "Thread Of Expertise",
+            "count": 7.10272,
+            "price": 10500000
+          },
+          {
+            "hrid": "/items/branch_of_insight",
+            "name": "Branch Of Insight",
+            "count": 5.32704,
+            "price": 25500000
+          },
+          {
+            "hrid": "/items/alchemy_essence",
+            "name": "Alchemy Essence",
+            "count": 124297.59999999999,
+            "price": 480
+          },
+          {
+            "hrid": "/items/umbral_leather",
+            "name": "Umbral Leather",
+            "count": 177.56799999999998,
+            "price": 2650
+          },
+          {
+            "hrid": "/items/radiant_fabric",
+            "name": "Radiant Fabric",
+            "count": 177.56799999999998,
+            "price": 3800
           }
         ],
         "mode": "optimistic",
