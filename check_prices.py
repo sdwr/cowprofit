@@ -42,3 +42,14 @@ if result:
     correct = market.get('a', 'N/A')
     wrong = market.get('b', 'N/A')
     print(f"  Furious Spear R +0: shown={result['base_price']:,}, ask(a)={correct}, bid(b)={wrong}, source={result['base_source']}")
+
+# Now check sell price
+print()
+print("=== SELL PRICE (should use BID/b for selling) ===")
+result2 = calc.calculate_profit('/items/furious_spear_refined', 12, d, PriceMode.PESSIMISTIC)
+if result2:
+    market = d["marketData"].get('/items/furious_spear_refined', {}).get("12", {})
+    correct = market.get('b', 'N/A')
+    wrong = market.get('a', 'N/A')
+    status = "✓" if result2['sell_price'] == correct else "✗ WRONG"
+    print(f"  Furious Spear R +12: shown={result2['sell_price']:,}, bid(b)={correct}, ask(a)={wrong} {status}")
