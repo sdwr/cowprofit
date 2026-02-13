@@ -416,8 +416,7 @@ function renderLootHistoryPanel() {
             revenueStr = formatCoins(enhanceProfit.revenue);
         }
         
-        // Only show profit/rate if we have all prices
-        const hasPriceErrors = enhanceProfit.matPriceMissing || enhanceProfit.protPriceMissing || enhanceProfit.revenuePriceMissing;
+        // Only show profit/rate if we have all prices (hasPriceErrors already defined above)
         const profitStr = hasPriceErrors ? '⚠️' : (enhanceProfit.profit !== 0 ? formatCoins(enhanceProfit.profit) : '-');
         const rateStr = hasPriceErrors ? '-' : (enhanceProfit.profitPerHour !== 0 ? `${formatCoins(enhanceProfit.profitPerHour)}/hr` : '-');
         
