@@ -348,31 +348,76 @@ function renderLootHistoryPanel() {
     // Render loot sessions (last 20)
     const sessions = lootHistoryData.slice(0, 20);
     let entriesHtml = '';
+    let totalProfit = 0;
+    let enhanceCount = 0;
     
     for (const session of sessions) {
-        const stats = calculateLootSessionValue(session);
         const duration = calculateDuration(session.startTime, session.endTime);
         const actionName = formatActionName(session.actionHrid);
-        const profitClass = stats.bidValue > 0 ? 'positive' : 'neutral';
         
-        entriesHtml += `
-            <div class="loot-entry">
-                <div class="loot-header">
-                    <span class="loot-action">${actionName}</span>
-                    <span class="loot-time">${formatLootTime(session.startTime)}</span>
+        // Check if this is an enhance session
+        const enhanceProfit = calculateEnhanceSessionProfit(session);
+        
+        if (enhanceProfit) {
+            // Render enhancement session with profit data
+            enhanceCount++;
+            totalProfit += enhanceProfit.profit;
+            const profitClass = enhanceProfit.profit >= 0 ? 'positive' : 'negative';
+            
+            // Build target level summary
+            const targetSummary = Object.entries(enhanceProfit.revenueBreakdown)
+                .map(([lvl, data]) => `+${lvl}×${data.count}`)
+                .join(', ') || 'none';
+            
+            entriesHtml += `
+                <div class="loot-entry enhance-entry">
+                    <div class="loot-header">
+                        <span class="loot-action">⚔️ ${enhanceProfit.itemName || 'Enhance'}</span>
+                        <span class="loot-time">${formatLootTime(session.startTime)}</span>
+                    </div>
+                    <div class="loot-details">
+                        <span class="loot-duration">${duration}</span>
+                        <span class="loot-actions">${enhanceProfit.actionCount} actions</span>
+                        <span class="loot-drops">${enhanceProfit.totalItems} items</span>
+                    </div>
+                    <div class="loot-costs">
+                        <span>Mats: ${formatCoins(enhanceProfit.totalMatCost)}</span>
+                        <span>Prot: ${formatCoins(enhanceProfit.totalProtCost)} (${enhanceProfit.protsUsed}×)</span>
+                    </div>
+                    <div class="loot-revenue">
+                        <span>Targets: ${targetSummary}</span>
+                        <span>Revenue: ${formatCoins(enhanceProfit.revenue)}</span>
+                    </div>
+                    <div class="loot-values">
+                        <span class="loot-value ${profitClass}">Profit: ${formatCoins(enhanceProfit.profit)}</span>
+                        <span class="loot-rate">${formatCoins(enhanceProfit.profitPerHour)}/hr</span>
+                    </div>
                 </div>
-                <div class="loot-details">
-                    <span class="loot-duration">${duration}</span>
-                    <span class="loot-actions">${session.actionCount || 0} actions</span>
-                    <span class="loot-drops">${stats.dropCount} drops</span>
+            `;
+        } else {
+            // Regular loot session (non-enhance)
+            const stats = calculateLootSessionValue(session);
+            const profitClass = stats.bidValue > 0 ? 'positive' : 'neutral';
+            
+            entriesHtml += `
+                <div class="loot-entry">
+                    <div class="loot-header">
+                        <span class="loot-action">${actionName}</span>
+                        <span class="loot-time">${formatLootTime(session.startTime)}</span>
+                    </div>
+                    <div class="loot-details">
+                        <span class="loot-duration">${duration}</span>
+                        <span class="loot-actions">${session.actionCount || 0} actions</span>
+                        <span class="loot-drops">${stats.dropCount} drops</span>
+                    </div>
+                    <div class="loot-values">
+                        <span class="loot-value ${profitClass}">Bid: ${formatCoins(stats.bidValue)}</span>
+                        <span class="loot-value">Ask: ${formatCoins(stats.askValue)}</span>
+                        <span class="loot-rate">${formatCoins(stats.bidPerHour)}/hr</span>
+                    </div>
                 </div>
-                <div class="loot-values">
-                    <span class="loot-value ${profitClass}">Bid: ${formatCoins(stats.bidValue)}</span>
-                    <span class="loot-value">Ask: ${formatCoins(stats.askValue)}</span>
-                    <span class="loot-rate">${formatCoins(stats.bidPerHour)}/hr</span>
-                </div>
-            </div>
-        `;
+            `;
+        }
     }
     
     // Summary stats
@@ -383,12 +428,17 @@ function renderLootHistoryPanel() {
     }, 0);
     const avgPerHour = totalHours > 0 ? totalBid / totalHours : 0;
     
+    // Enhancement profit summary
+    const enhanceSummary = enhanceCount > 0 
+        ? `<span class="loot-summary-value ${totalProfit >= 0 ? 'positive' : 'negative'}">Enhance Profit: ${formatCoins(totalProfit)}</span>`
+        : '';
+    
     panel.innerHTML = `
         <h5>📜 Loot History</h5>
         <div class="loot-summary">
             <span>Last ${sessions.length} sessions</span>
             <span class="loot-summary-value">Total: ${formatCoins(totalBid)}</span>
-            <span class="loot-summary-value">Avg: ${formatCoins(avgPerHour)}/hr</span>
+            ${enhanceSummary}
         </div>
         <div class="loot-entries">
             ${entriesHtml}
@@ -431,6 +481,164 @@ function calculateLootSessionValue(session) {
     const askPerHour = hours > 0 ? askValue / hours : 0;
     
     return { bidValue, askValue, dropCount, bidPerHour, askPerHour };
+}
+
+/**
+ * Calculate enhancement session profit using protection calculator
+ * 
+ * For enhance sessions:
+ * - Revenue: items at +8/+10/+12/+14 × sell price
+ * - Costs: materials (actionCount × mat cost) + protection (prots × prot price)
+ */
+function calculateEnhanceSessionProfit(session) {
+    if (!session.actionHrid?.includes('enhance')) {
+        return null; // Not an enhance session
+    }
+    
+    const drops = session.drops || {};
+    const actionCount = session.actionCount || 0;
+    
+    // Parse primary item to get the item being enhanced
+    let itemHrid = null;
+    if (session.primaryItemHash) {
+        // Format: "charId::/item_locations/inventory::/items/{item_hrid}::{level}"
+        const match = session.primaryItemHash.match(/\/items\/([^:]+)/);
+        if (match) itemHrid = '/items/' + match[1];
+    }
+    
+    if (!itemHrid) {
+        // Try to detect from drops
+        for (const dropKey of Object.keys(drops)) {
+            if (dropKey.includes('::') && !dropKey.includes('essence') && !dropKey.includes('crate')) {
+                itemHrid = dropKey.split('::')[0];
+                break;
+            }
+        }
+    }
+    
+    if (!itemHrid) return null;
+    
+    // Get item data for material costs
+    const itemData = gameData.items?.[itemHrid];
+    if (!itemData) return null;
+    
+    // Parse drops into level distribution
+    const levelDrops = {};
+    let totalItems = 0;
+    for (const [dropKey, count] of Object.entries(drops)) {
+        if (!dropKey.startsWith(itemHrid)) continue;
+        const level = parseInt(dropKey.split('::')[1]) || 0;
+        levelDrops[level] = (levelDrops[level] || 0) + count;
+        totalItems += count;
+    }
+    
+    if (totalItems === 0) return null;
+    
+    // Calculate protection used via cascade method
+    // Protection level is typically 8 (can be configured)
+    const protLevel = 8;
+    const protResult = calculateProtectionFromDrops(levelDrops, protLevel);
+    const protsUsed = protResult.protCount;
+    
+    // Calculate material cost
+    const enhanceCosts = itemData.enhancementCosts || [];
+    let matCostPerAction = 0;
+    for (const cost of enhanceCosts) {
+        if (cost.itemHrid === '/items/coin') {
+            matCostPerAction += cost.count;
+        } else {
+            const matPrice = prices.market?.[cost.itemHrid]?.['0']?.a || 0;
+            matCostPerAction += cost.count * matPrice;
+        }
+    }
+    const totalMatCost = actionCount * matCostPerAction;
+    
+    // Calculate protection cost
+    // Get cheapest protection item price
+    const mirrorPrice = prices.market?.['/items/mirror_of_protection']?.['0']?.a || 0;
+    const baseItemPrice = prices.market?.[itemHrid]?.['0']?.a || 0;
+    const protPrice = Math.min(mirrorPrice || Infinity, baseItemPrice || Infinity);
+    const totalProtCost = protsUsed * (protPrice || 0);
+    
+    // Calculate revenue from target levels (+8, +10, +12, +14)
+    let revenue = 0;
+    let revenueBreakdown = {};
+    for (const targetLevel of [8, 10, 12, 14]) {
+        const count = levelDrops[targetLevel] || 0;
+        if (count > 0) {
+            const sellPrice = prices.market?.[itemHrid]?.[String(targetLevel)]?.b || 0;
+            const value = count * sellPrice;
+            revenue += value;
+            revenueBreakdown[targetLevel] = { count, sellPrice, value };
+        }
+    }
+    
+    const totalCost = totalMatCost + totalProtCost;
+    const profit = revenue - totalCost;
+    
+    // Calculate per hour
+    const durationMs = new Date(session.endTime) - new Date(session.startTime);
+    const hours = durationMs / 3600000;
+    const profitPerHour = hours > 0 ? profit / hours : 0;
+    
+    return {
+        itemHrid,
+        itemName: itemData.name,
+        actionCount,
+        totalItems,
+        levelDrops,
+        protsUsed,
+        matCostPerAction,
+        totalMatCost,
+        protPrice,
+        totalProtCost,
+        totalCost,
+        revenue,
+        revenueBreakdown,
+        profit,
+        profitPerHour,
+        hours
+    };
+}
+
+/**
+ * Calculate protection used from drops using cascade method
+ * 
+ * At L >= prot: fail -> L-1 (uses protection)
+ * At L < prot: fail -> 0 (no protection)
+ */
+function calculateProtectionFromDrops(levelDrops, protLevel) {
+    const levels = Object.keys(levelDrops).map(Number).sort((a, b) => b - a);
+    if (levels.length === 0) return { protCount: 0 };
+    
+    const maxLevel = Math.max(...levels);
+    const successes = {};
+    const failures = {};
+    
+    // Work from target down to prot level
+    for (let L = maxLevel - 1; L >= protLevel - 1; L--) {
+        const failuresFromAbove = failures[L + 2] || 0;
+        successes[L] = (levelDrops[L + 1] || 0) - failuresFromAbove;
+        failures[L] = (levelDrops[L] || 0) - successes[L];
+    }
+    
+    // Handle levels below prot (prot-1 receives failures from prot)
+    if (protLevel - 1 >= 0) {
+        successes[protLevel - 1] = (levelDrops[protLevel] || 0) - (failures[protLevel + 1] || 0);
+        failures[protLevel - 1] = (levelDrops[protLevel - 1] || 0) - successes[protLevel - 1];
+    }
+    if (protLevel - 2 >= 0) {
+        successes[protLevel - 2] = (levelDrops[protLevel - 1] || 0) - (failures[protLevel] || 0);
+        failures[protLevel - 2] = (levelDrops[protLevel - 2] || 0) - successes[protLevel - 2];
+    }
+    
+    // Sum failures at levels >= prot = protection used
+    let protCount = 0;
+    for (let L = protLevel; L < maxLevel; L++) {
+        protCount += Math.max(0, failures[L] || 0);
+    }
+    
+    return { protCount: Math.round(protCount), successes, failures };
 }
 
 function calculateDuration(startTime, endTime) {
