@@ -106,8 +106,14 @@ python generate_site.py
 open index.html
 ```
 
-## Deployment (Fly.io Sprite)
+## Deployment (Fly.io Sprite + GitHub Actions)
 
+### Automatic Updates
+- **GitHub Actions** runs every 30 minutes (`.github/workflows/update.yml`)
+- Wakes the Sprite, pulls latest code, runs `generate_site.py`, pushes to GitHub Pages
+- Requires `SPRITE_TOKEN` secret in repo settings
+
+### Manual Run
 ```bash
 # SSH to sprite
 sprite console -s mwi-tracker
@@ -115,10 +121,13 @@ sprite console -s mwi-tracker
 # Manual run
 cd /home/sprite/cowprofit
 python3 generate_site.py
-
-# Check cron
-# Managed via Clawdbot cron tool: mwi-price-update
 ```
+
+### Setup (if cloning)
+1. Create a Fly.io Sprite: `sprite create mwi-tracker`
+2. Get org token from https://fly.io/dashboard → Tokens
+3. Add `SPRITE_TOKEN` secret to GitHub repo settings
+4. Push to trigger first run
 
 ## Roadmap
 
