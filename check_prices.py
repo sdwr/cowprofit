@@ -5,26 +5,40 @@ d = requests.get("https://www.milkywayidle.com/game_data/marketplace.json").json
 from enhance_calc import EnhancementCalculator, PriceMode
 calc = EnhancementCalculator()
 
-# Check the raw enhancement costs for an item
-item = calc.item_detail_map.get('/items/furious_spear_refined', {})
-print("Enhancement costs (raw from game data):")
-for cost in item.get('enhancementCosts', []):
-    hrid = cost['itemHrid']
-    count = cost['count']
-    market = d["marketData"].get(hrid, {}).get("0", {})
-    print(f"  {hrid}: count={count}, market a={market.get('a', 'N/A')}, b={market.get('b', 'N/A')}")
-
-print()
 result = calc.calculate_enhancement_cost("/items/furious_spear_refined", 12, d, PriceMode.PESSIMISTIC)
 if result:
-    print("Materials in result (should be enhancement mats):")
+    print("=== CHECKING ALL PRICES ===")
+    print()
+    
+    # Enhancement materials
+    print("ENHANCEMENT MATERIALS (should use ASK/a for buying):")
     for m in result["materials"]:
-        print(f"  {m['name']} ({m['hrid']}): price={m['price']:,.0f}")
+        market = d["marketData"].get(m['hrid'], {}).get("0", {})
+        correct = market.get('a', 'N/A')
+        wrong = market.get('b', 'N/A')
+        status = "✓" if m['price'] == correct else "✗ WRONG"
+        print(f"  {m['name']}: shown={m['price']:,}, ask(a)={correct}, bid(b)={wrong} {status}")
     
     print()
-    print("Craft materials (for base item):")
+    print("CRAFT MATERIALS (should use ASK/a for buying):")
     for m in result.get("craft_materials", []):
-        print(f"  {m['name']}: price={m['price']:,.0f}")
+        market = d["marketData"].get(m['hrid'], {}).get("0", {})
+        correct = market.get('a', 'N/A')
+        wrong = market.get('b', 'N/A')
+        status = "✓" if m['price'] == correct else "✗ WRONG" if wrong != 'N/A' and m['price'] == wrong else "?"
+        print(f"  {m['name']}: shown={m['price']:,}, ask(a)={correct}, bid(b)={wrong} {status}")
     
     print()
-    print(f"Base item: {result['base_price']:,.0f} ({result['base_source']})")
+    print("PROTECTION ITEM (should use ASK/a for buying):")
+    market = d["marketData"].get(result['protect_hrid'], {}).get("0", {})
+    correct = market.get('a', 'N/A')
+    wrong = market.get('b', 'N/A')
+    status = "✓" if result['protect_price'] == correct else "✗ WRONG"
+    print(f"  {result['protect_name']}: shown={result['protect_price']:,}, ask(a)={correct}, bid(b)={wrong} {status}")
+    
+    print()
+    print("BASE ITEM (should use ASK/a for buying):")
+    market = d["marketData"].get('/items/furious_spear_refined', {}).get("0", {})
+    correct = market.get('a', 'N/A')
+    wrong = market.get('b', 'N/A')
+    print(f"  Furious Spear R +0: shown={result['base_price']:,}, ask(a)={correct}, bid(b)={wrong}, source={result['base_source']}")
