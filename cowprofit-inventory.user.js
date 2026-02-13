@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CowProfit Inventory Bridge
 // @namespace    https://github.com/sdwr/cowprofit
-// @version      1.0.3
+// @version      1.0.4
 // @description  Captures MWI inventory and coins, bridges to CowProfit via Tampermonkey storage
 // @author       sdwr
 // @license      MIT
@@ -181,21 +181,18 @@
     function addExportUI() {
         GM_addStyle(`
             #cowprofit-status {
-                position: fixed;
-                bottom: 134px;
-                right: 408px;
-                background: rgba(0, 0, 0, 0.85);
+                background: rgba(0, 0, 0, 0.7);
                 color: #eeb357;
-                padding: 6px 12px;
-                border-radius: 6px;
+                padding: 4px 10px;
+                border-radius: 4px;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 font-size: 11px;
-                z-index: 99999;
-                border: 1px solid #eeb357;
+                border: 1px solid rgba(238, 179, 87, 0.5);
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 8px;
                 white-space: nowrap;
+                margin-right: 10px;
             }
             #cowprofit-status .title {
                 font-weight: bold;
@@ -213,8 +210,8 @@
                 background: #eeb357;
                 color: black;
                 border: none;
-                padding: 4px 8px;
-                border-radius: 4px;
+                padding: 3px 6px;
+                border-radius: 3px;
                 cursor: pointer;
                 font-size: 10px;
             }
@@ -235,7 +232,33 @@
             <div class="time"></div>
             <button class="btn" id="cowprofit-open">Open</button>
         `;
-        document.body.appendChild(div);
+        
+        // Try to insert next to task tracker, retry if not found yet
+        function insertUI() {
+            const taskTracker = document.querySelector('[class*="Header_questInfo"]');
+            if (taskTracker && taskTracker.parentElement) {
+                taskTracker.parentElement.insertBefore(div, taskTracker);
+                log('UI inserted next to task tracker');
+                return true;
+            }
+            return false;
+        }
+        
+        if (!insertUI()) {
+            // Retry a few times as page loads
+            let attempts = 0;
+            const interval = setInterval(() => {
+                if (insertUI() || ++attempts > 20) {
+                    clearInterval(interval);
+                    if (attempts > 20) {
+                        // Fallback: append to body with fixed position
+                        div.style.cssText = 'position:fixed;top:10px;right:300px;z-index:99999;';
+                        document.body.appendChild(div);
+                        log('UI inserted with fallback positioning');
+                    }
+                }
+            }, 500);
+        }
 
         document.getElementById('cowprofit-open').onclick = () => {
             window.open('https://sdwr.github.io/cowprofit/', '_blank');
