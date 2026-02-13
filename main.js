@@ -99,7 +99,12 @@ function getInventoryCount(hrid) {
 }
 
 function hasInventory() {
-    return window.cowprofitInventory && Object.keys(window.cowprofitInventory.inventory || {}).length > 0;
+    const has = window.cowprofitInventory && Object.keys(window.cowprofitInventory.inventory || {}).length > 0;
+    return has;
+}
+
+function getCoins() {
+    return window.cowprofitInventory?.gameCoins || 0;
 }
 
 function calculateMatPercent(r) {
@@ -134,9 +139,19 @@ function calculateMatPercent(r) {
 
 // Listen for inventory data from userscript
 window.addEventListener('cowprofit-inventory-loaded', function(e) {
-    console.log('[CowProfit] Inventory loaded, re-rendering...');
+    console.log('[CowProfit] Inventory event received:', e.detail);
+    console.log('[CowProfit] window.cowprofitInventory:', window.cowprofitInventory);
+    console.log('[CowProfit] hasInventory():', hasInventory());
     renderTable();
 });
+
+// Also check on page load in case userscript already ran
+setTimeout(() => {
+    if (window.cowprofitInventory) {
+        console.log('[CowProfit] Found inventory on delayed check, re-rendering');
+        renderTable();
+    }
+}, 500);
 
 // Gear dropdown
 function toggleGear() {
@@ -276,23 +291,22 @@ function toggleRow(rowId) {
     renderTable();
 }
 
-// Shopping list for detail row
+// Shopping list for detail row - always shows (0 owned if no inventory)
 function renderShoppingList(r) {
-    if (!hasInventory()) return '';
-    
     let rows = '';
+    const invLoaded = hasInventory();
     
     // Materials
     if (r.materials) {
         for (const m of r.materials) {
             const needed = Math.ceil(m.count * r.actions);
-            const owned = getInventoryCount(m.hrid);
+            const owned = invLoaded ? getInventoryCount(m.hrid) : 0;
             const toBuy = Math.max(0, needed - owned);
             rows += `<div class="shop-row">
                 <span class="shop-name">${m.name}</span>
-                <span class="shop-owned ${owned >= needed ? 'complete' : ''}">${owned.toLocaleString()}</span>
+                <span class="shop-owned ${owned >= needed ? 'complete' : ''}">${invLoaded ? owned.toLocaleString() : '-'}</span>
                 <span class="shop-need">${needed.toLocaleString()}</span>
-                <span class="shop-buy ${toBuy > 0 ? 'missing' : 'complete'}">${toBuy > 0 ? toBuy.toLocaleString() : '✓'}</span>
+                <span class="shop-buy ${toBuy > 0 || !invLoaded ? 'missing' : 'complete'}">${invLoaded ? (toBuy > 0 ? toBuy.toLocaleString() : '✓') : needed.toLocaleString()}</span>
             </div>`;
         }
     }
@@ -300,18 +314,20 @@ function renderShoppingList(r) {
     // Protection item
     if (r.protect_hrid && r.protect_count > 0) {
         const needed = Math.ceil(r.protect_count);
-        const owned = getInventoryCount(r.protect_hrid);
+        const owned = invLoaded ? getInventoryCount(r.protect_hrid) : 0;
         const toBuy = Math.max(0, needed - owned);
         rows += `<div class="shop-row prot-row">
             <span class="shop-name">${r.protect_name} @ +${r.protect_at}</span>
-            <span class="shop-owned ${owned >= needed ? 'complete' : ''}">${owned.toLocaleString()}</span>
+            <span class="shop-owned ${owned >= needed ? 'complete' : ''}">${invLoaded ? owned.toLocaleString() : '-'}</span>
             <span class="shop-need">${needed.toLocaleString()}</span>
-            <span class="shop-buy ${toBuy > 0 ? 'missing' : 'complete'}">${toBuy > 0 ? toBuy.toLocaleString() : '✓'}</span>
+            <span class="shop-buy ${toBuy > 0 || !invLoaded ? 'missing' : 'complete'}">${invLoaded ? (toBuy > 0 ? toBuy.toLocaleString() : '✓') : needed.toLocaleString()}</span>
         </div>`;
     }
     
+    if (!rows) return ''; // No materials or protection
+    
     return `<div class="detail-section shopping-list">
-        <h4>&#x1F6D2; Shopping List</h4>
+        <h4>&#x1F6D2; Shopping List${invLoaded ? '' : ' <span class="price-note">(no inventory synced)</span>'}</h4>
         <div class="shop-header">
             <span class="shop-col">Material</span>
             <span class="shop-col">Owned</span>
