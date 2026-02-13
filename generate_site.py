@@ -253,12 +253,16 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             display: inline-block;
             cursor: pointer;
         }}
-        .history-trigger {{
+        .history-btn {{
+            background: transparent;
+            border: none;
+            color: inherit;
+            font: inherit;
             cursor: pointer;
             padding: 2px 6px;
             border-radius: 4px;
         }}
-        .history-trigger:hover {{
+        .history-btn:hover {{
             background: rgba(255,255,255,0.1);
         }}
         .history-panel {{
@@ -598,7 +602,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         </div>
         <p class="subtitle">MWI Enhancement Profit Tracker | Last check: <span id="time-check">-</span> | 
             <span class="history-dropdown">
-                <span class="history-trigger" onclick="toggleHistory()">Market update: <span id="time-market">-</span> &#9660;</span>
+                <button class="history-btn" onclick="toggleHistory(event)">Market update: <span id="time-market">-</span> <span id="history-arrow">&#9660;</span></button>
                 <div class="history-panel" id="history-panel"></div>
             </span>
         </p>
@@ -671,12 +675,11 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                     <th onclick="sortTable(3, 'num')" class="number hide-mobile">Enhance<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(4, 'num')" class="number hide-mobile">Total<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(5, 'num')" class="number">Sell<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(6, 'num')" class="number" title="Time since sell price changed">Age<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(7, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(8, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(9, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(10, 'num')" class="number">$/day<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(11, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(6, 'num')" class="number" style="text-align:center">$/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(7, 'num')" class="number" title="Time since sell price changed">Age<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(8, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(9, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(10, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
                 </tr>
             </thead>
             <tbody id="table-body">
@@ -696,7 +699,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         const updateHistory = {update_history};
         let currentMode = 'pessimistic';
         let currentLevel = 'all';
-        let sortCol = 10; // Default to $/day column
+        let sortCol = 6; // Default to $/day column
         let sortAsc = false;
         let showFee = true; // Fee toggle on by default
         let showSuperPessimistic = false; // Include mat loss toggle
@@ -739,10 +742,12 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         }}
         
         let historyOpen = false;
-        function toggleHistory() {{
+        function toggleHistory(e) {{
+            if (e) e.stopPropagation();
             historyOpen = !historyOpen;
             const panel = document.getElementById('history-panel');
             panel.classList.toggle('visible', historyOpen);
+            document.getElementById('history-arrow').innerHTML = historyOpen ? '&#9650;' : '&#9660;';
             if (historyOpen) renderHistoryPanel();
         }}
         
@@ -1056,11 +1061,11 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                 }};
             }});
             
-            // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, _age, profit, roi, time_days, profit_day, xp_per_day
+            // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, profit_day, age, profit, roi, xp_per_day
             const nowTs = Math.floor(Date.now() / 1000);
             // Add computed _age field for sorting
             filtered = filtered.map(r => ({{...r, _age: r.price_since_ts ? nowTs - r.price_since_ts : 0}}));
-            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_age', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day'];
+            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_profit_day', '_age', '_profit', '_roi', 'xp_per_day'];
             filtered.sort((a, b) => {{
                 let va = a[sortKeys[sortCol]];
                 let vb = b[sortKeys[sortCol]];
@@ -1116,16 +1121,15 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                     <td class="number hide-mobile">${{formatCoins(r.mat_cost)}}</td>
                     <td class="number hide-mobile">${{formatCoins(r.total_cost)}}</td>
                     <td class="number">${{formatCoins(r.sell_price)}}</td>
+                    <td class="number profit-bar-cell ${{profitClass}}" style="text-align:center"><div class="profit-bar ${{barClass}}" style="width:${{barWidth.toFixed(1)}}%"></div><span class="profit-bar-value">${{formatCoins(profitDay)}}</span></td>
                     <td class="number">${{formatAge(r._age)}} ${{getAgeArrow(r.price_direction)}}</td>
                     <td class="number ${{profitClass}}">${{formatCoins(profit)}}</td>
                     <td class="number ${{profitClass}}">${{roi.toFixed(1)}}%</td>
-                    <td class="number hide-mobile">${{r.time_days.toFixed(2)}}</td>
-                    <td class="number profit-bar-cell ${{profitClass}}"><div class="profit-bar ${{barClass}}" style="width:${{barWidth.toFixed(1)}}%"></div><span class="profit-bar-value">${{formatCoins(profitDay)}}</span></td>
                     <td class="number hide-mobile">${{formatXP(r.xp_per_day)}}</td>
                 </tr>`;
                 
                 html += `<tr class="detail-row ${{isExpanded ? 'visible' : ''}}">
-                    <td colspan="12">${{renderDetailRow(r)}}</td>
+                    <td colspan="11">${{renderDetailRow(r)}}</td>
                 </tr>`;
             }});
             
