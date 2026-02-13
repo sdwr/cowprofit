@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cost Color Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #e8e8e8;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { color: #eeb357; }
+        h2 { color: #eeb357; margin-top: 40px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        h3 { color: #888; margin-top: 20px; }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        .option { }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        th {
+            background: rgba(238,179,87,0.2);
+            color: #eeb357;
+            padding: 10px 8px;
+            text-align: left;
+            font-size: 0.75rem;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.8rem;
+        }
+        .item { color: #ccc; font-family: inherit; }
+        
+        /* D1: Left edge fade (gradient from solid left to transparent right) */
+        .d1 .cost-100m { background: linear-gradient(90deg, rgba(150, 150, 150, 0.25) 0%, transparent 100%); }
+        .d1 .cost-500m { background: linear-gradient(90deg, rgba(170, 160, 130, 0.3) 0%, transparent 100%); }
+        .d1 .cost-1b { background: linear-gradient(90deg, rgba(195, 170, 100, 0.35) 0%, transparent 100%); }
+        .d1 .cost-2b { background: linear-gradient(90deg, rgba(215, 165, 70, 0.4) 0%, transparent 100%); }
+        .d1 .cost-over2b { background: linear-gradient(90deg, rgba(238, 175, 50, 0.45) 0%, transparent 100%); }
+        
+        /* D2: Center glow (fade out at both edges) */
+        .d2 .cost-100m { background: linear-gradient(90deg, transparent 0%, rgba(150, 150, 150, 0.22) 30%, rgba(150, 150, 150, 0.22) 70%, transparent 100%); }
+        .d2 .cost-500m { background: linear-gradient(90deg, transparent 0%, rgba(170, 160, 130, 0.28) 30%, rgba(170, 160, 130, 0.28) 70%, transparent 100%); }
+        .d2 .cost-1b { background: linear-gradient(90deg, transparent 0%, rgba(195, 170, 100, 0.32) 30%, rgba(195, 170, 100, 0.32) 70%, transparent 100%); }
+        .d2 .cost-2b { background: linear-gradient(90deg, transparent 0%, rgba(215, 165, 70, 0.38) 30%, rgba(215, 165, 70, 0.38) 70%, transparent 100%); }
+        .d2 .cost-over2b { background: linear-gradient(90deg, transparent 0%, rgba(238, 175, 50, 0.42) 30%, rgba(238, 175, 50, 0.42) 70%, transparent 100%); }
+        
+        /* D3: Left bar accent - original */
+        .d3 .cost-100m { background: linear-gradient(90deg, rgba(150, 150, 150, 0.5) 0%, rgba(150, 150, 150, 0.5) 3px, rgba(150, 150, 150, 0.12) 3px, rgba(150, 150, 150, 0.12) 100%); }
+        .d3 .cost-500m { background: linear-gradient(90deg, rgba(175, 165, 120, 0.55) 0%, rgba(175, 165, 120, 0.55) 3px, rgba(175, 165, 120, 0.15) 3px, rgba(175, 165, 120, 0.15) 100%); }
+        .d3 .cost-1b { background: linear-gradient(90deg, rgba(200, 175, 90, 0.6) 0%, rgba(200, 175, 90, 0.6) 3px, rgba(200, 175, 90, 0.18) 3px, rgba(200, 175, 90, 0.18) 100%); }
+        .d3 .cost-2b { background: linear-gradient(90deg, rgba(220, 170, 60, 0.65) 0%, rgba(220, 170, 60, 0.65) 3px, rgba(220, 170, 60, 0.2) 3px, rgba(220, 170, 60, 0.2) 100%); }
+        .d3 .cost-over2b { background: linear-gradient(90deg, rgba(238, 175, 40, 0.7) 0%, rgba(238, 175, 40, 0.7) 3px, rgba(238, 175, 40, 0.22) 3px, rgba(238, 175, 40, 0.22) 100%); }
+        
+        /* E1: More hue separation (cool gray → warm gold) */
+        .e1 .cost-100m { background: linear-gradient(90deg, rgba(130, 140, 150, 0.5) 0%, rgba(130, 140, 150, 0.5) 3px, rgba(130, 140, 150, 0.12) 3px, rgba(130, 140, 150, 0.12) 100%); }
+        .e1 .cost-500m { background: linear-gradient(90deg, rgba(150, 155, 130, 0.55) 0%, rgba(150, 155, 130, 0.55) 3px, rgba(150, 155, 130, 0.14) 3px, rgba(150, 155, 130, 0.14) 100%); }
+        .e1 .cost-1b { background: linear-gradient(90deg, rgba(180, 165, 100, 0.55) 0%, rgba(180, 165, 100, 0.55) 3px, rgba(180, 165, 100, 0.15) 3px, rgba(180, 165, 100, 0.15) 100%); }
+        .e1 .cost-2b { background: linear-gradient(90deg, rgba(200, 160, 80, 0.6) 0%, rgba(200, 160, 80, 0.6) 3px, rgba(200, 160, 80, 0.17) 3px, rgba(200, 160, 80, 0.17) 100%); }
+        .e1 .cost-over2b { background: linear-gradient(90deg, rgba(220, 165, 50, 0.65) 0%, rgba(220, 165, 50, 0.65) 3px, rgba(220, 165, 50, 0.2) 3px, rgba(220, 165, 50, 0.2) 100%); }
+        
+        /* E2: Wider hue range (steel blue → amber) */
+        .e2 .cost-100m { background: linear-gradient(90deg, rgba(120, 135, 155, 0.5) 0%, rgba(120, 135, 155, 0.5) 3px, rgba(120, 135, 155, 0.12) 3px, rgba(120, 135, 155, 0.12) 100%); }
+        .e2 .cost-500m { background: linear-gradient(90deg, rgba(145, 150, 130, 0.5) 0%, rgba(145, 150, 130, 0.5) 3px, rgba(145, 150, 130, 0.13) 3px, rgba(145, 150, 130, 0.13) 100%); }
+        .e2 .cost-1b { background: linear-gradient(90deg, rgba(175, 160, 110, 0.55) 0%, rgba(175, 160, 110, 0.55) 3px, rgba(175, 160, 110, 0.15) 3px, rgba(175, 160, 110, 0.15) 100%); }
+        .e2 .cost-2b { background: linear-gradient(90deg, rgba(195, 155, 85, 0.6) 0%, rgba(195, 155, 85, 0.6) 3px, rgba(195, 155, 85, 0.17) 3px, rgba(195, 155, 85, 0.17) 100%); }
+        .e2 .cost-over2b { background: linear-gradient(90deg, rgba(215, 160, 55, 0.65) 0%, rgba(215, 160, 55, 0.65) 3px, rgba(215, 160, 55, 0.2) 3px, rgba(215, 160, 55, 0.2) 100%); }
+        
+        /* E3: Distinct tints (silver → bronze → gold) */
+        .e3 .cost-100m { background: linear-gradient(90deg, rgba(140, 145, 155, 0.5) 0%, rgba(140, 145, 155, 0.5) 3px, rgba(140, 145, 155, 0.12) 3px, rgba(140, 145, 155, 0.12) 100%); }
+        .e3 .cost-500m { background: linear-gradient(90deg, rgba(160, 150, 130, 0.5) 0%, rgba(160, 150, 130, 0.5) 3px, rgba(160, 150, 130, 0.13) 3px, rgba(160, 150, 130, 0.13) 100%); }
+        .e3 .cost-1b { background: linear-gradient(90deg, rgba(185, 155, 105, 0.55) 0%, rgba(185, 155, 105, 0.55) 3px, rgba(185, 155, 105, 0.15) 3px, rgba(185, 155, 105, 0.15) 100%); }
+        .e3 .cost-2b { background: linear-gradient(90deg, rgba(200, 150, 80, 0.6) 0%, rgba(200, 150, 80, 0.6) 3px, rgba(200, 150, 80, 0.17) 3px, rgba(200, 150, 80, 0.17) 100%); }
+        .e3 .cost-over2b { background: linear-gradient(90deg, rgba(225, 170, 60, 0.65) 0%, rgba(225, 170, 60, 0.65) 3px, rgba(225, 170, 60, 0.2) 3px, rgba(225, 170, 60, 0.2) 100%); }
+        
+        /* E4: Slightly brighter bars only */
+        .e4 .cost-100m { background: linear-gradient(90deg, rgba(140, 150, 160, 0.6) 0%, rgba(140, 150, 160, 0.6) 3px, rgba(140, 150, 160, 0.1) 3px, rgba(140, 150, 160, 0.1) 100%); }
+        .e4 .cost-500m { background: linear-gradient(90deg, rgba(165, 160, 130, 0.65) 0%, rgba(165, 160, 130, 0.65) 3px, rgba(165, 160, 130, 0.12) 3px, rgba(165, 160, 130, 0.12) 100%); }
+        .e4 .cost-1b { background: linear-gradient(90deg, rgba(190, 165, 100, 0.7) 0%, rgba(190, 165, 100, 0.7) 3px, rgba(190, 165, 100, 0.14) 3px, rgba(190, 165, 100, 0.14) 100%); }
+        .e4 .cost-2b { background: linear-gradient(90deg, rgba(210, 160, 70, 0.75) 0%, rgba(210, 160, 70, 0.75) 3px, rgba(210, 160, 70, 0.16) 3px, rgba(210, 160, 70, 0.16) 100%); }
+        .e4 .cost-over2b { background: linear-gradient(90deg, rgba(230, 170, 50, 0.8) 0%, rgba(230, 170, 50, 0.8) 3px, rgba(230, 170, 50, 0.18) 3px, rgba(230, 170, 50, 0.18) 100%); }
+        
+        /* E5: Colorblind Safe (Temperature Scale: Slate → Sky → Purple → Gold → Orange) */
+        .e5 .cost-100m { background: linear-gradient(90deg, rgba(148, 163, 184, 0.6) 0%, rgba(148, 163, 184, 0.6) 3px, rgba(148, 163, 184, 0.1) 3px, rgba(148, 163, 184, 0.1) 100%); }
+        .e5 .cost-500m { background: linear-gradient(90deg, rgba(56, 189, 248, 0.6) 0%, rgba(56, 189, 248, 0.6) 3px, rgba(56, 189, 248, 0.12) 3px, rgba(56, 189, 248, 0.12) 100%); }
+        .e5 .cost-1b { background: linear-gradient(90deg, rgba(192, 132, 252, 0.6) 0%, rgba(192, 132, 252, 0.6) 3px, rgba(192, 132, 252, 0.14) 3px, rgba(192, 132, 252, 0.14) 100%); }
+        .e5 .cost-2b { background: linear-gradient(90deg, rgba(250, 204, 21, 0.6) 0%, rgba(250, 204, 21, 0.6) 3px, rgba(250, 204, 21, 0.16) 3px, rgba(250, 204, 21, 0.16) 100%); }
+        .e5 .cost-over2b { background: linear-gradient(90deg, rgba(251, 146, 60, 0.7) 0%, rgba(251, 146, 60, 0.7) 3px, rgba(251, 146, 60, 0.18) 3px, rgba(251, 146, 60, 0.18) 100%); }
+        
+        /* D4: Soft vignette (stronger in center, fades all edges) */
+        .d4 .cost-100m { background: radial-gradient(ellipse at center, rgba(150, 150, 150, 0.2) 0%, transparent 90%); }
+        .d4 .cost-500m { background: radial-gradient(ellipse at center, rgba(175, 165, 120, 0.25) 0%, transparent 90%); }
+        .d4 .cost-1b { background: radial-gradient(ellipse at center, rgba(200, 175, 90, 0.3) 0%, transparent 90%); }
+        .d4 .cost-2b { background: radial-gradient(ellipse at center, rgba(220, 170, 60, 0.35) 0%, transparent 90%); }
+        .d4 .cost-over2b { background: radial-gradient(ellipse at center, rgba(238, 175, 40, 0.4) 0%, transparent 90%); }
+        
+        .swatch {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75rem;
+        }
+        
+        .description {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐄 Cost Color Demo</h1>
+    
+    <div class="options">
+        <!-- E1: More hue separation -->
+        <div class="option e1">
+            <h2>E1: Cool→Warm Hue Shift</h2>
+            <p class="description">Cool blue-gray for cheap, warms to gold. Same brightness.</p>
+            
+            <table>
+                <thead><tr><th>Item</th><th>Total</th><th>Profit</th></tr></thead>
+                <tbody>
+                    <tr><td class="item">Copper Pickaxe +8</td><td class="cost-100m">45.20M</td><td style="color:#4ade80">12.50M</td></tr>
+                    <tr><td class="item">Steel Armor +10</td><td class="cost-500m">156.30M</td><td style="color:#4ade80">45.80M</td></tr>
+                    <tr><td class="item">Celestial Hatchet +10</td><td class="cost-1b">796.30M</td><td style="color:#4ade80">26.90M</td></tr>
+                    <tr><td class="item">Sundering Crossbow +12</td><td class="cost-2b">1.66B</td><td style="color:#4ade80">151.41M</td></tr>
+                    <tr><td class="item">Furious Spear (R) +12</td><td class="cost-over2b">2.74B</td><td style="color:#4ade80">153.20M</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- E2: Wider hue range -->
+        <div class="option e2">
+            <h2>E2: Steel Blue → Amber</h2>
+            <p class="description">Wider hue range, starts cooler/bluer.</p>
+            
+            <table>
+                <thead><tr><th>Item</th><th>Total</th><th>Profit</th></tr></thead>
+                <tbody>
+                    <tr><td class="item">Copper Pickaxe +8</td><td class="cost-100m">45.20M</td><td style="color:#4ade80">12.50M</td></tr>
+                    <tr><td class="item">Steel Armor +10</td><td class="cost-500m">156.30M</td><td style="color:#4ade80">45.80M</td></tr>
+                    <tr><td class="item">Celestial Hatchet +10</td><td class="cost-1b">796.30M</td><td style="color:#4ade80">26.90M</td></tr>
+                    <tr><td class="item">Sundering Crossbow +12</td><td class="cost-2b">1.66B</td><td style="color:#4ade80">151.41M</td></tr>
+                    <tr><td class="item">Furious Spear (R) +12</td><td class="cost-over2b">2.74B</td><td style="color:#4ade80">153.20M</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="options">
+        <!-- E3: Distinct tints -->
+        <div class="option e3">
+            <h2>E3: Silver → Bronze → Gold</h2>
+            <p class="description">Metal tier progression, distinct middle tones.</p>
+            
+            <table>
+                <thead><tr><th>Item</th><th>Total</th><th>Profit</th></tr></thead>
+                <tbody>
+                    <tr><td class="item">Copper Pickaxe +8</td><td class="cost-100m">45.20M</td><td style="color:#4ade80">12.50M</td></tr>
+                    <tr><td class="item">Steel Armor +10</td><td class="cost-500m">156.30M</td><td style="color:#4ade80">45.80M</td></tr>
+                    <tr><td class="item">Celestial Hatchet +10</td><td class="cost-1b">796.30M</td><td style="color:#4ade80">26.90M</td></tr>
+                    <tr><td class="item">Sundering Crossbow +12</td><td class="cost-2b">1.66B</td><td style="color:#4ade80">151.41M</td></tr>
+                    <tr><td class="item">Furious Spear (R) +12</td><td class="cost-over2b">2.74B</td><td style="color:#4ade80">153.20M</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- E4: Brighter bars -->
+        <div class="option e4">
+            <h2>E4: Brighter Left Bars</h2>
+            <p class="description">Same hues but bar is more visible, fill stays subtle.</p>
+            
+            <table>
+                <thead><tr><th>Item</th><th>Total</th><th>Profit</th></tr></thead>
+                <tbody>
+                    <tr><td class="item">Copper Pickaxe +8</td><td class="cost-100m">45.20M</td><td style="color:#4ade80">12.50M</td></tr>
+                    <tr><td class="item">Steel Armor +10</td><td class="cost-500m">156.30M</td><td style="color:#4ade80">45.80M</td></tr>
+                    <tr><td class="item">Celestial Hatchet +10</td><td class="cost-1b">796.30M</td><td style="color:#4ade80">26.90M</td></tr>
+                    <tr><td class="item">Sundering Crossbow +12</td><td class="cost-2b">1.66B</td><td style="color:#4ade80">151.41M</td></tr>
+                    <tr><td class="item">Furious Spear (R) +12</td><td class="cost-over2b">2.74B</td><td style="color:#4ade80">153.20M</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="options">
+        <!-- E5: Colorblind Safe -->
+        <div class="option e5">
+            <h2>E5: Colorblind Safe (Blue-Gold)</h2>
+            <p class="description">Slate → Sky Blue → Purple → Gold → Orange. Maximum distinction on blue-yellow axis.</p>
+            
+            <table>
+                <thead><tr><th>Item</th><th>Total</th><th>Profit</th></tr></thead>
+                <tbody>
+                    <tr><td class="item">Copper Pickaxe +8</td><td class="cost-100m">45.20M</td><td style="color:#4ade80">12.50M</td></tr>
+                    <tr><td class="item">Steel Armor +10</td><td class="cost-500m">156.30M</td><td style="color:#4ade80">45.80M</td></tr>
+                    <tr><td class="item">Celestial Hatchet +10</td><td class="cost-1b">796.30M</td><td style="color:#4ade80">26.90M</td></tr>
+                    <tr><td class="item">Sundering Crossbow +12</td><td class="cost-2b">1.66B</td><td style="color:#4ade80">151.41M</td></tr>
+                    <tr><td class="item">Furious Spear (R) +12</td><td class="cost-over2b">2.74B</td><td style="color:#4ade80">153.20M</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- E5 Full Width -->
+        <div class="option e5">
+            <h2>E5: Full Width View</h2>
+            <p class="description">How it looks in the real table layout.</p>
+            
+            <table>
+                <thead><tr><th>Item</th><th>Buy</th><th>Enhance</th><th>Total</th><th>Sell</th><th>Profit</th></tr></thead>
+                <tbody>
+                    <tr><td class="item">Furious Spear (R)</td><td>1.26B</td><td>1.48B</td><td class="cost-over2b">2.74B</td><td>2.95B</td><td style="color:#4ade80">153.20M</td></tr>
+                    <tr><td class="item">Celestial Hatchet</td><td>268.71M</td><td>527.59M</td><td class="cost-1b">796.30M</td><td>850.00M</td><td style="color:#4ade80">26.90M</td></tr>
+                    <tr><td class="item">Steel Armor</td><td>45.00M</td><td>111.30M</td><td class="cost-500m">156.30M</td><td>210.00M</td><td style="color:#4ade80">45.80M</td></tr>
+                    <tr><td class="item">Copper Pickaxe</td><td>12.00M</td><td>33.20M</td><td class="cost-100m">45.20M</td><td>60.00M</td><td style="color:#4ade80">12.50M</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <h2>Full Width Comparison</h2>
+    <div class="options">
+        <div class="option e2">
+            <h3>E2: Steel Blue → Amber</h3>
+            <table>
+                <thead>
+                    <tr><th>Item</th><th>Buy</th><th>Enhance</th><th>Total</th><th>Sell</th><th>Profit</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="item">Furious Spear (R)</td><td>1.26B</td><td>1.48B</td><td class="cost-over2b">2.74B</td><td>2.95B</td><td style="color:#4ade80">153.20M</td></tr>
+                    <tr><td class="item">Celestial Hatchet</td><td>268.71M</td><td>527.59M</td><td class="cost-1b">796.30M</td><td>850.00M</td><td style="color:#4ade80">26.90M</td></tr>
+                    <tr><td class="item">Steel Armor</td><td>45.00M</td><td>111.30M</td><td class="cost-500m">156.30M</td><td>210.00M</td><td style="color:#4ade80">45.80M</td></tr>
+                    <tr><td class="item">Copper Pickaxe</td><td>12.00M</td><td>33.20M</td><td class="cost-100m">45.20M</td><td>60.00M</td><td style="color:#4ade80">12.50M</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="option e4">
+            <h3>E4: Brighter Left Bars</h3>
+            <table>
+                <thead>
+                    <tr><th>Item</th><th>Buy</th><th>Enhance</th><th>Total</th><th>Sell</th><th>Profit</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="item">Furious Spear (R)</td><td>1.26B</td><td>1.48B</td><td class="cost-over2b">2.74B</td><td>2.95B</td><td style="color:#4ade80">153.20M</td></tr>
+                    <tr><td class="item">Celestial Hatchet</td><td>268.71M</td><td>527.59M</td><td class="cost-1b">796.30M</td><td>850.00M</td><td style="color:#4ade80">26.90M</td></tr>
+                    <tr><td class="item">Steel Armor</td><td>45.00M</td><td>111.30M</td><td class="cost-500m">156.30M</td><td>210.00M</td><td style="color:#4ade80">45.80M</td></tr>
+                    <tr><td class="item">Copper Pickaxe</td><td>12.00M</td><td>33.20M</td><td class="cost-100m">45.20M</td><td>60.00M</td><td style="color:#4ade80">12.50M</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <p style="color:#666; margin-top:40px; text-align:center;">Refresh to see changes after editing</p>
+</body>
+</html>

@@ -1,0 +1,6 @@
+/* Cost tier colors - normalized bar brightness (0.65) */
+.cost-100m { background: linear-gradient(90deg, rgba(183, 177, 154, 0.65) 0%, rgba(183, 177, 154, 0.65) 3px, rgba(183, 177, 154, 0.25) 3px, rgba(183, 177, 154, 0.25) 100%); }
+.cost-500m { background: linear-gradient(90deg, rgba(48, 134, 171, 0.65) 0%, rgba(48, 134, 171, 0.65) 3px, rgba(48, 134, 171, 0.41) 3px, rgba(48, 134, 171, 0.41) 100%); }
+.cost-1b { background: linear-gradient(90deg, rgba(192, 132, 252, 0.65) 0%, rgba(192, 132, 252, 0.65) 3px, rgba(192, 132, 252, 0.14) 3px, rgba(192, 132, 252, 0.14) 100%); }
+.cost-2b { background: linear-gradient(90deg, rgba(250, 204, 21, 0.65) 0%, rgba(250, 204, 21, 0.65) 3px, rgba(250, 204, 21, 0.23) 3px, rgba(250, 204, 21, 0.23) 100%); }
+.cost-over2b { background: linear-gradient(90deg, rgba(177, 100, 37, 0.65) 0%, rgba(177, 100, 37, 0.65) 3px, rgba(177, 100, 37, 0.22) 3px, rgba(177, 100, 37, 0.22) 100%); }

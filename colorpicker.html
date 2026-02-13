@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CowProfit Color Picker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #e8e8e8;
+            padding: 30px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        h1 { color: #eeb357; margin-bottom: 5px; }
+        h2 { color: #eeb357; margin-top: 30px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 20px; }
+        
+        .picker-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .picker-item {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 8px;
+        }
+        .picker-item label {
+            display: block;
+            color: #eeb357;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .picker-item input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: transparent;
+        }
+        .picker-item .hex {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .slider-row label {
+            font-size: 0.7rem;
+            color: #888;
+            width: 60px;
+            margin: 0;
+        }
+        .slider-row input[type="range"] {
+            flex: 1;
+        }
+        .slider-row .value {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.7rem;
+            color: #aaa;
+            width: 35px;
+            text-align: right;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        th {
+            background: rgba(238,179,87,0.2);
+            color: #eeb357;
+            padding: 10px 8px;
+            text-align: left;
+            font-size: 0.75rem;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.8rem;
+        }
+        .item { color: #ccc; font-family: inherit; }
+        .profit { color: #4ade80; }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            background: rgba(238,179,87,0.2);
+            border: 1px solid #eeb357;
+            color: #eeb357;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        button:hover {
+            background: rgba(238,179,87,0.4);
+        }
+        button.primary {
+            background: #eeb357;
+            color: #1a1a2e;
+        }
+        
+        .output {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            color: #aaa;
+            max-height: 300px;
+            overflow: auto;
+        }
+        .output .comment { color: #6a9955; }
+        .output .prop { color: #9cdcfe; }
+        .output .value { color: #ce9178; }
+    </style>
+</head>
+<body>
+    <h1>🎨 CowProfit Color Picker</h1>
+    <p class="subtitle">Customize cost tier colors with live preview</p>
+    
+    <div class="buttons">
+        <button class="primary" onclick="loadPreset('custom')">Load Custom</button>
+        <button onclick="loadPreset('e5')">Load E5 (Gemini Colorblind)</button>
+        <button onclick="loadPreset('d3')">Load D3 (Original Gold)</button>
+        <button onclick="loadPreset('warm')">Load Warm Grays</button>
+        <button class="primary" onclick="copyCSS()">Copy CSS</button>
+    </div>
+    
+    <div class="picker-grid">
+        <div class="picker-item">
+            <label>&lt;100M</label>
+            <input type="color" id="color1" value="#94a3b8" onchange="updatePreview()">
+            <div class="hex" id="hex1">#94a3b8</div>
+            <div class="slider-row">
+                <label>Bar α</label>
+                <input type="range" id="alpha1bar" min="0" max="100" value="60" onchange="updatePreview()">
+                <span class="value" id="alpha1barVal">0.60</span>
+            </div>
+            <div class="slider-row">
+                <label>Fill α</label>
+                <input type="range" id="alpha1fill" min="0" max="100" value="10" onchange="updatePreview()">
+                <span class="value" id="alpha1fillVal">0.10</span>
+            </div>
+        </div>
+        
+        <div class="picker-item">
+            <label>100-500M</label>
+            <input type="color" id="color2" value="#38bdf8" onchange="updatePreview()">
+            <div class="hex" id="hex2">#38bdf8</div>
+            <div class="slider-row">
+                <label>Bar α</label>
+                <input type="range" id="alpha2bar" min="0" max="100" value="60" onchange="updatePreview()">
+                <span class="value" id="alpha2barVal">0.60</span>
+            </div>
+            <div class="slider-row">
+                <label>Fill α</label>
+                <input type="range" id="alpha2fill" min="0" max="100" value="12" onchange="updatePreview()">
+                <span class="value" id="alpha2fillVal">0.12</span>
+            </div>
+        </div>
+        
+        <div class="picker-item">
+            <label>500M-1B</label>
+            <input type="color" id="color3" value="#c084fc" onchange="updatePreview()">
+            <div class="hex" id="hex3">#c084fc</div>
+            <div class="slider-row">
+                <label>Bar α</label>
+                <input type="range" id="alpha3bar" min="0" max="100" value="60" onchange="updatePreview()">
+                <span class="value" id="alpha3barVal">0.60</span>
+            </div>
+            <div class="slider-row">
+                <label>Fill α</label>
+                <input type="range" id="alpha3fill" min="0" max="100" value="14" onchange="updatePreview()">
+                <span class="value" id="alpha3fillVal">0.14</span>
+            </div>
+        </div>
+        
+        <div class="picker-item">
+            <label>1-2B</label>
+            <input type="color" id="color4" value="#facc15" onchange="updatePreview()">
+            <div class="hex" id="hex4">#facc15</div>
+            <div class="slider-row">
+                <label>Bar α</label>
+                <input type="range" id="alpha4bar" min="0" max="100" value="60" onchange="updatePreview()">
+                <span class="value" id="alpha4barVal">0.60</span>
+            </div>
+            <div class="slider-row">
+                <label>Fill α</label>
+                <input type="range" id="alpha4fill" min="0" max="100" value="16" onchange="updatePreview()">
+                <span class="value" id="alpha4fillVal">0.16</span>
+            </div>
+        </div>
+        
+        <div class="picker-item">
+            <label>&gt;2B</label>
+            <input type="color" id="color5" value="#fb923c" onchange="updatePreview()">
+            <div class="hex" id="hex5">#fb923c</div>
+            <div class="slider-row">
+                <label>Bar α</label>
+                <input type="range" id="alpha5bar" min="0" max="100" value="70" onchange="updatePreview()">
+                <span class="value" id="alpha5barVal">0.70</span>
+            </div>
+            <div class="slider-row">
+                <label>Fill α</label>
+                <input type="range" id="alpha5fill" min="0" max="100" value="18" onchange="updatePreview()">
+                <span class="value" id="alpha5fillVal">0.18</span>
+            </div>
+        </div>
+    </div>
+    
+    <h2>Preview</h2>
+    <table>
+        <thead>
+            <tr><th>Item</th><th>Buy</th><th>Enhance</th><th>Total</th><th>Sell</th><th>Profit</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="item">Copper Pickaxe +8</td>
+                <td>12.00M</td>
+                <td>33.20M</td>
+                <td id="cell1">45.20M</td>
+                <td>60.00M</td>
+                <td class="profit">12.50M</td>
+            </tr>
+            <tr>
+                <td class="item">Steel Armor +10</td>
+                <td>45.00M</td>
+                <td>111.30M</td>
+                <td id="cell2">156.30M</td>
+                <td>210.00M</td>
+                <td class="profit">45.80M</td>
+            </tr>
+            <tr>
+                <td class="item">Celestial Hatchet +10</td>
+                <td>268.71M</td>
+                <td>527.59M</td>
+                <td id="cell3">796.30M</td>
+                <td>850.00M</td>
+                <td class="profit">26.90M</td>
+            </tr>
+            <tr>
+                <td class="item">Sundering Crossbow +12</td>
+                <td>1.10B</td>
+                <td>560.00M</td>
+                <td id="cell4">1.66B</td>
+                <td>1.85B</td>
+                <td class="profit">151.41M</td>
+            </tr>
+            <tr>
+                <td class="item">Furious Spear (R) +12</td>
+                <td>1.26B</td>
+                <td>1.48B</td>
+                <td id="cell5">2.74B</td>
+                <td>2.95B</td>
+                <td class="profit">153.20M</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>Generated CSS</h2>
+    <div class="output" id="cssOutput"></div>
+
+<script>
+const presets = {
+    custom: {
+        colors: ['#b7b19a', '#3086ab', '#c084fc', '#facc15', '#b16425'],
+        barAlphas: [68, 71, 60, 60, 70],
+        fillAlphas: [25, 41, 14, 23, 22]
+    },
+    e5: {
+        colors: ['#94a3b8', '#38bdf8', '#c084fc', '#facc15', '#fb923c'],
+        barAlphas: [60, 60, 60, 60, 70],
+        fillAlphas: [10, 12, 14, 16, 18]
+    },
+    d3: {
+        colors: ['#969696', '#afa578', '#c8af5a', '#dca646', '#eeb028'],
+        barAlphas: [50, 55, 60, 65, 70],
+        fillAlphas: [12, 15, 18, 20, 22]
+    },
+    warm: {
+        colors: ['#a09b91', '#b5a882', '#c9b46e', '#ddb85a', '#eeb357'],
+        barAlphas: [55, 55, 60, 65, 70],
+        fillAlphas: [10, 12, 14, 16, 18]
+    }
+};
+
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+function loadPreset(name) {
+    const p = presets[name];
+    for (let i = 1; i <= 5; i++) {
+        document.getElementById('color' + i).value = p.colors[i-1];
+        document.getElementById('alpha' + i + 'bar').value = p.barAlphas[i-1];
+        document.getElementById('alpha' + i + 'fill').value = p.fillAlphas[i-1];
+    }
+    updatePreview();
+}
+
+function updatePreview() {
+    const tiers = ['100m', '500m', '1b', '2b', 'over2b'];
+    let css = '/* Cost tier colors */\n';
+    
+    for (let i = 1; i <= 5; i++) {
+        const hex = document.getElementById('color' + i).value;
+        const barAlpha = document.getElementById('alpha' + i + 'bar').value / 100;
+        const fillAlpha = document.getElementById('alpha' + i + 'fill').value / 100;
+        const rgb = hexToRgb(hex);
+        
+        // Update hex display
+        document.getElementById('hex' + i).textContent = hex;
+        document.getElementById('alpha' + i + 'barVal').textContent = barAlpha.toFixed(2);
+        document.getElementById('alpha' + i + 'fillVal').textContent = fillAlpha.toFixed(2);
+        
+        // Update cell style
+        const cell = document.getElementById('cell' + i);
+        cell.style.background = `linear-gradient(90deg, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${barAlpha}) 0%, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${barAlpha}) 3px, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${fillAlpha}) 3px, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${fillAlpha}) 100%)`;
+        
+        // Generate CSS
+        css += `.cost-${tiers[i-1]} { background: linear-gradient(90deg, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${barAlpha}) 0%, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${barAlpha}) 3px, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${fillAlpha}) 3px, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${fillAlpha}) 100%); }\n`;
+    }
+    
+    document.getElementById('cssOutput').textContent = css;
+}
+
+function copyCSS() {
+    const css = document.getElementById('cssOutput').textContent;
+    navigator.clipboard.writeText(css).then(() => {
+        alert('CSS copied to clipboard!');
+    });
+}
+
+// Initialize with custom preset
+loadPreset('custom');
+</script>
+</body>
+</html>

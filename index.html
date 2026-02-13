@@ -527,6 +527,20 @@
             align-items: center;
             gap: 4px;
         }
+        /* Cost tier colors */
+        .cost-100m { background: linear-gradient(90deg, rgba(183, 177, 154, 0.68) 0%, rgba(183, 177, 154, 0.68) 3px, rgba(183, 177, 154, 0.25) 3px, rgba(183, 177, 154, 0.25) 100%); }
+        .cost-500m { background: linear-gradient(90deg, rgba(48, 134, 171, 1) 0%, rgba(48, 134, 171, 1) 3px, rgba(48, 134, 171, 0.41) 3px, rgba(48, 134, 171, 0.41) 100%); }
+        .cost-1b { background: linear-gradient(90deg, rgba(192, 132, 252, 0.68) 0%, rgba(192, 132, 252, 0.68) 3px, rgba(192, 132, 252, 0.14) 3px, rgba(192, 132, 252, 0.14) 100%); }
+        .cost-2b { background: linear-gradient(90deg, rgba(250, 204, 21, 0.6) 0%, rgba(250, 204, 21, 0.6) 3px, rgba(250, 204, 21, 0.23) 3px, rgba(250, 204, 21, 0.23) 100%); }
+        .cost-over2b { background: linear-gradient(90deg, rgba(177, 100, 37, 0.97) 0%, rgba(177, 100, 37, 0.97) 3px, rgba(177, 100, 37, 0.22) 3px, rgba(177, 100, 37, 0.22) 100%); }
+
+        /* Cost filter button colors */
+        .cost-filter[data-cost="100m"].active { background: rgba(183, 177, 154, 0.6); border-color: rgb(183, 177, 154); color: #fff; }
+        .cost-filter[data-cost="500m"].active { background: rgba(48, 134, 171, 0.7); border-color: rgb(48, 134, 171); color: #fff; }
+        .cost-filter[data-cost="1b"].active { background: rgba(192, 132, 252, 0.6); border-color: rgb(192, 132, 252); color: #fff; }
+        .cost-filter[data-cost="2b"].active { background: rgba(250, 204, 21, 0.6); border-color: rgb(250, 204, 21); color: #1a1a2e; }
+        .cost-filter[data-cost="over2b"].active { background: rgba(177, 100, 37, 0.8); border-color: rgb(177, 100, 37); color: #fff; }
+
         @media (max-width: 1000px) {
             table { font-size: 0.65rem; }
             th, td { padding: 5px 3px; }
@@ -626,7 +640,7 @@
                     <th onclick="sortTable(7, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(8, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(9, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(10, 'num')" class="number">$/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(10, 'num')" class="number" style="text-align:center">$/day<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(11, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
                 </tr>
             </thead>

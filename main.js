@@ -624,7 +624,7 @@ function renderTable() {
             <td><span class="level-badge">+${r.target_level}</span></td>
             <td class="number"><span class="price-source ${sourceClass}"></span>${formatCoins(r.base_price)}</td>
             <td class="number hide-mobile">${formatCoins(r.mat_cost)}</td>
-            <td class="number hide-mobile">${formatCoins(r.total_cost)}</td>
+            <td class="number hide-mobile cost-${getCostBucket(r.total_cost)}">${formatCoins(r.total_cost)}</td>
             <td class="number">${formatCoins(r.sell_price)}</td>
             <td class="number">${formatAge(r._age)} ${getAgeArrow(r.price_direction)}</td>
             <td class="number ${profitClass}">${formatCoins(profit)}</td>
