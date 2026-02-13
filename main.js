@@ -20,9 +20,13 @@ let costFilters = { '100m': true, '500m': true, '1b': true, '2b': true, 'over2b'
 let allResults = { pessimistic: [], midpoint: [], optimistic: [] };
 let gearOpen = false;
 let historyOpen = false;
+let lootHistoryOpen = false;
 
 // Inventory data (set via event from userscript)
 let inventoryData = null;
+
+// Loot history (set via event from userscript)
+let lootHistoryData = [];
 
 // Inventory helpers (for userscript integration)
 function getInventoryCount(hrid) {
@@ -76,6 +80,18 @@ window.addEventListener('cowprofit-inventory-loaded', function(e) {
     inventoryData = e.detail;
     console.log('[CowProfit v2] hasInventory():', hasInventory());
     renderTable();
+});
+
+// Listen for loot history from userscript
+window.addEventListener('cowprofit-loot-loaded', function(e) {
+    console.log('[CowProfit v2] Loot history received:', e.detail?.length, 'entries');
+    lootHistoryData = e.detail || [];
+    // Sort by startTime descending (most recent first)
+    lootHistoryData.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+    // Update loot history panel if open
+    if (lootHistoryOpen) {
+        renderLootHistoryPanel();
+    }
 });
 
 const TARGET_LEVELS = [8, 10, 12, 14];
@@ -298,17 +314,181 @@ function renderGearPanel() {
     `;
 }
 
+// Loot History dropdown
+function toggleLootHistory(e) {
+    if (e) e.stopPropagation();
+    lootHistoryOpen = !lootHistoryOpen;
+    // Close other dropdowns
+    gearOpen = false;
+    historyOpen = false;
+    document.getElementById('gear-panel').classList.remove('visible');
+    document.getElementById('history-panel').classList.remove('visible');
+    document.getElementById('gear-arrow').innerHTML = '&#9660;';
+    document.getElementById('history-arrow').innerHTML = '&#9660;';
+    
+    const panel = document.getElementById('loot-history-panel');
+    panel.classList.toggle('visible', lootHistoryOpen);
+    document.getElementById('loot-history-arrow').innerHTML = lootHistoryOpen ? '&#9650;' : '&#9660;';
+    if (lootHistoryOpen) renderLootHistoryPanel();
+}
+
+function renderLootHistoryPanel() {
+    const panel = document.getElementById('loot-history-panel');
+    
+    if (!lootHistoryData.length) {
+        panel.innerHTML = `
+            <h5>📜 Loot History</h5>
+            <div class="loot-empty">
+                No loot data yet. Play the game with the userscript active to capture loot sessions.
+            </div>
+        `;
+        return;
+    }
+    
+    // Render loot sessions (last 20)
+    const sessions = lootHistoryData.slice(0, 20);
+    let entriesHtml = '';
+    
+    for (const session of sessions) {
+        const stats = calculateLootSessionValue(session);
+        const duration = calculateDuration(session.startTime, session.endTime);
+        const actionName = formatActionName(session.actionHrid);
+        const profitClass = stats.bidValue > 0 ? 'positive' : 'neutral';
+        
+        entriesHtml += `
+            <div class="loot-entry">
+                <div class="loot-header">
+                    <span class="loot-action">${actionName}</span>
+                    <span class="loot-time">${formatLootTime(session.startTime)}</span>
+                </div>
+                <div class="loot-details">
+                    <span class="loot-duration">${duration}</span>
+                    <span class="loot-actions">${session.actionCount || 0} actions</span>
+                    <span class="loot-drops">${stats.dropCount} drops</span>
+                </div>
+                <div class="loot-values">
+                    <span class="loot-value ${profitClass}">Bid: ${formatCoins(stats.bidValue)}</span>
+                    <span class="loot-value">Ask: ${formatCoins(stats.askValue)}</span>
+                    <span class="loot-rate">${formatCoins(stats.bidPerHour)}/hr</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Summary stats
+    const totalBid = sessions.reduce((sum, s) => sum + calculateLootSessionValue(s).bidValue, 0);
+    const totalHours = sessions.reduce((sum, s) => {
+        const ms = new Date(s.endTime) - new Date(s.startTime);
+        return sum + (ms / 3600000);
+    }, 0);
+    const avgPerHour = totalHours > 0 ? totalBid / totalHours : 0;
+    
+    panel.innerHTML = `
+        <h5>📜 Loot History</h5>
+        <div class="loot-summary">
+            <span>Last ${sessions.length} sessions</span>
+            <span class="loot-summary-value">Total: ${formatCoins(totalBid)}</span>
+            <span class="loot-summary-value">Avg: ${formatCoins(avgPerHour)}/hr</span>
+        </div>
+        <div class="loot-entries">
+            ${entriesHtml}
+        </div>
+    `;
+}
+
+function calculateLootSessionValue(session) {
+    const drops = session.drops || {};
+    let bidValue = 0;
+    let askValue = 0;
+    let dropCount = 0;
+    
+    for (const [hrid, count] of Object.entries(drops)) {
+        if (count <= 0) continue;
+        dropCount += count;
+        
+        // Parse enhanced items: /items/item_hrid::N means +N enhancement
+        let itemHrid = hrid;
+        let level = 0;
+        if (hrid.includes('::')) {
+            const parts = hrid.split('::');
+            itemHrid = parts[0];
+            level = parseInt(parts[1]) || 0;
+        }
+        
+        // Look up prices
+        const itemPrices = prices.market?.[itemHrid]?.[String(level)] || {};
+        const bid = itemPrices.b || 0;
+        const ask = itemPrices.a || 0;
+        
+        bidValue += bid * count;
+        askValue += ask * count;
+    }
+    
+    // Calculate $/hour
+    const durationMs = new Date(session.endTime) - new Date(session.startTime);
+    const hours = durationMs / 3600000;
+    const bidPerHour = hours > 0 ? bidValue / hours : 0;
+    const askPerHour = hours > 0 ? askValue / hours : 0;
+    
+    return { bidValue, askValue, dropCount, bidPerHour, askPerHour };
+}
+
+function calculateDuration(startTime, endTime) {
+    const ms = new Date(endTime) - new Date(startTime);
+    const hours = Math.floor(ms / 3600000);
+    const minutes = Math.floor((ms % 3600000) / 60000);
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+}
+
+function formatActionName(actionHrid) {
+    if (!actionHrid) return 'Unknown';
+    // /actions/enhancing/enhance -> Enhancing
+    // /actions/mining/iron_rock -> Mining Iron Rock
+    const parts = actionHrid.split('/').filter(Boolean);
+    if (parts.length >= 2) {
+        const category = parts[1].replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        if (parts.length >= 3) {
+            const action = parts[2].replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            return `${category}: ${action}`;
+        }
+        return category;
+    }
+    return actionHrid;
+}
+
+function formatLootTime(isoTime) {
+    if (!isoTime) return '-';
+    const date = new Date(isoTime);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = diffMs / 3600000;
+    
+    if (diffHours < 24) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (diffHours < 168) { // 7 days
+        return date.toLocaleDateString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
 // Close dropdowns when clicking outside
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('.gear-dropdown') && !e.target.closest('.history-dropdown')) {
+    if (!e.target.closest('.gear-dropdown') && !e.target.closest('.history-dropdown') && !e.target.closest('.loot-history-dropdown')) {
         gearOpen = false;
         historyOpen = false;
+        lootHistoryOpen = false;
         document.getElementById('gear-panel')?.classList.remove('visible');
         document.getElementById('history-panel')?.classList.remove('visible');
+        document.getElementById('loot-history-panel')?.classList.remove('visible');
         const gearArrow = document.getElementById('gear-arrow');
         const histArrow = document.getElementById('history-arrow');
+        const lootArrow = document.getElementById('loot-history-arrow');
         if (gearArrow) gearArrow.innerHTML = '&#9660;';
         if (histArrow) histArrow.innerHTML = '&#9660;';
+        if (lootArrow) lootArrow.innerHTML = '&#9660;';
     }
 });
 

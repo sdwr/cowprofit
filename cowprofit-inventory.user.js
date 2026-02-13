@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         CowProfit Inventory Bridge
 // @namespace    https://github.com/sdwr/cowprofit
-// @version      1.0.6
-// @description  Captures MWI inventory and coins, bridges to CowProfit via Tampermonkey storage
+// @version      1.1.0
+// @description  Captures MWI inventory, coins, and loot history - bridges to CowProfit via Tampermonkey storage
 // @author       sdwr
 // @license      MIT
 // @match        https://www.milkywayidle.com/*
@@ -24,6 +24,7 @@
     const error = (...args) => console.error('%c[CowProfit]', 'color: red; font-weight: bold', ...args);
 
     const STORAGE_KEY = 'cowprofit_inventory';
+    const LOOT_STORAGE_KEY = 'cowprofit_loot_history';
 
     // Detect which site we're on
     const isGameSite = window.location.hostname.includes('milkywayidle');
@@ -103,7 +104,68 @@
             // Market transaction - track for profit history
             log('Market transaction:', data);
             processMarketTransaction(data);
+        } else if (data.type === 'loot_log_updated') {
+            // Loot log from game (Edible Tools format)
+            log('Received loot_log_updated');
+            processLootLog(data);
         }
+    }
+
+    function processLootLog(data) {
+        const lootLog = data.lootLog || [];
+        if (!lootLog.length) {
+            log('Empty loot log, skipping');
+            return;
+        }
+
+        // Get stored loot history
+        const storedRaw = GM_getValue(LOOT_STORAGE_KEY, '{}');
+        let stored;
+        try {
+            stored = JSON.parse(storedRaw);
+        } catch (e) {
+            stored = {};
+        }
+
+        // Get character ID from most recent character data
+        const invRaw = GM_getValue(STORAGE_KEY, '{}');
+        let charId = 'unknown';
+        try {
+            const inv = JSON.parse(invRaw);
+            charId = inv.characterId || 'unknown';
+        } catch (e) {}
+
+        // Store loot entries, keyed by startTime to avoid duplicates
+        if (!stored[charId]) {
+            stored[charId] = {};
+        }
+
+        let newCount = 0;
+        for (const entry of lootLog) {
+            // Use startTime as unique key
+            const key = entry.startTime || entry.endTime || Date.now().toString();
+            if (!stored[charId][key]) {
+                stored[charId][key] = {
+                    startTime: entry.startTime,
+                    endTime: entry.endTime,
+                    actionHrid: entry.actionHrid,
+                    actionCount: entry.actionCount || 0,
+                    drops: entry.drops || {},
+                    storedAt: Date.now()
+                };
+                newCount++;
+            }
+        }
+
+        // Limit to last 200 entries per character (sorted by startTime)
+        const entries = Object.entries(stored[charId]);
+        if (entries.length > 200) {
+            entries.sort((a, b) => new Date(b[1].startTime) - new Date(a[1].startTime));
+            stored[charId] = Object.fromEntries(entries.slice(0, 200));
+        }
+
+        GM_setValue(LOOT_STORAGE_KEY, JSON.stringify(stored));
+        log(`Stored ${newCount} new loot entries. Total: ${Object.keys(stored[charId]).length}`);
     }
 
     function processMarketTransaction(data) {
@@ -319,6 +381,42 @@
             injectStatusUI(payload);
         } catch (e) {
             error('Failed to parse inventory data:', e);
+        }
+
+        // Also load loot history
+        loadLootHistory();
+    }
+
+    function loadLootHistory() {
+        const stored = GM_getValue(LOOT_STORAGE_KEY, null);
+        if (!stored) {
+            log('No loot history found');
+            return;
+        }
+
+        try {
+            const lootData = JSON.parse(stored);
+            
+            // Get character ID from inventory
+            const invRaw = GM_getValue(STORAGE_KEY, '{}');
+            let charId = 'unknown';
+            try {
+                const inv = JSON.parse(invRaw);
+                charId = inv.characterId || 'unknown';
+            } catch (e) {}
+
+            const charLoot = lootData[charId] || {};
+            const entries = Object.values(charLoot);
+            
+            log('Loaded loot history:', entries.length, 'entries for', charId);
+
+            // Expose to page
+            window.cowprofitLootHistory = entries;
+
+            // Dispatch event
+            window.dispatchEvent(new CustomEvent('cowprofit-loot-loaded', { detail: entries }));
+        } catch (e) {
+            error('Failed to parse loot history:', e);
         }
     }
 

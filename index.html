@@ -36,11 +36,14 @@
             color: #666;
             font-family: 'SF Mono', Monaco, monospace;
         }
-        .gear-dropdown {
+        .gear-dropdown, .loot-history-dropdown {
             position: absolute;
             right: 120px; /* Moved further left to avoid bridge icon */
             top: 50%;
             transform: translateY(-50%);
+        }
+        .loot-history-dropdown {
+            right: 240px; /* Left of gear dropdown */
         }
         .gear-btn {
             background: rgba(255,255,255,0.1);
@@ -664,13 +667,106 @@
         .cost-filter[data-cost="2b"].active { background: rgba(250, 204, 21, 0.6); border-color: rgb(250, 204, 21); color: #1a1a2e; }
         .cost-filter[data-cost="over2b"].active { background: rgba(177, 100, 37, 0.8); border-color: rgb(177, 100, 37); color: #fff; }
 
+        /* Loot History Panel */
+        .loot-history-panel {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: #0d1117;
+            border: 1px solid rgba(238,179,87,0.5);
+            border-radius: 12px;
+            padding: 16px;
+            min-width: 380px;
+            max-height: 500px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+        }
+        .loot-history-panel.visible { display: block; }
+        .loot-history-panel h5 {
+            color: #eeb357;
+            font-size: 0.85rem;
+            margin: 0 0 12px;
+        }
+        .loot-empty {
+            color: #666;
+            font-size: 0.8rem;
+            padding: 10px 0;
+        }
+        .loot-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .loot-summary-value {
+            color: #eeb357;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        .loot-entries {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .loot-entry {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .loot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .loot-action {
+            color: #e8e8e8;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        .loot-time {
+            color: #666;
+            font-size: 0.7rem;
+        }
+        .loot-details {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
+            color: #888;
+        }
+        .loot-values {
+            display: flex;
+            gap: 12px;
+            font-size: 0.75rem;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        .loot-value {
+            color: #aaa;
+        }
+        .loot-value.positive {
+            color: #4ade80;
+        }
+        .loot-rate {
+            color: #eeb357;
+            margin-left: auto;
+        }
+
         @media (max-width: 1000px) {
             table { font-size: 0.65rem; }
             th, td { padding: 5px 3px; }
             .hide-mobile { display: none; }
             .detail-content { grid-template-columns: 1fr; }
-            .gear-dropdown { position: static; transform: none; margin-top: 10px; }
+            .gear-dropdown, .loot-history-dropdown { position: static; transform: none; margin-top: 10px; }
             .header-row { flex-wrap: wrap; }
+            .loot-history-panel { min-width: 300px; }
         }
     </style>
 </head>
@@ -679,6 +775,10 @@
         <div class="header-row">
             <span class="version-tag" id="version-tag"></span>
             <h1>&#x1F404; CowProfit</h1>
+            <div class="loot-history-dropdown">
+                <button class="gear-btn" onclick="toggleLootHistory()">&#x1F4DC; Loot <span id="loot-history-arrow">&#9660;</span></button>
+                <div class="loot-history-panel" id="loot-history-panel"></div>
+            </div>
             <div class="gear-dropdown">
                 <button class="gear-btn" onclick="toggleGear()">&#x2699; Gear <span id="gear-arrow">&#9660;</span></button>
                 <div class="gear-panel" id="gear-panel"></div>
