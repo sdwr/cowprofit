@@ -8,3 +8,6 @@ test_results.txt
 
 # Large game data file - download on setup
 init_client_info.json
+
+# Price history state (v2) - accumulates over time
+price_history_v2.json

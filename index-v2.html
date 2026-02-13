@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CowProfit v2 - MWI Enhancement Tracker</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #e8e8e8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1800px; margin: 0 auto; }
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 5px;
+            position: relative;
+        }
+        h1 {
+            color: #eeb357;
+            font-size: 2rem;
+            margin: 0;
+        }
+        .version-tag {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.65rem;
+            color: #666;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        .gear-dropdown {
+            position: absolute;
+            right: 120px; /* Moved further left to avoid bridge icon */
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .gear-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #eeb357;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .gear-btn:hover { background: rgba(238,179,87,0.2); }
+        .gear-panel {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: #0d1117;
+            border: 1px solid rgba(238,179,87,0.5);
+            border-radius: 12px;
+            padding: 16px;
+            min-width: 320px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+        }
+        .gear-panel.visible { display: block; }
+        .gear-section {
+            margin-bottom: 12px;
+        }
+        .gear-section:last-child { margin-bottom: 0; }
+        .gear-section h5 {
+            color: #eeb357;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        .gear-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            padding: 2px 0;
+        }
+        .gear-row .label { color: #888; }
+        .gear-row .value { color: #e8e8e8; font-family: 'SF Mono', Monaco, monospace; }
+        .gear-row .value.highlight { color: #4ade80; }
+        .subtitle-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        .subtitle {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .history-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .history-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #888;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .history-btn:hover {
+            background: rgba(238,179,87,0.2);
+            color: #eeb357;
+        }
+        .history-panel {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            background: #0d1117;
+            border: 1px solid rgba(238,179,87,0.5);
+            border-radius: 12px;
+            padding: 16px;
+            min-width: 300px;
+            z-index: 1001;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+            text-align: left;
+        }
+        .history-panel.visible { display: block; }
+        .history-panel h5 {
+            color: #eeb357;
+            font-size: 0.75rem;
+            margin: 0 0 8px;
+            text-transform: uppercase;
+        }
+        .history-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+        }
+        .history-entry:last-child { border-bottom: none; }
+        .history-entry .time { color: #aaa; }
+        .history-entry .ago { color: #eeb357; font-family: 'SF Mono', Monaco, monospace; }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .control-label {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .stat {
+            background: rgba(255,255,255,0.05);
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value { font-size: 1.3rem; color: #eeb357; font-weight: bold; }
+        .stat-label { font-size: 0.75rem; color: #888; }
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-label {
+            color: #888;
+            font-size: 0.8rem;
+            margin-right: 4px;
+        }
+        .filter-divider {
+            color: #444;
+            margin: 0 10px;
+        }
+        .filter-btn, .mode-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #e8e8e8;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+        .filter-btn:hover, .mode-btn:hover {
+            background: rgba(238,179,87,0.3);
+            border-color: rgba(238,179,87,0.5);
+        }
+        .filter-btn.active, .mode-btn.active {
+            background: #eeb357;
+            color: #1a1a2e;
+            border-color: #eeb357;
+        }
+        .toggle-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #888;
+            padding: 4px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .toggle-btn.active {
+            background: rgba(238,179,87,0.3);
+            color: #eeb357;
+            border-color: #eeb357;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        th {
+            background: rgba(238,179,87,0.2);
+            color: #eeb357;
+            padding: 10px 5px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover {
+            background: rgba(238,179,87,0.35);
+        }
+        th .sort-arrow {
+            margin-left: 3px;
+            opacity: 0.5;
+        }
+        th.sorted .sort-arrow {
+            opacity: 1;
+        }
+        td {
+            padding: 7px 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+        }
+        tr.data-row { cursor: pointer; }
+        tr.data-row:hover { background: rgba(255,255,255,0.05); }
+        tr.data-row.expanded { background: rgba(238,179,87,0.1); }
+        .positive { color: #4ade80; }
+        .negative { color: #f87171; }
+        .neutral { color: #888; }
+        .price-up { color: #4ade80; font-weight: bold; }
+        .price-down { color: #f87171; font-weight: bold; }
+        .item-name { font-weight: 500; max-width: 200px; overflow: hidden; text-overflow: ellipsis; position: relative; }
+        .level-badge {
+            background: rgba(238,179,87,0.3);
+            color: #eeb357;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .number { text-align: right; font-family: 'SF Mono', Monaco, monospace; font-size: 0.75rem; }
+        .price-source {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 3px;
+            vertical-align: middle;
+        }
+        .source-market { background: #60a5fa; }
+        .source-craft { background: #f59e0b; }
+        .source-vendor { background: #9ca3af; }
+        
+        /* Detail row styles */
+        tr.detail-row {
+            display: none;
+        }
+        tr.detail-row.visible {
+            display: table-row;
+        }
+        tr.detail-row td {
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 2px solid rgba(238,179,87,0.3);
+        }
+        .detail-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            font-size: 0.8rem;
+        }
+        .detail-section {
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: 8px;
+        }
+        .detail-section h4 {
+            color: #eeb357;
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .detail-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .detail-line:last-child {
+            border-bottom: none;
+        }
+        .detail-line .label {
+            color: #aaa;
+        }
+        .detail-line .value {
+            font-family: 'SF Mono', Monaco, monospace;
+            color: #e8e8e8;
+        }
+        .detail-line .value.alt {
+            color: #888;
+            font-size: 0.7rem;
+        }
+        .mat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .mat-row:last-child { border-bottom: none; }
+        .mat-row.total-row { 
+            border-top: 1px solid rgba(238,179,87,0.3);
+            margin-top: 4px;
+            padding-top: 6px;
+            font-weight: bold;
+        }
+        .mat-name { flex: 1; color: #ccc; }
+        .mat-count { color: #888; margin: 0 8px; font-size: 0.7rem; }
+        .mat-price { font-family: 'SF Mono', Monaco, monospace; color: #eeb357; }
+        .craft-breakdown {
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        .profit-bar-cell {
+            position: relative;
+            text-align: center;
+        }
+        .profit-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            opacity: 0.2;
+            border-radius: 2px;
+            z-index: 0;
+        }
+        .profit-bar.positive { background: #4ade80; }
+        .profit-bar.negative { background: #f87171; }
+        .profit-bar-value {
+            position: relative;
+            z-index: 1;
+        }
+        /* Material % bar in item name cell */
+        .mat-pct-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, rgba(74, 222, 128, 0.3) 0%, rgba(74, 222, 128, 0.1) 100%);
+            border-radius: 2px;
+            z-index: 0;
+        }
+        .mat-pct-label {
+            position: relative;
+            z-index: 1;
+            font-size: 0.7rem;
+            color: #4ade80;
+            margin-left: 6px;
+            opacity: 0.8;
+        }
+        /* Shopping List */
+        .shopping-list {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+        .shopping-list h4 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .shop-pct-bar {
+            display: inline-flex;
+            align-items: center;
+            width: 80px;
+            height: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(74, 222, 128, 0.5);
+            border-radius: 3px;
+            position: relative;
+            margin-left: auto;
+        }
+        .shop-pct-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, rgba(74, 222, 128, 0.6) 0%, rgba(74, 222, 128, 0.3) 100%);
+            border-radius: 2px;
+        }
+        .shop-pct-text {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #4ade80;
+            font-weight: bold;
+        }
+        .shopping-list .total-row {
+            background: rgba(0, 50, 0, 0.4);
+            margin: 4px -12px -12px -12px;
+            padding: 8px 12px;
+            border-radius: 0 0 8px 8px;
+        }
+        .shop-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .shop-header .shop-col:not(:first-child) {
+            text-align: right;
+        }
+        .shop-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+        }
+        .shop-row.prot-row {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 4px;
+            padding-top: 8px;
+        }
+        .shop-row.total-row {
+            border-top: 1px solid rgba(238,179,87,0.3);
+            margin-top: 4px;
+            padding-top: 6px;
+            font-weight: bold;
+        }
+        .shop-name { color: #ccc; }
+        .shop-owned { color: #888; text-align: right; font-family: 'SF Mono', Monaco, monospace; }
+        .shop-owned.complete { color: #4ade80; }
+        .shop-need { color: #888; text-align: right; font-family: 'SF Mono', Monaco, monospace; }
+        .shop-cost { text-align: right; font-family: 'SF Mono', Monaco, monospace; color: #eeb357; }
+        .price-note {
+            font-weight: normal;
+            font-size: 0.65rem;
+            color: #666;
+            text-transform: none;
+        }
+        .expand-icon {
+            display: inline-block;
+            width: 16px;
+            color: #666;
+            transition: transform 0.2s;
+            margin-right: 4px;
+        }
+        tr.data-row.expanded .expand-icon {
+            transform: rotate(90deg);
+            color: #eeb357;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            padding: 15px;
+            color: #666;
+            font-size: 0.75rem;
+        }
+        .footer a { color: #eeb357; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        .mode-info {
+            text-align: center;
+            color: #666;
+            font-size: 0.7rem;
+            margin-bottom: 10px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 0.7rem;
+            color: #888;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        /* Cost tier colors */
+        .cost-100m { background: linear-gradient(90deg, rgba(183, 177, 154, 0.68) 0%, rgba(183, 177, 154, 0.68) 3px, rgba(183, 177, 154, 0.25) 3px, rgba(183, 177, 154, 0.25) 100%); }
+        .cost-500m { background: linear-gradient(90deg, rgba(48, 134, 171, 1) 0%, rgba(48, 134, 171, 1) 3px, rgba(48, 134, 171, 0.41) 3px, rgba(48, 134, 171, 0.41) 100%); }
+        .cost-1b { background: linear-gradient(90deg, rgba(192, 132, 252, 0.68) 0%, rgba(192, 132, 252, 0.68) 3px, rgba(192, 132, 252, 0.14) 3px, rgba(192, 132, 252, 0.14) 100%); }
+        .cost-2b { background: linear-gradient(90deg, rgba(250, 204, 21, 0.6) 0%, rgba(250, 204, 21, 0.6) 3px, rgba(250, 204, 21, 0.23) 3px, rgba(250, 204, 21, 0.23) 100%); }
+        .cost-over2b { background: linear-gradient(90deg, rgba(177, 100, 37, 0.97) 0%, rgba(177, 100, 37, 0.97) 3px, rgba(177, 100, 37, 0.22) 3px, rgba(177, 100, 37, 0.22) 100%); }
+
+        /* Cost filter button colors */
+        .cost-filter[data-cost="100m"].active { background: rgba(183, 177, 154, 0.6); border-color: rgb(183, 177, 154); color: #fff; }
+        .cost-filter[data-cost="500m"].active { background: rgba(48, 134, 171, 0.7); border-color: rgb(48, 134, 171); color: #fff; }
+        .cost-filter[data-cost="1b"].active { background: rgba(192, 132, 252, 0.6); border-color: rgb(192, 132, 252); color: #fff; }
+        .cost-filter[data-cost="2b"].active { background: rgba(250, 204, 21, 0.6); border-color: rgb(250, 204, 21); color: #1a1a2e; }
+        .cost-filter[data-cost="over2b"].active { background: rgba(177, 100, 37, 0.8); border-color: rgb(177, 100, 37); color: #fff; }
+
+        @media (max-width: 1000px) {
+            table { font-size: 0.65rem; }
+            th, td { padding: 5px 3px; }
+            .hide-mobile { display: none; }
+            .detail-content { grid-template-columns: 1fr; }
+            .gear-dropdown { position: static; transform: none; margin-top: 10px; }
+            .header-row { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <span class="version-tag" id="version-tag"></span>
+            <h1>&#x1F404; CowProfit</h1>
+            <div class="gear-dropdown">
+                <button class="gear-btn" onclick="toggleGear()">&#x2699; Gear <span id="gear-arrow">&#9660;</span></button>
+                <div class="gear-panel" id="gear-panel"></div>
+            </div>
+        </div>
+        <div class="subtitle-row">
+            <span class="subtitle">MWI Enhancement Profit Tracker | Last check: <span id="time-check">-</span> |</span>
+            <div class="history-dropdown">
+                <button class="history-btn" onclick="toggleHistory(event)">Market update: <span id="time-market">-</span> <span id="history-arrow">&#9660;</span></button>
+                <div class="history-panel" id="history-panel"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <span class="control-label">Price:</span>
+                <button class="mode-btn active" onclick="setMode('pessimistic')" id="btn-pessimistic">Pessimistic</button>
+                <button class="mode-btn" onclick="setMode('midpoint')" id="btn-midpoint">Midpoint</button>
+                <button class="mode-btn" onclick="setMode('optimistic')" id="btn-optimistic">Optimistic</button>
+            </div>
+            <div class="control-group">
+                <button class="toggle-btn active" onclick="toggleFee()" id="btn-fee">-2% Fee</button>
+                <button class="toggle-btn" onclick="toggleSuperPessimistic()" id="btn-super" title="Include loss from selling 33% leftover materials at market buy price">-Mat Loss</button>
+            </div>
+        </div>
+        <p class="mode-info" id="mode-info">Buy at Ask, Sell at Bid (safest estimate)</p>
+        <p class="mode-info" id="status" style="color: #eeb357;">Loading...</p>
+        
+        <div class="legend">
+            <div class="legend-item"><span class="price-source source-market"></span> Market</div>
+            <div class="legend-item"><span class="price-source source-craft"></span> Craft</div>
+            <div class="legend-item"><span class="price-source source-vendor"></span> Vendor</div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="stat-profitable">-</div>
+                <div class="stat-label">Profitable</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-roi">-</div>
+                <div class="stat-label">Best ROI</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-profit">-</div>
+                <div class="stat-label">Top Profit</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-profitday">-</div>
+                <div class="stat-label">Best $/day</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-xpday">-</div>
+                <div class="stat-label">Best XP/day</div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <span class="filter-label">Level:</span>
+            <button class="filter-btn level-filter active" onclick="filterLevel('all')">All</button>
+            <button class="filter-btn level-filter" onclick="filterLevel(8)">+8</button>
+            <button class="filter-btn level-filter" onclick="filterLevel(10)">+10</button>
+            <button class="filter-btn level-filter" onclick="filterLevel(12)">+12</button>
+            <button class="filter-btn level-filter" onclick="filterLevel(14)">+14</button>
+            <span class="filter-divider">|</span>
+            <span class="filter-label">Cost:</span>
+            <button class="filter-btn cost-filter active" data-cost="100m" onclick="toggleCostFilter('100m')">&lt;100M</button>
+            <button class="filter-btn cost-filter active" data-cost="500m" onclick="toggleCostFilter('500m')">100-500M</button>
+            <button class="filter-btn cost-filter active" data-cost="1b" onclick="toggleCostFilter('1b')">500M-1B</button>
+            <button class="filter-btn cost-filter active" data-cost="2b" onclick="toggleCostFilter('2b')">1-2B</button>
+            <button class="filter-btn cost-filter active" data-cost="over2b" onclick="toggleCostFilter('over2b')">&gt;2B</button>
+        </div>
+        
+        <table id="results">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0, 'str')">Item<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(1, 'num')">Lvl<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(2, 'num')" class="number" title="Time since sell price changed">Age<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(3, 'num')" class="number">Buy<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(4, 'num')" class="number hide-mobile">Enhance<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(5, 'num')" class="number hide-mobile">Total<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(6, 'num')" class="number" style="text-align:center">Sell<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(7, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(8, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(9, 'num')" class="number" style="text-align:center">$/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(10, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(11, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+            </tbody>
+        </table>
+        
+        <div class="footer">
+            <p>Data from <a href="https://www.milkywayidle.com" target="_blank">Milky Way Idle</a> | Math from <a href="https://doh-nuts.github.io/Enhancelator/" target="_blank">Enhancelator</a></p>
+        </div>
+    </div>
+    
+    <!-- v2: Client-side calculations -->
+    <script src="prices.js"></script>
+    <script src="game-data.js"></script>
+    <script src="enhance-calc.js"></script>
+    <script src="main-v2.js"></script>
+</body>
+</html>
