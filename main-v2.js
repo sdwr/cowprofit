@@ -317,7 +317,21 @@ function toggleRow(rowId) {
     renderTable();
 }
 
-// Get material details for an item
+// Get buy price for an item based on mode
+function getBuyPrice(hrid, level, mode) {
+    const itemPrices = prices.market[hrid]?.[String(level)] || {};
+    if (mode === 'pessimistic') {
+        return itemPrices.a || itemPrices.b || 0;
+    } else if (mode === 'optimistic') {
+        return itemPrices.b || itemPrices.a || 0;
+    } else {
+        const ask = itemPrices.a || 0;
+        const bid = itemPrices.b || 0;
+        return (ask && bid) ? (ask + bid) / 2 : (ask || bid);
+    }
+}
+
+// Get enhancement material details for an item (NO artisan tea - these are enhancement mats, not crafting)
 function getMaterialDetails(itemHrid, actions, mode) {
     const item = gameData.items[itemHrid];
     if (!item || !item.enhancementCosts) return [];
@@ -335,18 +349,7 @@ function getMaterialDetails(itemHrid, actions, mode) {
         } else {
             const matItem = gameData.items[cost.item];
             const matName = matItem?.name || cost.item.split('/').pop().replace(/_/g, ' ');
-            // Get buy price based on mode
-            const matPrices = prices.market[cost.item]?.['0'] || {};
-            let price = 0;
-            if (mode === 'pessimistic') {
-                price = matPrices.a || matPrices.b || 0;
-            } else if (mode === 'optimistic') {
-                price = matPrices.b || matPrices.a || 0;
-            } else {
-                const ask = matPrices.a || 0;
-                const bid = matPrices.b || 0;
-                price = (ask && bid) ? (ask + bid) / 2 : (ask || bid);
-            }
+            const price = getBuyPrice(cost.item, 0, mode);
             materials.push({
                 hrid: cost.item,
                 name: matName,
@@ -370,21 +373,26 @@ function getPriceAge(itemHrid, level) {
     const now = Math.floor(Date.now() / 1000);
     const age = now - currentEntry.t;
     
-    // Get direction if there's a previous entry
+    // Get direction and previous price if there's a previous entry
     let direction = null;
+    let lastPrice = null;
     if (history.length > 1) {
-        const prevPrice = history[1].p;
-        if (currentEntry.p > prevPrice) direction = 'up';
-        else if (currentEntry.p < prevPrice) direction = 'down';
+        lastPrice = history[1].p;
+        if (currentEntry.p > lastPrice) direction = 'up';
+        else if (currentEntry.p < lastPrice) direction = 'down';
     }
     
-    return { age, direction, price: currentEntry.p, since: currentEntry.t };
+    return { age, direction, price: currentEntry.p, lastPrice, since: currentEntry.t };
 }
 
-// Get crafting materials for an item
+// Get crafting materials for an item (WITH artisan tea - these are crafting inputs)
 function getCraftingMaterials(itemHrid, mode) {
     const recipe = gameData.recipes[itemHrid];
     if (!recipe || !recipe.inputs) return null;
+    
+    const item = gameData.items[itemHrid];
+    const itemName = item?.name || itemHrid.split('/').pop().replace(/_/g, ' ');
+    const artisanMult = calculator?.getArtisanTeaMultiplier() || 1;
     
     const materials = [];
     let total = 0;
@@ -392,53 +400,99 @@ function getCraftingMaterials(itemHrid, mode) {
     for (const input of recipe.inputs) {
         const matItem = gameData.items[input.item];
         const matName = matItem?.name || input.item.split('/').pop().replace(/_/g, ' ');
-        const matPrices = prices.market[input.item]?.['0'] || {};
-        let price = 0;
-        if (mode === 'pessimistic') {
-            price = matPrices.a || matPrices.b || 0;
-        } else if (mode === 'optimistic') {
-            price = matPrices.b || matPrices.a || 0;
-        } else {
-            const ask = matPrices.a || 0;
-            const bid = matPrices.b || 0;
-            price = (ask && bid) ? (ask + bid) / 2 : (ask || bid);
-        }
-        const lineTotal = input.count * price;
+        const price = getBuyPrice(input.item, 0, mode);
+        // Apply artisan tea to crafting inputs
+        const adjustedCount = input.count * artisanMult;
+        const lineTotal = adjustedCount * price;
         total += lineTotal;
         materials.push({
+            hrid: input.item,
             name: matName,
-            count: input.count,
+            count: adjustedCount,
             price: price,
             total: lineTotal
         });
     }
     
-    return { materials, total };
+    return { itemName, materials, total };
+}
+
+// Shopping list for detail row - always shows (shows 100% needed if no inventory)
+function renderShoppingList(r, materials) {
+    let rows = '';
+    let totalCost = 0;
+    
+    // Enhancement materials (exclude coins)
+    for (const m of materials) {
+        if (m.name === 'Coins') continue;
+        const needed = m.count * r.actions;
+        const lineCost = needed * m.price;
+        totalCost += lineCost;
+        rows += `<div class="shop-row">
+            <span class="shop-name">${m.name}</span>
+            <span class="shop-owned">-</span>
+            <span class="shop-need">${needed.toFixed(1)}</span>
+            <span class="shop-cost">${formatCoins(lineCost)}</span>
+        </div>`;
+    }
+    
+    // Protection item
+    if (r.protectHrid && r.protectCount > 0) {
+        const protItem = gameData.items[r.protectHrid];
+        const protName = protItem?.name || r.protectHrid.split('/').pop().replace(/_/g, ' ');
+        const needed = r.protectCount;
+        const lineCost = needed * r.protectPrice;
+        totalCost += lineCost;
+        rows += `<div class="shop-row prot-row">
+            <span class="shop-name">${protName} - prot @ ${r.protectAt}</span>
+            <span class="shop-owned">-</span>
+            <span class="shop-need">${needed.toFixed(1)}</span>
+            <span class="shop-cost">${formatCoins(lineCost)}</span>
+        </div>`;
+    }
+    
+    if (!rows) return '';
+    
+    // Total row
+    rows += `<div class="shop-row total-row">
+        <span class="shop-name">Total</span>
+        <span class="shop-owned"></span>
+        <span class="shop-need"></span>
+        <span class="shop-cost">${formatCoins(totalCost)}</span>
+    </div>`;
+    
+    return `<div class="detail-section shopping-list">
+        <h4>🛒 Shopping List <span class="price-note">(no inventory)</span></h4>
+        <div class="shop-header">
+            <span class="shop-col">Material</span>
+            <span class="shop-col">Owned</span>
+            <span class="shop-col">Need</span>
+            <span class="shop-col">Cost</span>
+        </div>
+        ${rows}
+    </div>`;
 }
 
 // Render detail row
 function renderDetailRow(r) {
-    const modeMap = { pessimistic: PriceMode.PESSIMISTIC, midpoint: PriceMode.MIDPOINT, optimistic: PriceMode.OPTIMISTIC };
-    const mode = modeMap[currentMode];
+    const mode = currentMode;
     
-    // Get enhancement materials
-    const materials = getMaterialDetails(r.item_hrid, r.actions, mode);
-    const artisanMult = calculator?.getArtisanTeaMultiplier() || 1;
+    // Get enhancement materials (NO artisan tea - these are for enhancing, not crafting)
+    const materials = getMaterialDetails(r.item_hrid, 1, mode); // per attempt, actions=1
     
-    // Materials HTML
+    // Materials HTML (per attempt, no artisan tea adjustments here)
     let matsHtml = '';
     let matsPerAttempt = 0;
     for (const m of materials) {
-        const adjusted = m.name === 'Coins' ? m.count : m.count * artisanMult;
-        const lineTotal = m.price * adjusted;
+        const lineTotal = m.count * m.price;
         matsPerAttempt += lineTotal;
         matsHtml += `<div class="mat-row">
             <span class="mat-name">${m.name}</span>
-            <span class="mat-count">${adjusted.toFixed(m.name === 'Coins' ? 0 : 2)}x @ ${formatCoins(m.price)}</span>
+            <span class="mat-count">${m.count.toFixed(m.name === 'Coins' ? 0 : 0)}x @ ${formatCoins(m.price)}</span>
             <span class="mat-price">${formatCoins(lineTotal)}</span>
         </div>`;
     }
-    const totalMatCost = matsPerAttempt * r.actions;
+    const totalEnhanceCost = matsPerAttempt * r.actions;
     const totalProtCost = r.protectPrice * r.protectCount;
     
     // Protection item name
@@ -446,13 +500,12 @@ function renderDetailRow(r) {
     const protName = protItem?.name || (r.protectHrid ? r.protectHrid.split('/').pop().replace(/_/g, ' ') : 'Protection');
     
     // Base item section - check for craft alternative
-    const marketPrices = prices.market[r.item_hrid]?.['0'] || {};
-    const marketPrice = mode === 'pessimistic' ? (marketPrices.a || 0) : mode === 'optimistic' ? (marketPrices.b || 0) : ((marketPrices.a || 0) + (marketPrices.b || 0)) / 2;
-    const craftData = getCraftingMaterials(r.item_hrid, mode);
+    const marketPrice = getBuyPrice(r.item_hrid, 0, mode);
+    const craftData = getCraftingMaterials(r.item_hrid, mode); // WITH artisan tea
     
     let baseItemHtml = '';
     if (r.baseSource === 'craft' && craftData) {
-        // Craft is cheaper
+        // Craft is cheaper - show item name and breakdown
         const craftMatsHtml = craftData.materials.map(m => `
             <div class="mat-row">
                 <span class="mat-name">${m.name}</span>
@@ -467,7 +520,7 @@ function renderDetailRow(r) {
                 <span class="value alt">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
             </div>
             <div class="detail-line">
-                <span class="label">Craft price</span>
+                <span class="label">Craft ${craftData.itemName}</span>
                 <span class="value">${formatCoins(r.basePrice)}</span>
             </div>
             <div class="craft-breakdown">
@@ -494,28 +547,33 @@ function renderDetailRow(r) {
         }
     }
     
-    // Price history/age
+    // Price history - show change if available
     const priceInfo = getPriceAge(r.item_hrid, r.target_level);
-    let priceHtml = `<div class="detail-line">
-        <span class="label">Sell price (+${r.target_level})</span>
-        <span class="value">${formatCoins(r.sellPrice)}</span>
-    </div>`;
-    if (priceInfo) {
-        const ageStr = formatAge(priceInfo.age);
-        const sinceDate = new Date(priceInfo.since * 1000).toLocaleString();
-        const dirArrow = priceInfo.direction === 'up' ? '<span class="price-up">↑</span>' : 
-                         priceInfo.direction === 'down' ? '<span class="price-down">↓</span>' : '';
-        priceHtml += `<div class="detail-line">
-            <span class="label">Price age</span>
-            <span class="value">${ageStr} ${dirArrow}</span>
-        </div>
-        <div class="detail-line">
-            <span class="label">Since</span>
-            <span class="value">${sinceDate}</span>
+    let priceHtml = '';
+    
+    if (priceInfo && priceInfo.lastPrice && priceInfo.lastPrice !== priceInfo.price) {
+        // Show price change
+        const pctChange = ((priceInfo.price - priceInfo.lastPrice) / priceInfo.lastPrice * 100).toFixed(1);
+        const pctClass = pctChange > 0 ? 'positive' : 'negative';
+        priceHtml = `<div class="detail-line">
+            <span class="label">Sell price (bid)</span>
+            <span class="value ${pctClass}">${formatCoins(priceInfo.lastPrice)} → ${formatCoins(priceInfo.price)} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
+        </div>`;
+    } else {
+        priceHtml = `<div class="detail-line">
+            <span class="label">Sell price (+${r.target_level})</span>
+            <span class="value">${formatCoins(r.sellPrice)}</span>
         </div>`;
     }
     
-    const profitClass = r.profit > 0 ? 'positive' : r.profit < 0 ? 'negative' : 'neutral';
+    if (priceInfo) {
+        const ageStr = formatAge(priceInfo.age);
+        const sinceDate = new Date(priceInfo.since * 1000).toLocaleString();
+        priceHtml += `<div class="detail-line">
+            <span class="label">Since</span>
+            <span class="value">${sinceDate} (${ageStr})</span>
+        </div>`;
+    }
     
     return `<div class="detail-content">
         <div class="detail-section">
@@ -523,13 +581,15 @@ function renderDetailRow(r) {
             ${baseItemHtml}
         </div>
         
+        ${renderShoppingList(r, materials)}
+        
         <div class="detail-section">
-            <h4>🔧 Materials <span class="price-note">(per attempt)</span></h4>
+            <h4>🔧 Materials</h4>
             ${matsHtml || '<div class="detail-line"><span class="label">None</span></div>'}
             <div class="mat-row total-row">
                 <span class="mat-name">Total (${formatCoins(matsPerAttempt)}/attempt × ${r.actions.toFixed(0)})</span>
                 <span class="mat-count"></span>
-                <span class="mat-price">${formatCoins(totalMatCost)}</span>
+                <span class="mat-price">${formatCoins(totalEnhanceCost)}</span>
             </div>
         </div>
         
@@ -541,7 +601,7 @@ function renderDetailRow(r) {
             </div>
             <div class="detail-line">
                 <span class="label">Materials (${r.actions.toFixed(0)} attempts)</span>
-                <span class="value">${formatCoins(totalMatCost)}</span>
+                <span class="value">${formatCoins(totalEnhanceCost)}</span>
             </div>
             <div class="detail-line">
                 <span class="label">${protName} @ ${r.protectAt} (${formatCoins(r.protectPrice)} × ${r.protectCount.toFixed(1)})</span>
@@ -555,16 +615,8 @@ function renderDetailRow(r) {
         </div>
         
         <div class="detail-section">
-            <h4>📈 Sell & Profit</h4>
+            <h4>📈 Sell & Time</h4>
             ${priceHtml}
-            <div class="detail-line">
-                <span class="label">Profit</span>
-                <span class="value ${profitClass}">${formatCoins(r.profit)}</span>
-            </div>
-            <div class="detail-line">
-                <span class="label">After 2% fee</span>
-                <span class="value ${profitClass}">${formatCoins(r.profitAfterFee)}</span>
-            </div>
             <div class="detail-line">
                 <span class="label">Time (${r.actions.toFixed(0)} attempts)</span>
                 <span class="value">${r.timeHours.toFixed(1)}h (${r.timeDays.toFixed(2)}d)</span>
