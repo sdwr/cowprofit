@@ -73,9 +73,9 @@ def update_price_history(market_data, history):
             if level_str not in levels:
                 continue
             
-            # Get ask price (sell price from seller's perspective)
-            ask = levels[level_str].get('a', -1)
-            if ask == -1:
+            # Get bid price (what buyers will pay - pessimistic sell price)
+            bid = levels[level_str].get('b', -1)
+            if bid == -1:
                 continue
             
             # Key format: "hrid:level"
@@ -83,7 +83,7 @@ def update_price_history(market_data, history):
             
             if key not in history['items']:
                 history['items'][key] = {
-                    'current_price': ask,
+                    'current_price': bid,
                     'current_price_since': now_iso,
                     'current_price_since_ts': now_ts,
                     'last_price': None,
@@ -93,18 +93,18 @@ def update_price_history(market_data, history):
                 }
             else:
                 item = history['items'][key]
-                if item['current_price'] != ask:
-                    direction = 'up' if ask > item['current_price'] else 'down'
+                if item['current_price'] != bid:
+                    direction = 'up' if bid > item['current_price'] else 'down'
                     changes.append({
                         'key': key,
                         'old': item['current_price'],
-                        'new': ask,
+                        'new': bid,
                         'dir': direction
                     })
                     item['last_price'] = item['current_price']
                     item['last_price_until'] = now_iso
                     item['last_price_until_ts'] = now_ts
-                    item['current_price'] = ask
+                    item['current_price'] = bid
                     item['current_price_since'] = now_iso
                     item['current_price_since_ts'] = now_ts
                     item['price_direction'] = direction
@@ -648,11 +648,11 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         
         <div class="filters">
             <span class="filter-label">Level:</span>
-            <button class="filter-btn active" onclick="filterLevel('all')">All</button>
-            <button class="filter-btn" onclick="filterLevel(8)">+8</button>
-            <button class="filter-btn" onclick="filterLevel(10)">+10</button>
-            <button class="filter-btn" onclick="filterLevel(12)">+12</button>
-            <button class="filter-btn" onclick="filterLevel(14)">+14</button>
+            <button class="filter-btn level-filter active" onclick="filterLevel('all')">All</button>
+            <button class="filter-btn level-filter" onclick="filterLevel(8)">+8</button>
+            <button class="filter-btn level-filter" onclick="filterLevel(10)">+10</button>
+            <button class="filter-btn level-filter" onclick="filterLevel(12)">+12</button>
+            <button class="filter-btn level-filter" onclick="filterLevel(14)">+14</button>
             <span class="filter-divider">|</span>
             <span class="filter-label">Cost:</span>
             <button class="filter-btn cost-filter active" data-cost="100m" onclick="toggleCostFilter('100m')">&lt;100M</button>
@@ -855,7 +855,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         
         function filterLevel(level) {{
             currentLevel = level;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.level-filter').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
             renderTable();
         }}
@@ -933,17 +933,12 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             // Use tracked_price (ask) for direction comparison, sell_price for actual value
             let priceHtml = '';
             if (r.last_price && r.tracked_price && r.price_since_ts) {{
-                // Show tracked price change (ask → ask) which matches the direction arrow
+                // Show tracked price change (bid → bid) which matches the direction arrow
                 const pctChange = ((r.tracked_price - r.last_price) / r.last_price * 100).toFixed(1);
                 const pctClass = pctChange > 0 ? 'positive' : 'negative';
                 priceHtml = `<div class="detail-line">
-                    <span class="label">Market ask</span>
+                    <span class="label">Sell price (bid)</span>
                     <span class="value ${{pctClass}}">${{formatCoins(r.last_price)}} → ${{formatCoins(r.tracked_price)}} (${{pctChange > 0 ? '+' : ''}}${{pctChange}}%)</span>
-                </div>`;
-                // Also show actual sell price based on current mode
-                priceHtml += `<div class="detail-line">
-                    <span class="label">Sell price (${{currentMode}})</span>
-                    <span class="value">${{formatCoins(r.sell_price)}}</span>
                 </div>`;
             }} else {{
                 priceHtml = `<div class="detail-line">
