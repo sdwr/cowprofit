@@ -576,7 +576,7 @@ function calculateEnhanceSessionProfit(session) {
     const enhanceCosts = itemData?.enhancementCosts || [];
     
     for (const cost of enhanceCosts) {
-        const costHrid = cost.itemHrid || cost.hrid;
+        const costHrid = cost.item || cost.itemHrid || cost.hrid;
         const costCount = cost.count || 1;
         
         if (costHrid === '/items/coin') {
