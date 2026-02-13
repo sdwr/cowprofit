@@ -1,97 +1,25 @@
-// main.js - CowProfit rendering and interactivity
-// Data loaded from data.js: window.GAME_DATA
+/**
+ * main-v2.js - CowProfit with client-side calculations
+ * Uses prices.js + game-data.js + enhance-calc.js
+ */
 
-const allData = window.GAME_DATA?.modes || {};
-const playerStats = window.GAME_DATA?.playerStats || {};
-const lastCheckTs = window.GAME_DATA?.lastCheckTs || 0;
-const lastMarketTs = window.GAME_DATA?.lastMarketTs || 0;
-const updateHistory = window.GAME_DATA?.updateHistory || [];
-const gameVersion = window.GAME_DATA?.gameVersion || '';
+// Data from loaded scripts
+const prices = window.PRICES || {};
+const gameData = window.GAME_DATA_STATIC || {};
 
+// State
+let calculator = null;
 let currentMode = 'pessimistic';
 let currentLevel = 'all';
-let sortCol = 9; // Default to $/day column
+let sortCol = 9;
 let sortAsc = false;
-let showFee = true; // Fee toggle on by default
-let showSuperPessimistic = false; // Include mat loss toggle
+let showFee = true;
+let showSuperPessimistic = false;
 let expandedRows = new Set();
 let costFilters = { '100m': true, '500m': true, '1b': true, '2b': true, 'over2b': true };
+let allResults = { pessimistic: [], midpoint: [], optimistic: [] };
 let gearOpen = false;
 let historyOpen = false;
-let sortByMatPct = false;
-
-const modeInfo = {
-    'pessimistic': 'Buy at Ask, Sell at Bid (safest estimate)',
-    'midpoint': 'Buy/Sell at midpoint of Ask and Bid',
-    'optimistic': 'Buy at Bid, Sell at Ask (best case)'
-};
-
-// Formatting helpers
-function formatAge(seconds) {
-    if (!seconds || seconds <= 0) return '-';
-    if (seconds < 60) return Math.floor(seconds) + 's';
-    if (seconds < 3600) return Math.floor(seconds / 60) + 'm';
-    if (seconds < 86400) return (seconds / 3600).toFixed(1) + 'h';
-    return (seconds / 86400).toFixed(1) + 'd';
-}
-
-function getAgeArrow(direction) {
-    if (direction === 'up') return '<span class="price-up">↑</span>';
-    if (direction === 'down') return '<span class="price-down">↓</span>';
-    return '-';
-}
-
-function formatTimeAgo(ts) {
-    if (!ts) return '-';
-    const seconds = Math.floor(Date.now() / 1000) - ts;
-    if (seconds < 60) return Math.floor(seconds) + 's ago';
-    if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
-    if (seconds < 86400) return (seconds / 3600).toFixed(1) + 'h ago';
-    return (seconds / 86400).toFixed(1) + 'd ago';
-}
-
-function formatCoins(value) {
-    if (value === 0 || value === null || value === undefined) return '-';
-    if (Math.abs(value) >= 1e9) return (value/1e9).toFixed(2) + 'B';
-    if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(2) + 'M';
-    if (Math.abs(value) >= 1e3) return (value/1e3).toFixed(2) + 'K';
-    return value.toFixed(0);
-}
-
-function formatXP(value) {
-    if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(1) + 'M';
-    if (Math.abs(value) >= 1e3) return (value/1e3).toFixed(1) + 'K';
-    return value.toFixed(0);
-}
-
-// Time updates
-function updateTimes() {
-    document.getElementById('time-check').textContent = formatTimeAgo(lastCheckTs);
-    document.getElementById('time-market').textContent = formatTimeAgo(lastMarketTs);
-}
-
-// History dropdown
-function toggleHistory(e) {
-    if (e) e.stopPropagation();
-    historyOpen = !historyOpen;
-    const panel = document.getElementById('history-panel');
-    panel.classList.toggle('visible', historyOpen);
-    document.getElementById('history-arrow').innerHTML = historyOpen ? '&#9650;' : '&#9660;';
-    if (historyOpen) renderHistoryPanel();
-}
-
-function renderHistoryPanel() {
-    const entries = updateHistory.map(h => `
-        <div class="history-entry">
-            <span class="time">${new Date(h.ts * 1000).toLocaleString()}</span>
-            <span class="ago">${formatTimeAgo(h.ts)}</span>
-        </div>
-    `).join('');
-    document.getElementById('history-panel').innerHTML = `
-        <h5>Market Update History</h5>
-        ${entries || '<div class="history-entry">No history yet</div>'}
-    `;
-}
 
 // Inventory data (set via event from userscript)
 let inventoryData = null;
@@ -116,22 +44,24 @@ function calculateMatPercent(r) {
     let totalValue = 0;
     let ownedValue = 0;
     
+    // Get materials for this item
+    const materials = getMaterialDetails(r.item_hrid, 1, currentMode);
+    
     // Enhancement materials (per attempt * actions)
-    if (r.materials) {
-        for (const m of r.materials) {
-            const needed = m.count * r.actions;
-            const owned = Math.min(getInventoryCount(m.hrid), needed);
-            const price = m.price || 0;
-            totalValue += needed * price;
-            ownedValue += owned * price;
-        }
+    for (const m of materials) {
+        if (m.name === 'Coins') continue;
+        const needed = m.count * r.actions;
+        const owned = Math.min(getInventoryCount(m.hrid), needed);
+        const price = m.price || 0;
+        totalValue += needed * price;
+        ownedValue += owned * price;
     }
     
     // Protection items
-    if (r.protect_hrid && r.protect_count > 0) {
-        const needed = Math.ceil(r.protect_count);
-        const owned = Math.min(getInventoryCount(r.protect_hrid), needed);
-        const price = r.protect_price || 0;
+    if (r.protectHrid && r.protectCount > 0) {
+        const needed = Math.ceil(r.protectCount);
+        const owned = Math.min(getInventoryCount(r.protectHrid), needed);
+        const price = r.protectPrice || 0;
         totalValue += needed * price;
         ownedValue += owned * price;
     }
@@ -142,63 +72,271 @@ function calculateMatPercent(r) {
 
 // Listen for inventory data from userscript
 window.addEventListener('cowprofit-inventory-loaded', function(e) {
-    console.log('[CowProfit] Inventory event received:', e.detail);
+    console.log('[CowProfit v2] Inventory event received:', e.detail);
     inventoryData = e.detail;
-    console.log('[CowProfit] hasInventory():', hasInventory());
+    console.log('[CowProfit v2] hasInventory():', hasInventory());
     renderTable();
 });
 
+const TARGET_LEVELS = [8, 10, 12, 14];
+const MIN_PROFIT = 1_000_000;
+const MAX_ROI = 1000;
+
+const modeInfo = {
+    'pessimistic': 'Buy at Ask, Sell at Bid (safest estimate)',
+    'midpoint': 'Buy/Sell at midpoint of Ask and Bid',
+    'optimistic': 'Buy at Bid, Sell at Ask (best case)'
+};
+
+// Initialize calculator and compute all results
+function init() {
+    console.log('[CowProfit v2] Initializing...');
+    
+    if (!gameData.items) {
+        console.error('Game data not loaded!');
+        document.getElementById('status').textContent = 'Error: game-data.js not loaded';
+        return;
+    }
+    
+    if (!prices.market) {
+        console.error('Prices not loaded!');
+        document.getElementById('status').textContent = 'Error: prices.js not loaded';
+        return;
+    }
+    
+    calculator = new EnhanceCalculator(gameData);
+    console.log(`[CowProfit v2] Calculator ready. ${Object.keys(gameData.items).length} items loaded.`);
+    
+    // Display version
+    document.getElementById('version-tag').textContent = gameData.version + ' (v2)';
+    
+    // Calculate all profits
+    calculateAllProfits();
+    
+    // Update timestamps
+    updateTimes();
+    setInterval(updateTimes, 60000);
+    
+    // Render
+    renderTable();
+    
+    document.getElementById('status').textContent = '';
+}
+
+function calculateAllProfits() {
+    console.log('[CowProfit v2] Calculating profits...');
+    const startTime = performance.now();
+    
+    const modes = [PriceMode.PESSIMISTIC, PriceMode.MIDPOINT, PriceMode.OPTIMISTIC];
+    const modeNames = ['pessimistic', 'midpoint', 'optimistic'];
+    
+    for (let i = 0; i < modes.length; i++) {
+        const mode = modes[i];
+        const modeName = modeNames[i];
+        const results = [];
+        
+        for (const [hrid, item] of Object.entries(gameData.items)) {
+            if (!item.enhancementCosts) continue;
+            
+            // Skip junk
+            const name = item.name?.toLowerCase() || '';
+            if (['cheese_', 'verdant_', 'wooden_', 'rough_'].some(s => name.includes(s))) continue;
+            
+            for (const target of TARGET_LEVELS) {
+                const result = calculator.calculateProfit(hrid, target, prices, mode);
+                if (result && result.sellPrice > 0 && result.roi < MAX_ROI) {
+                    result.item_name = item.name;
+                    result.item_hrid = hrid;
+                    result.target_level = target;
+                    results.push(result);
+                }
+            }
+        }
+        
+        results.sort((a, b) => b.profit - a.profit);
+        allResults[modeName] = results;
+    }
+    
+    const elapsed = performance.now() - startTime;
+    console.log(`[CowProfit v2] Calculated ${allResults.pessimistic.length} items in ${elapsed.toFixed(0)}ms`);
+}
+
+// Formatting helpers
+function formatCoins(value) {
+    if (value === 0 || value === null || value === undefined) return '-';
+    if (Math.abs(value) >= 1e9) return (value/1e9).toFixed(2) + 'B';
+    if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(2) + 'M';
+    if (Math.abs(value) >= 1e3) return (value/1e3).toFixed(2) + 'K';
+    return value.toFixed(0);
+}
+
+function formatXP(value) {
+    if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(1) + 'M';
+    if (Math.abs(value) >= 1e3) return (value/1e3).toFixed(1) + 'K';
+    return value.toFixed(0);
+}
+
+function formatTimeAgo(ts) {
+    if (!ts) return '-';
+    const seconds = Math.floor(Date.now() / 1000) - ts;
+    if (seconds < 60) return Math.floor(seconds) + 's ago';
+    if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+    if (seconds < 86400) return (seconds / 3600).toFixed(1) + 'h ago';
+    return (seconds / 86400).toFixed(1) + 'd ago';
+}
+
+function updateTimes() {
+    document.getElementById('time-check').textContent = formatTimeAgo(prices.generated);
+    document.getElementById('time-market').textContent = formatTimeAgo(prices.ts);
+}
+
+function formatAge(seconds) {
+    if (!seconds || seconds <= 0) return '-';
+    if (seconds < 60) return Math.floor(seconds) + 's';
+    if (seconds < 3600) return Math.floor(seconds / 60) + 'm';
+    if (seconds < 86400) return (seconds / 3600).toFixed(1) + 'h';
+    return (seconds / 86400).toFixed(1) + 'd';
+}
+
+// History dropdown
+function toggleHistory(e) {
+    if (e) e.stopPropagation();
+    historyOpen = !historyOpen;
+    gearOpen = false;
+    document.getElementById('gear-panel').classList.remove('visible');
+    document.getElementById('gear-arrow').innerHTML = '&#9660;';
+    const panel = document.getElementById('history-panel');
+    panel.classList.toggle('visible', historyOpen);
+    document.getElementById('history-arrow').innerHTML = historyOpen ? '&#9650;' : '&#9660;';
+    if (historyOpen) renderHistoryPanel();
+}
+
+function renderHistoryPanel() {
+    // Get unique market update timestamps from history
+    const historyData = prices.history || {};
+    const timestamps = new Set();
+    
+    for (const entries of Object.values(historyData)) {
+        if (Array.isArray(entries)) {
+            for (const e of entries) {
+                if (e.t) timestamps.add(e.t);
+            }
+        }
+    }
+    
+    // Sort descending, take last 10
+    const sorted = [...timestamps].sort((a, b) => b - a).slice(0, 10);
+    
+    const entries = sorted.map(ts => `
+        <div class="history-entry">
+            <span class="time">${new Date(ts * 1000).toLocaleString()}</span>
+            <span class="ago">${formatTimeAgo(ts)}</span>
+        </div>
+    `).join('');
+    
+    document.getElementById('history-panel').innerHTML = `
+        <h5>Market Update History</h5>
+        ${entries || '<div class="history-entry">No history yet</div>'}
+    `;
+}
+
 // Gear dropdown
-function toggleGear() {
+function toggleGear(e) {
+    if (e) e.stopPropagation();
     gearOpen = !gearOpen;
+    historyOpen = false;
+    document.getElementById('history-panel').classList.remove('visible');
+    document.getElementById('history-arrow').innerHTML = '&#9660;';
     document.getElementById('gear-panel').classList.toggle('visible', gearOpen);
     document.getElementById('gear-arrow').innerHTML = gearOpen ? '&#9650;' : '&#9660;';
     if (gearOpen) renderGearPanel();
 }
 
 function renderGearPanel() {
-    const s = playerStats;
-    if (!s || !s.enhancing_level) {
-        document.getElementById('gear-panel').innerHTML = '<div style="padding:10px;color:#888;">No player stats available</div>';
+    if (!calculator) {
+        document.getElementById('gear-panel').innerHTML = '<div style="padding:10px;color:#888;">Calculator not loaded</div>';
         return;
     }
+    
+    const c = calculator.config;
+    const guzzling = calculator.getGuzzlingBonus();
+    const enhancerBonus = calculator.getEnhancerBonus();
+    const effectiveLevel = calculator.getEffectiveLevel();
+    const artisanMult = calculator.getArtisanTeaMultiplier();
+    
     document.getElementById('gear-panel').innerHTML = `
         <div class="gear-section">
-            <h5>&#x1F3AF; Enhancing</h5>
-            <div class="gear-row"><span class="label">Base Level</span><span class="value">${s.enhancing_level}</span></div>
-            <div class="gear-row"><span class="label">Effective Level</span><span class="value highlight">${s.effective_level.toFixed(1)}</span></div>
-            <div class="gear-row"><span class="label">Observatory</span><span class="value">+${s.observatory}</span></div>
+            <h5>🎯 Enhancing</h5>
+            <div class="gear-row"><span class="label">Base Level</span><span class="value">${c.enhancingLevel}</span></div>
+            <div class="gear-row"><span class="label">Effective Level</span><span class="value highlight">${effectiveLevel.toFixed(1)}</span></div>
+            <div class="gear-row"><span class="label">Observatory</span><span class="value">+${c.observatoryLevel}</span></div>
         </div>
         <div class="gear-section">
-            <h5>&#x1F527; Tool & Success</h5>
-            <div class="gear-row"><span class="label">${s.enhancer} +${s.enhancer_level}</span><span class="value">+${s.enhancer_success.toFixed(2)}%</span></div>
-            <div class="gear-row"><span class="label">Achievement Bonus</span><span class="value">+${s.achievement_success.toFixed(2)}%</span></div>
-            <div class="gear-row"><span class="label">Total Success Bonus</span><span class="value highlight">+${s.total_success_bonus.toFixed(2)}%</span></div>
+            <h5>🔧 Tool & Success</h5>
+            <div class="gear-row"><span class="label">${c.enhancer.replace(/_/g, ' ')} +${c.enhancerLevel}</span><span class="value">+${enhancerBonus.toFixed(2)}%</span></div>
+            <div class="gear-row"><span class="label">Achievement Bonus</span><span class="value">+${(c.achievementSuccessBonus * 100).toFixed(2)}%</span></div>
         </div>
         <div class="gear-section">
-            <h5>&#x26A1; Speed Bonuses</h5>
-            <div class="gear-row"><span class="label">Gloves +${s.gloves_level}</span><span class="value">+${s.gloves_speed.toFixed(2)}%</span></div>
-            <div class="gear-row"><span class="label">Top +${s.top_level}</span><span class="value">+${s.top_speed.toFixed(2)}%</span></div>
-            <div class="gear-row"><span class="label">Bot +${s.bot_level}</span><span class="value">+${s.bot_speed.toFixed(2)}%</span></div>
-            <div class="gear-row"><span class="label">Neck +${s.neck_level} (5x)</span><span class="value">+${s.neck_speed.toFixed(2)}%</span></div>
-            <div class="gear-row"><span class="label">Buff Lvl ${s.buff_level}</span><span class="value">+${s.buff_speed.toFixed(2)}%</span></div>
-            <div class="gear-row"><span class="label">${s.tea_name || 'No'} Tea</span><span class="value">+${s.tea_speed.toFixed(2)}%</span></div>
+            <h5>⚡ Speed Gear</h5>
+            <div class="gear-row"><span class="label">Gloves +${c.enchantedGlovesLevel}</span><span class="value">equipped</span></div>
+            <div class="gear-row"><span class="label">Top +${c.enhancerTopLevel}</span><span class="value">equipped</span></div>
+            <div class="gear-row"><span class="label">Bot +${c.enhancerBotLevel}</span><span class="value">equipped</span></div>
+            <div class="gear-row"><span class="label">Neck +${c.philoNeckLevel}</span><span class="value">equipped</span></div>
         </div>
         <div class="gear-section">
-            <h5>&#x1F375; Active Teas</h5>
-            <div class="gear-row"><span class="label">Blessed Tea</span><span class="value">${s.tea_blessed ? '✓' : '✗'}</span></div>
-            <div class="gear-row"><span class="label">Wisdom Tea</span><span class="value">${s.tea_wisdom ? '✓' : '✗'}</span></div>
-            <div class="gear-row"><span class="label">Artisan Tea</span><span class="value">${s.artisan_tea ? s.artisan_reduction.toFixed(2) + '% craft red.' : '✗'}</span></div>
-            <div class="gear-row"><span class="label">Guzzling Bonus</span><span class="value highlight">${s.guzzling_bonus.toFixed(4)}x</span></div>
+            <h5>🍵 Active Teas</h5>
+            <div class="gear-row"><span class="label">Enhancing Tea</span><span class="value">${c.teaUltraEnhancing ? 'Ultra ✓' : c.teaSuperEnhancing ? 'Super ✓' : c.teaEnhancing ? '✓' : '✗'}</span></div>
+            <div class="gear-row"><span class="label">Blessed Tea</span><span class="value">${c.teaBlessed ? '✓' : '✗'}</span></div>
+            <div class="gear-row"><span class="label">Wisdom Tea</span><span class="value">${c.teaWisdom ? '✓' : '✗'}</span></div>
+            <div class="gear-row"><span class="label">Artisan Tea</span><span class="value">${c.artisanTea ? ((1 - artisanMult) * 100).toFixed(1) + '% mat reduction' : '✗'}</span></div>
+            <div class="gear-row"><span class="label">Guzzling Bonus</span><span class="value highlight">${guzzling.toFixed(4)}x</span></div>
         </div>
         <div class="gear-section">
-            <h5>&#x1F48E; Charm</h5>
-            <div class="gear-row"><span class="label">${s.charm_tier.charAt(0).toUpperCase() + s.charm_tier.slice(1)} +${s.charm_level}</span><span class="value">XP bonus</span></div>
+            <h5>💎 Charm</h5>
+            <div class="gear-row"><span class="label">${c.charmTier.charAt(0).toUpperCase() + c.charmTier.slice(1)} +${c.charmLevel}</span><span class="value">XP bonus</span></div>
         </div>
     `;
 }
 
-// Toggle controls
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.gear-dropdown') && !e.target.closest('.history-dropdown')) {
+        gearOpen = false;
+        historyOpen = false;
+        document.getElementById('gear-panel')?.classList.remove('visible');
+        document.getElementById('history-panel')?.classList.remove('visible');
+        const gearArrow = document.getElementById('gear-arrow');
+        const histArrow = document.getElementById('history-arrow');
+        if (gearArrow) gearArrow.innerHTML = '&#9660;';
+        if (histArrow) histArrow.innerHTML = '&#9660;';
+    }
+});
+
+function getCostBucket(totalCost) {
+    if (totalCost < 100e6) return '100m';
+    if (totalCost < 500e6) return '500m';
+    if (totalCost < 1e9) return '1b';
+    if (totalCost < 2e9) return '2b';
+    return 'over2b';
+}
+
+// Controls
+function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + mode).classList.add('active');
+    document.getElementById('mode-info').textContent = modeInfo[mode];
+    expandedRows.clear();
+    renderTable();
+}
+
+function filterLevel(level) {
+    currentLevel = level;
+    document.querySelectorAll('.level-filter').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    renderTable();
+}
+
 function toggleFee() {
     showFee = !showFee;
     document.getElementById('btn-fee').classList.toggle('active', showFee);
@@ -217,62 +355,12 @@ function toggleCostFilter(cost) {
     renderTable();
 }
 
-function getCostBucket(totalCost) {
-    if (totalCost < 100e6) return '100m';
-    if (totalCost < 500e6) return '500m';
-    if (totalCost < 1e9) return '1b';
-    if (totalCost < 2e9) return '2b';
-    return 'over2b';
-}
-
-function setMode(mode) {
-    currentMode = mode;
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-' + mode).classList.add('active');
-    document.getElementById('mode-info').textContent = modeInfo[mode];
-    expandedRows.clear();
-    renderTable();
-}
-
-function filterLevel(level) {
-    currentLevel = level;
-    document.querySelectorAll('.level-filter').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    renderTable();
-}
-
 function sortTable(col, type) {
-    if (col === 0 && hasInventory()) {
-        // For item column with inventory: toggle between name sort and mat% sort
-        if (sortCol === 0) {
-            if (sortByMatPct) {
-                if (!sortAsc) {
-                    sortAsc = true; // mat% asc
-                } else {
-                    sortByMatPct = false; // switch to name
-                    sortAsc = true;
-                }
-            } else {
-                if (sortAsc) {
-                    sortAsc = false; // name desc
-                } else {
-                    sortByMatPct = true; // switch to mat%
-                    sortAsc = false; // mat% desc (highest first)
-                }
-            }
-        } else {
-            sortCol = 0;
-            sortByMatPct = true;
-            sortAsc = false;
-        }
+    if (sortCol === col) {
+        sortAsc = !sortAsc;
     } else {
-        sortByMatPct = false;
-        if (sortCol === col) {
-            sortAsc = !sortAsc;
-        } else {
-            sortCol = col;
-            sortAsc = (col === 0);
-        }
+        sortCol = col;
+        sortAsc = (col === 0);
     }
     renderTable();
 }
@@ -281,308 +369,437 @@ function toggleRow(rowId) {
     if (expandedRows.has(rowId)) {
         expandedRows.delete(rowId);
     } else {
+        // Close all other rows first (single expand)
+        expandedRows.clear();
         expandedRows.add(rowId);
     }
     renderTable();
 }
 
-// Shopping list for detail row - always shows (0 owned if no inventory)
-function renderShoppingList(r) {
-    let rows = '';
-    const invLoaded = hasInventory();
-    let totalCost = 0;
+// Get buy price for an item based on mode
+function getBuyPrice(hrid, level, mode) {
+    const itemPrices = prices.market[hrid]?.[String(level)] || {};
+    if (mode === 'pessimistic') {
+        return itemPrices.a || itemPrices.b || 0;
+    } else if (mode === 'optimistic') {
+        return itemPrices.b || itemPrices.a || 0;
+    } else {
+        const ask = itemPrices.a || 0;
+        const bid = itemPrices.b || 0;
+        return (ask && bid) ? (ask + bid) / 2 : (ask || bid);
+    }
+}
+
+// Get enhancement material details for an item (NO artisan tea - these are enhancement mats, not crafting)
+function getMaterialDetails(itemHrid, actions, mode) {
+    const item = gameData.items[itemHrid];
+    if (!item || !item.enhancementCosts) return [];
     
-    // Materials
-    if (r.materials) {
-        for (const m of r.materials) {
-            const needed = m.count * r.actions; // Keep decimals
-            const owned = invLoaded ? getInventoryCount(m.hrid) : 0;
-            const toBuy = Math.max(0, needed - owned);
-            const lineCost = toBuy * (m.price || 0);
-            totalCost += lineCost;
-            rows += `<div class="shop-row">
-                <span class="shop-name">${m.name}</span>
-                <span class="shop-owned ${owned >= needed ? 'complete' : ''}">${invLoaded ? owned.toLocaleString() : '-'}</span>
-                <span class="shop-need">${needed.toFixed(1)}</span>
-                <span class="shop-cost">${formatCoins(lineCost)}</span>
-            </div>`;
+    const materials = [];
+    for (const cost of item.enhancementCosts) {
+        if (cost.item === '/items/coin') {
+            materials.push({
+                hrid: cost.item,
+                name: 'Coins',
+                count: cost.count,
+                price: 1,
+                total: cost.count * actions
+            });
+        } else {
+            const matItem = gameData.items[cost.item];
+            const matName = matItem?.name || cost.item.split('/').pop().replace(/_/g, ' ');
+            const price = getBuyPrice(cost.item, 0, mode);
+            materials.push({
+                hrid: cost.item,
+                name: matName,
+                count: cost.count,
+                price: price,
+                total: cost.count * price * actions
+            });
         }
     }
+    return materials;
+}
+
+// Get price history for an item at a level
+function getPriceAge(itemHrid, level) {
+    const key = `${itemHrid}:${level}`;
+    const history = prices.history?.[key];
+    if (!history || history.length === 0) return null;
     
-    // Protection item
-    if (r.protect_hrid && r.protect_count > 0) {
-        const needed = r.protect_count; // Keep decimals
-        const owned = invLoaded ? getInventoryCount(r.protect_hrid) : 0;
-        const toBuy = Math.max(0, needed - owned);
-        const lineCost = toBuy * (r.protect_price || 0);
+    // history[0] is most recent entry
+    const currentEntry = history[0];
+    const now = Math.floor(Date.now() / 1000);
+    const age = now - currentEntry.t;
+    
+    // Get direction and previous price if there's a previous entry
+    let direction = null;
+    let lastPrice = null;
+    if (history.length > 1) {
+        lastPrice = history[1].p;
+        if (currentEntry.p > lastPrice) direction = 'up';
+        else if (currentEntry.p < lastPrice) direction = 'down';
+    }
+    
+    return { age, direction, price: currentEntry.p, lastPrice, since: currentEntry.t };
+}
+
+// Get crafting materials for an item (WITH artisan tea - these are crafting inputs)
+function getCraftingMaterials(itemHrid, mode) {
+    const recipe = gameData.recipes[itemHrid];
+    if (!recipe || !recipe.inputs) return null;
+    
+    const item = gameData.items[itemHrid];
+    const itemName = item?.name || itemHrid.split('/').pop().replace(/_/g, ' ');
+    const artisanMult = calculator?.getArtisanTeaMultiplier() || 1;
+    
+    const materials = [];
+    let total = 0;
+    
+    // Recipe inputs (with artisan tea)
+    for (const input of recipe.inputs) {
+        const matItem = gameData.items[input.item];
+        const matName = matItem?.name || input.item.split('/').pop().replace(/_/g, ' ');
+        const price = getBuyPrice(input.item, 0, mode);
+        // Apply artisan tea to crafting inputs
+        const adjustedCount = input.count * artisanMult;
+        const lineTotal = adjustedCount * price;
+        total += lineTotal;
+        materials.push({
+            hrid: input.item,
+            name: matName,
+            count: adjustedCount,
+            price: price,
+            total: lineTotal
+        });
+    }
+    
+    // Base item (the "upgrade" source) - NO artisan tea, count 1
+    let baseItemHrid = null;
+    let baseItemName = null;
+    if (recipe.upgrade) {
+        baseItemHrid = recipe.upgrade;
+        const baseItem = gameData.items[baseItemHrid];
+        baseItemName = baseItem?.name || baseItemHrid.split('/').pop().replace(/_/g, ' ');
+        const basePrice = getBuyPrice(baseItemHrid, 0, mode);
+        total += basePrice;
+        materials.push({
+            hrid: baseItemHrid,
+            name: baseItemName,
+            count: 1,
+            price: basePrice,
+            total: basePrice
+        });
+    }
+    
+    return { itemName, materials, total, baseItemHrid, baseItemName };
+}
+
+// Format number with commas
+function formatWithCommas(num) {
+    if (num >= 1000) {
+        return num.toLocaleString('en-US', { maximumFractionDigits: 1 });
+    }
+    return num.toFixed(1);
+}
+
+// Shopping list for detail row - 3 column layout with progress bars
+function renderShoppingList(r, materials) {
+    let rows = '';
+    let totalCost = 0;
+    let totalOwned = 0;
+    let totalNeed = 0;
+    const invLoaded = hasInventory();
+    
+    // Enhancement materials (exclude coins)
+    for (const m of materials) {
+        if (m.name === 'Coins') continue;
+        const total = m.count * r.actions;
+        const owned = invLoaded ? getInventoryCount(m.hrid) : 0;
+        const need = Math.max(0, total - owned);
+        const pct = Math.min(total > 0 ? (owned / total) * 100 : 0, 100);
+        const lineCost = need * m.price;
         totalCost += lineCost;
-        rows += `<div class="shop-row prot-row">
-            <span class="shop-name">${r.protect_name} - prot @ ${r.protect_at}</span>
-            <span class="shop-owned ${owned >= needed ? 'complete' : ''}">${invLoaded ? owned.toLocaleString() : '-'}</span>
-            <span class="shop-need">${needed.toFixed(1)}</span>
-            <span class="shop-cost">${formatCoins(lineCost)}</span>
+        totalOwned += owned;
+        totalNeed += total;
+        
+        rows += `<div class="shop-row">
+            <span class="shop-name">${m.name}</span>
+            <span class="shop-qty">
+                <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
+                <span class="shop-qty-text"><span class="shop-need-num">${formatWithCommas(need)}</span> <span class="shop-total-num">/ ${formatWithCommas(total)}</span></span>
+            </span>
+            <span class="shop-price">${formatCoins(m.price)}</span>
         </div>`;
     }
     
-    if (!rows) return ''; // No materials or protection
+    // Protection item
+    if (r.protectHrid && r.protectCount > 0) {
+        const protItem = gameData.items[r.protectHrid];
+        const protName = protItem?.name || r.protectHrid.split('/').pop().replace(/_/g, ' ');
+        const total = r.protectCount;
+        const owned = invLoaded ? getInventoryCount(r.protectHrid) : 0;
+        const need = Math.max(0, total - owned);
+        const pct = Math.min(total > 0 ? (owned / total) * 100 : 0, 100);
+        const lineCost = need * r.protectPrice;
+        totalCost += lineCost;
+        totalOwned += owned;
+        totalNeed += total;
+        
+        rows += `<div class="shop-row prot-row">
+            <span class="shop-name">${protName}</span>
+            <span class="shop-qty">
+                <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
+                <span class="shop-qty-text"><span class="shop-need-num">${formatWithCommas(need)}</span> <span class="shop-total-num">/ ${formatWithCommas(total)}</span></span>
+            </span>
+            <span class="shop-price">${formatCoins(r.protectPrice)}</span>
+        </div>`;
+    }
     
-    // Total row
+    if (!rows) return '';
+    
+    // Overall progress bar inline with title (0-100%), capped at 100
+    const overallPct = Math.min(totalNeed > 0 ? (totalOwned / totalNeed) * 100 : 0, 100);
+    const pctDisplay = `${overallPct.toFixed(0)}%`;
+    const barWidth = overallPct.toFixed(1);
+    
+    // Total cost row at bottom (no progress bar)
     rows += `<div class="shop-row total-row">
-        <span class="shop-name">Total</span>
-        <span class="shop-owned"></span>
-        <span class="shop-need"></span>
-        <span class="shop-cost">${formatCoins(totalCost)}</span>
+        <span class="shop-name">Total Cost</span>
+        <span class="shop-qty"></span>
+        <span class="shop-price">${formatCoins(totalCost)}</span>
     </div>`;
     
-    // Calculate overall material % for progress bar
-    const matPct = calculateMatPercent(r);
-    const pctDisplay = matPct !== null ? `${matPct.toFixed(0)}%` : '';
-    const barWidth = matPct !== null ? matPct.toFixed(1) : 0;
-    
     return `<div class="detail-section shopping-list">
-        <h4>&#x1F6D2; Shopping List${invLoaded ? '' : ' <span class="price-note">(no inventory)</span>'} ${matPct !== null ? `<span class="shop-pct-bar"><span class="shop-pct-fill" style="width:${barWidth}%"></span><span class="shop-pct-text">${pctDisplay}</span></span>` : ''}</h4>
+        <h4>🛒 Shopping List${invLoaded ? '' : ' <span class="price-note">(no inventory)</span>'} <span class="shop-pct-bar"><span class="shop-pct-fill" style="width:${barWidth}%"></span><span class="shop-pct-text">${pctDisplay}</span></span></h4>
         <div class="shop-header">
-            <span class="shop-col">Material</span>
-            <span class="shop-col">Owned</span>
-            <span class="shop-col">Need</span>
-            <span class="shop-col">Cost</span>
+            <span class="shop-col">Item</span>
+            <span class="shop-col">Need / Total</span>
+            <span class="shop-col">Unit</span>
         </div>
         ${rows}
     </div>`;
 }
 
-// Detail row rendering
+// Render detail row
 function renderDetailRow(r) {
-    const priceLabel = currentMode === 'pessimistic' ? 'ask' : currentMode === 'optimistic' ? 'bid' : 'mid';
+    const mode = currentMode;
     
-    // Craft materials under base item if source is craft
-    let craftMatsHtml = '';
-    if (r.base_source === 'craft' && r.craft_materials && r.craft_materials.length > 0) {
-        craftMatsHtml = r.craft_materials.map(m => 
-            `<div class="mat-row">
+    // Get enhancement materials (NO artisan tea - these are for enhancing, not crafting)
+    const materials = getMaterialDetails(r.item_hrid, 1, mode); // per attempt, actions=1
+    
+    // Materials HTML (per attempt, no artisan tea adjustments here)
+    let matsHtml = '';
+    let matsPerAttempt = 0;
+    for (const m of materials) {
+        const lineTotal = m.count * m.price;
+        matsPerAttempt += lineTotal;
+        matsHtml += `<div class="mat-row">
+            <span class="mat-name">${m.name}</span>
+            <span class="mat-count">${m.count.toFixed(m.name === 'Coins' ? 0 : 0)}x @ ${formatCoins(m.price)}</span>
+            <span class="mat-price">${formatCoins(lineTotal)}</span>
+        </div>`;
+    }
+    const totalEnhanceCost = matsPerAttempt * r.actions;
+    const totalProtCost = r.protectPrice * r.protectCount;
+    
+    // Protection item name (shorter version without level)
+    const protItem = gameData.items[r.protectHrid];
+    let protName = protItem?.name || (r.protectHrid ? r.protectHrid.split('/').pop().replace(/_/g, ' ') : 'Protection');
+    // Strip "Protection" prefix for display
+    protName = protName.replace(/^Protection /, '');
+    
+    // Base item section - check for craft alternative
+    const marketPrice = getBuyPrice(r.item_hrid, 0, mode);
+    const craftData = getCraftingMaterials(r.item_hrid, mode); // WITH artisan tea
+    
+    let baseItemHtml = '';
+    if (r.baseSource === 'craft' && craftData) {
+        // Craft is cheaper - show breakdown (base item now included in materials)
+        const craftMatsHtml = craftData.materials.map(m => `
+            <div class="mat-row">
                 <span class="mat-name">${m.name}</span>
                 <span class="mat-count">${m.count.toFixed(2)}x @ ${formatCoins(m.price)}</span>
-                <span class="mat-price">${formatCoins(m.count * m.price)}</span>
-            </div>`
-        ).join('');
-        const craftTotal = r.craft_materials.reduce((sum, m) => sum + m.count * m.price, 0);
-        craftMatsHtml = `<div class="craft-breakdown">
-            ${craftMatsHtml}
-            <div class="mat-row total-row">
-                <span class="mat-name">Craft Total</span>
-                <span class="mat-count"></span>
-                <span class="mat-price">${formatCoins(craftTotal)}</span>
+                <span class="mat-price">${formatCoins(m.total)}</span>
             </div>
-        </div>`;
-    }
-    
-    // Enhancement materials per attempt
-    let matsPerAttempt = 0;
-    let matsHtml = '';
-    if (r.materials && r.materials.length > 0) {
-        matsHtml = r.materials.map(m => {
-            const lineTotal = m.count * m.price;
-            matsPerAttempt += lineTotal;
-            return `<div class="mat-row">
-                <span class="mat-name">${m.name}</span>
-                <span class="mat-count">${m.count.toFixed(0)}x @ ${formatCoins(m.price)}</span>
-                <span class="mat-price">${formatCoins(lineTotal)}</span>
+        `).join('');
+        
+        baseItemHtml = `
+            <div class="detail-line">
+                <span class="label">Market price</span>
+                <span class="value alt">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
+            </div>
+            <div class="detail-line">
+                <span class="label">Craft price</span>
+                <span class="value">${formatCoins(r.basePrice)}</span>
+            </div>
+            <div class="craft-breakdown">
+                ${craftMatsHtml}
+                <div class="mat-row total-row">
+                    <span class="mat-name">Craft Total</span>
+                    <span class="mat-count"></span>
+                    <span class="mat-price">${formatCoins(craftData.total)}</span>
+                </div>
             </div>`;
-        }).join('');
+    } else {
+        // Market is cheaper (or only option)
+        baseItemHtml = `
+            <div class="detail-line">
+                <span class="label">Market price</span>
+                <span class="value">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
+            </div>`;
+        if (craftData) {
+            baseItemHtml += `
+            <div class="detail-line">
+                <span class="label">Craft price</span>
+                <span class="value alt">${formatCoins(craftData.total)}</span>
+            </div>`;
+        }
     }
-    if (r.coin_cost > 0) {
-        matsPerAttempt += r.coin_cost;
-        matsHtml += `<div class="mat-row">
-            <span class="mat-name">Coins</span>
-            <span class="mat-count"></span>
-            <span class="mat-price">${formatCoins(r.coin_cost)}</span>
-        </div>`;
-    }
-    const costPerAttempt = matsPerAttempt;
-    const totalEnhanceCost = costPerAttempt * r.actions;
-    const totalProtCost = r.protect_price * r.protect_count;
     
-    // Price display
+    // Price history - show change if available
+    const priceInfo = getPriceAge(r.item_hrid, r.target_level);
     let priceHtml = '';
-    if (r.last_price && r.tracked_price && r.price_since_ts) {
-        const pctChange = ((r.tracked_price - r.last_price) / r.last_price * 100).toFixed(1);
+    
+    if (priceInfo && priceInfo.lastPrice && priceInfo.lastPrice !== priceInfo.price) {
+        // Show price change
+        const pctChange = ((priceInfo.price - priceInfo.lastPrice) / priceInfo.lastPrice * 100).toFixed(1);
         const pctClass = pctChange > 0 ? 'positive' : 'negative';
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (bid)</span>
-            <span class="value ${pctClass}">${formatCoins(r.last_price)} → ${formatCoins(r.tracked_price)} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
+            <span class="value ${pctClass}">${formatCoins(priceInfo.lastPrice)} → ${formatCoins(priceInfo.price)} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
         </div>`;
     } else {
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (+${r.target_level})</span>
-            <span class="value">${formatCoins(r.sell_price)}</span>
+            <span class="value">${formatCoins(r.sellPrice)}</span>
         </div>`;
     }
-    if (r.price_since_ts) {
-        const ageStr = formatAge(Math.floor(Date.now()/1000) - r.price_since_ts);
-        const sinceDate = new Date(r.price_since_ts * 1000).toLocaleString();
+    
+    if (priceInfo) {
+        const ageStr = formatAge(priceInfo.age);
+        const sinceDate = new Date(priceInfo.since * 1000).toLocaleString();
         priceHtml += `<div class="detail-line">
             <span class="label">Since</span>
             <span class="value">${sinceDate} (${ageStr})</span>
         </div>`;
     }
     
-    const marketPrice = r.base_source === 'craft' ? r.alt_price : r.base_price;
-    const craftPrice = r.base_source === 'craft' ? r.base_price : r.alt_price;
-    const marketPriceStr = marketPrice > 0 ? formatCoins(marketPrice) : '--';
-    const craftPriceStr = craftPrice > 0 ? formatCoins(craftPrice) : '--';
-    
-    let baseItemHtml;
-    if (r.base_source === 'craft') {
-        // Craft is cheaper - show market (small) above craft (main) with breakdown
-        baseItemHtml = `
-            <div class="detail-line">
-                <span class="label">Market price</span>
-                <span class="value alt">${marketPriceStr}</span>
-            </div>
-            <div class="detail-line">
-                <span class="label">Craft price</span>
-                <span class="value">${craftPriceStr}</span>
-            </div>
-            ${craftMatsHtml}`;
-    } else {
-        // Market is cheaper - show market (main) above craft (small)
-        baseItemHtml = `
-            <div class="detail-line">
-                <span class="label">Market price</span>
-                <span class="value">${marketPriceStr}</span>
-            </div>
-            <div class="detail-line">
-                <span class="label">Craft price</span>
-                <span class="value alt">${craftPriceStr}</span>
-            </div>`;
-    }
-    
     return `<div class="detail-content">
         <div class="detail-section">
-            <h4>&#x1F4E6; Base Item</h4>
+            <h4>📦 Base Item</h4>
             ${baseItemHtml}
         </div>
         
-        ${renderShoppingList(r)}
+        ${renderShoppingList(r, materials)}
         
-        <div class="detail-section">
-            <h4>&#x1F527; Materials</h4>
-            ${matsHtml || '<div class="detail-line"><span class="label">None</span></div>'}
+        <div class="detail-section enhance-panel">
+            <div class="enhance-header">
+                <h4>⚡ Enhance</h4>
+            </div>
+            <div class="enhance-prot-row">
+                <span class="protect-badge">Prot @ ${r.protectAt}</span>
+                <span class="protect-count">${r.protectCount.toFixed(1)}</span>
+                <span class="protect-name">${protName}</span>
+                <span class="protect-price">${formatCoins(r.protectPrice)}</span>
+            </div>
+            <div class="enhance-mats">
+                <div class="enhance-mats-label">Cost per click:</div>
+                ${matsHtml || '<div class="detail-line"><span class="label">None</span></div>'}
+            </div>
             <div class="mat-row total-row">
-                <span class="mat-name">Total (${formatCoins(costPerAttempt)}/attempt × ${r.actions.toFixed(0)})</span>
+                <span class="mat-name">${r.actions.toFixed(0)} enhances</span>
                 <span class="mat-count"></span>
-                <span class="mat-price">${formatCoins(totalEnhanceCost)}</span>
+                <span class="mat-price">${formatCoins(matsPerAttempt)} / click</span>
             </div>
         </div>
         
         <div class="detail-section">
-            <h4>&#x1F4B0; Cost Summary</h4>
+            <h4>📈 Sell & Time</h4>
+            ${priceHtml}
             <div class="detail-line">
-                <span class="label">Base item</span>
-                <span class="value">${formatCoins(r.base_price)}</span>
+                <span class="label">Time (${r.actions.toFixed(0)} attempts)</span>
+                <span class="value">${r.timeHours.toFixed(1)}h (${r.timeDays.toFixed(2)}d)</span>
             </div>
             <div class="detail-line">
-                <span class="label">Materials (${r.actions.toFixed(0)} attempts)</span>
+                <span class="label">XP earned</span>
+                <span class="value">${formatXP(r.totalXp)}</span>
+            </div>
+            <div class="cost-summary-divider"></div>
+            <h4>💰 Cost Summary</h4>
+            <div class="detail-line">
+                <span class="label">Base item</span>
+                <span class="value">${formatCoins(r.basePrice)}</span>
+            </div>
+            <div class="detail-line">
+                <span class="label">Materials (${r.actions.toFixed(0)} × ${formatCoins(matsPerAttempt)})</span>
                 <span class="value">${formatCoins(totalEnhanceCost)}</span>
             </div>
             <div class="detail-line">
-                <span class="label">${r.protect_name || 'Protection'} @ ${r.protect_at} (${formatCoins(r.protect_price)} × ${r.protect_count.toFixed(1)})</span>
+                <span class="label">Protection (${r.protectCount.toFixed(1)} × ${formatCoins(r.protectPrice)})</span>
                 <span class="value">${formatCoins(totalProtCost)}</span>
             </div>
             <div class="mat-row total-row">
                 <span class="mat-name">Total Cost</span>
                 <span class="mat-count"></span>
-                <span class="mat-price">${formatCoins(r.total_cost)}</span>
-            </div>
-        </div>
-        
-        <div class="detail-section">
-            <h4>&#x1F4C8; Sell & Time</h4>
-            ${priceHtml}
-            <div class="detail-line">
-                <span class="label">Time (${r.actions.toFixed(0)} attempts)</span>
-                <span class="value">${r.time_hours.toFixed(1)}h (${r.time_days.toFixed(2)}d)</span>
-            </div>
-            <div class="detail-line">
-                <span class="label">XP earned</span>
-                <span class="value">${formatXP(r.total_xp)}</span>
+                <span class="mat-price">${formatCoins(r.totalCost)}</span>
             </div>
         </div>
     </div>`;
 }
 
-// Main table rendering
+// Main render
 function renderTable() {
-    const data = allData[currentMode] || [];
+    const data = allResults[currentMode] || [];
     
     // Filter by level
     let filtered = currentLevel === 'all' ? data : 
         data.filter(r => r.target_level == currentLevel);
     
-    // Filter by cost buckets
-    filtered = filtered.filter(r => costFilters[getCostBucket(r.total_cost)]);
+    // Filter by cost
+    filtered = filtered.filter(r => costFilters[getCostBucket(r.totalCost)]);
     
-    const profitKey = showFee ? 'profit_after_fee' : 'profit';
-    const profitDayKey = showFee ? 'profit_per_day_after_fee' : 'profit_per_day';
-    const roiKey = showFee ? 'roi_after_fee' : 'roi';
+    const profitKey = showFee ? 'profitAfterFee' : 'profit';
+    const profitDayKey = showFee ? 'profitPerDayAfterFee' : 'profitPerDay';
+    const roiKey = showFee ? 'roiAfterFee' : 'roi';
     
-    // Add computed fields with super pessimistic adjustment
-    filtered = filtered.map((r, i) => {
+    // Add computed fields
+    filtered = filtered.map(r => {
         let profit = r[profitKey];
         let profitDay = r[profitDayKey];
         const roi = r[roiKey] || r.roi;
         
-        // Super pessimistic: subtract loss from selling 33% leftover mats
         if (showSuperPessimistic) {
-            const matLoss = r.mat_cost * 0.33 * (1 - 0.882);
-            const protLoss = (r.protect_price * r.protect_count) * 0.33 * (1 - 0.882);
-            const totalLoss = matLoss + protLoss;
-            profit -= totalLoss;
-            profitDay = r.time_days > 0 ? profit / r.time_days : 0;
+            const matLoss = r.matCost * 0.33 * (1 - 0.882);
+            const protLoss = (r.protectPrice * r.protectCount) * 0.33 * (1 - 0.882);
+            profit -= matLoss + protLoss;
+            profitDay = r.timeDays > 0 ? profit / r.timeDays : 0;
         }
         
-        return {
-            ...r, 
-            _profit: profit, 
-            _profit_day: profitDay,
-            _roi: roi
-        };
+        // Get price age for sorting
+        const priceInfo = getPriceAge(r.item_hrid, r.target_level);
+        const _age = priceInfo ? priceInfo.age : Infinity;
+        
+        return { ...r, _profit: profit, _profit_day: profitDay, _roi: roi, _age };
     });
     
-    // Add computed _age and _mat_pct fields for sorting
-    const nowTs = Math.floor(Date.now() / 1000);
-    filtered = filtered.map(r => ({
-        ...r, 
-        _age: r.price_since_ts ? nowTs - r.price_since_ts : 0,
-        _mat_pct: calculateMatPercent(r) ?? -1
-    }));
-    
-    // Sorting
-    if (sortCol === 0 && hasInventory() && sortByMatPct) {
-        filtered.sort((a, b) => {
-            if (a._mat_pct !== b._mat_pct) {
-                return sortAsc ? a._mat_pct - b._mat_pct : b._mat_pct - a._mat_pct;
-            }
-            return a.item_name.localeCompare(b.item_name);
-        });
-    } else {
-        const sortKeys = ['item_name', 'target_level', '_age', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_profit', '_roi', '_profit_day', 'time_days', 'xp_per_day'];
-        filtered.sort((a, b) => {
-            let va = a[sortKeys[sortCol]];
-            let vb = b[sortKeys[sortCol]];
-            if (typeof va === 'string') {
-                return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
-            }
-            return sortAsc ? va - vb : vb - va;
-        });
-    }
+    // Sort
+    const sortKeys = ['item_name', 'target_level', '_age', 'basePrice', 'matCost', 'totalCost', 'sellPrice', '_profit', '_roi', '_profit_day', 'timeDays', 'xpPerDay'];
+    filtered.sort((a, b) => {
+        let va = a[sortKeys[sortCol]];
+        let vb = b[sortKeys[sortCol]];
+        if (typeof va === 'string') {
+            return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+        }
+        return sortAsc ? va - vb : vb - va;
+    });
     
     // Stats
-    const profitable = data.filter(r => r[profitKey] > 1000000 && (r[roiKey] || r.roi) < 1000);
+    const profitable = data.filter(r => r[profitKey] > MIN_PROFIT);
     const bestProfit = profitable.length ? Math.max(...profitable.map(r => r[profitKey])) : 0;
     const bestRoi = profitable.length ? Math.max(...profitable.map(r => r[roiKey] || r.roi)) : 0;
     const bestProfitDay = profitable.length ? Math.max(...profitable.map(r => r[profitDayKey])) : 0;
-    const bestXpDay = data.length ? Math.max(...data.map(r => r.xp_per_day)) : 0;
+    const bestXpDay = data.length ? Math.max(...data.map(r => r.xpPerDay)) : 0;
     
     document.getElementById('stat-profitable').textContent = profitable.length;
     document.getElementById('stat-roi').textContent = bestRoi.toFixed(0) + '%';
@@ -590,24 +807,32 @@ function renderTable() {
     document.getElementById('stat-profitday').textContent = formatCoins(bestProfitDay);
     document.getElementById('stat-xpday').textContent = formatXP(bestXpDay);
     
+    // Render table
     const tbody = document.getElementById('table-body');
-    let html = '';
-    
-    // Calculate max profit/day for bar scaling
     const displayItems = filtered.slice(0, 400);
     const maxProfitDay = Math.max(...displayItems.map(r => r._profit_day || 0), 1);
     const minProfitDay = Math.min(...displayItems.map(r => r._profit_day || 0), 0);
     
-    displayItems.forEach((r, i) => {
+    let html = '';
+    displayItems.forEach(r => {
         const rowId = r.item_hrid + '_' + r.target_level;
         const isExpanded = expandedRows.has(rowId);
         const profit = r._profit;
         const profitDay = r._profit_day;
         const roi = r._roi;
         const profitClass = profit > 0 ? 'positive' : profit < 0 ? 'negative' : 'neutral';
-        const sourceClass = r.base_source === 'market' ? 'source-market' : r.base_source === 'craft' ? 'source-craft' : 'source-vendor';
+        const sourceClass = r.baseSource === 'market' ? 'source-market' : r.baseSource === 'craft' ? 'source-craft' : 'source-vendor';
         
-        // Calculate bar width as % of max
+        // Get price age
+        const priceInfo = getPriceAge(r.item_hrid, r.target_level);
+        const ageStr = priceInfo ? formatAge(priceInfo.age) : '-';
+        const ageArrow = priceInfo?.direction === 'up' ? ' <span class="price-up">↑</span>' : 
+                         priceInfo?.direction === 'down' ? ' <span class="price-down">↓</span>' : '';
+        
+        // Material % bar in item name (from inventory)
+        const matPct = calculateMatPercent(r);
+        const matBarStyle = matPct !== null ? `width:${Math.min(matPct, 100).toFixed(1)}%` : 'display:none';
+        
         let barWidth = 0;
         let barClass = 'positive';
         if (profitDay > 0) {
@@ -617,59 +842,38 @@ function renderTable() {
             barClass = 'negative';
         }
         
-        const matPct = calculateMatPercent(r);
-        const matBarStyle = matPct !== null ? `width:${matPct.toFixed(1)}%` : 'display:none';
-        
         html += `<tr class="data-row ${isExpanded ? 'expanded' : ''}" onclick="toggleRow('${rowId}')" data-level="${r.target_level}" data-matpct="${matPct !== null ? matPct : -1}">
-            <td class="item-name"><div class="mat-pct-bar" style="${matBarStyle}"></div><span class="expand-icon">&#9654;</span>${r.item_name}</td>
+            <td class="item-name"><div class="mat-pct-bar" style="${matBarStyle}"></div><span class="expand-icon">▶</span>${r.item_name}</td>
             <td><span class="level-badge">+${r.target_level}</span></td>
-            <td class="number">${formatAge(r._age)} ${getAgeArrow(r.price_direction)}</td>
-            <td class="number"><span class="price-source ${sourceClass}"></span>${formatCoins(r.base_price)}</td>
-            <td class="number hide-mobile">${formatCoins(r.mat_cost)}</td>
-            <td class="number hide-mobile">${formatCoins(r.total_cost)}</td>
-            <td class="number cost-${getCostBucket(r.total_cost)}" style="text-align:center">${formatCoins(r.sell_price)}</td>
+            <td class="number">${ageStr}${ageArrow}</td>
+            <td class="number"><span class="price-source ${sourceClass}"></span>${formatCoins(r.basePrice)}</td>
+            <td class="number hide-mobile">${formatCoins(r.matCost)}</td>
+            <td class="number hide-mobile">${formatCoins(r.totalCost)}</td>
+            <td class="number cost-${getCostBucket(r.totalCost)}" style="text-align:center">${formatCoins(r.sellPrice)}</td>
             <td class="number ${profitClass}">${formatCoins(profit)}</td>
             <td class="number ${profitClass}">${roi.toFixed(1)}%</td>
             <td class="number profit-bar-cell ${profitClass}"><div class="profit-bar ${barClass}" style="width:${barWidth.toFixed(1)}%"></div><span class="profit-bar-value">${formatCoins(profitDay)}</span></td>
-            <td class="number hide-mobile">${r.time_days.toFixed(2)}</td>
-            <td class="number hide-mobile">${formatXP(r.xp_per_day)}</td>
+            <td class="number hide-mobile">${r.timeDays.toFixed(2)}</td>
+            <td class="number hide-mobile">${formatXP(r.xpPerDay)}</td>
         </tr>`;
         
+        // Detail row
         html += `<tr class="detail-row ${isExpanded ? 'visible' : ''}">
-            <td colspan="12">${renderDetailRow(r)}</td>
+            <td colspan="12">
+                ${renderDetailRow(r)}
+            </td>
         </tr>`;
     });
     
     tbody.innerHTML = html;
     
-    // Update sort indicators
+    // Update sort arrows
     document.querySelectorAll('th').forEach((th, i) => {
         th.classList.toggle('sorted', i === sortCol);
         const arrow = th.querySelector('.sort-arrow');
-        if (arrow) arrow.innerHTML = (i === sortCol && sortAsc) ? '&#9650;' : '&#9660;';
+        if (arrow) arrow.innerHTML = (i === sortCol && sortAsc) ? '▲' : '▼';
     });
 }
 
-// Close panels when clicking outside
-document.addEventListener('click', function(e) {
-    if (gearOpen && !e.target.closest('.gear-dropdown')) {
-        gearOpen = false;
-        document.getElementById('gear-panel').classList.remove('visible');
-        document.getElementById('gear-arrow').innerHTML = '&#9660;';
-    }
-    if (historyOpen && !e.target.closest('.history-dropdown')) {
-        historyOpen = false;
-        document.getElementById('history-panel').classList.remove('visible');
-        document.getElementById('history-arrow').innerHTML = '&#9660;';
-    }
-});
-
-// Initialize
-renderTable();
-updateTimes();
-setInterval(updateTimes, 60000);
-
-// Display version
-if (gameVersion) {
-    document.getElementById('version-tag').textContent = gameVersion;
-}
+// Start when DOM ready
+document.addEventListener('DOMContentLoaded', init);
