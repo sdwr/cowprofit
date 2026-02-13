@@ -419,12 +419,13 @@ function renderLootHistoryPanel() {
         const profitStr = hasPriceErrors ? '⚠️' : (enhanceProfit.profit !== 0 ? formatCoins(enhanceProfit.profit) : '-');
         const rateStr = hasPriceErrors ? '-' : (enhanceProfit.profitPerHour !== 0 ? `${formatCoins(enhanceProfit.profitPerHour)}/hr` : '-');
         
-        // Build title with current level from primaryItem
-        const levelStr = enhanceProfit.currentLevel > 0 ? ` +${enhanceProfit.currentLevel}` : '';
+        // Build title with level - prefer currentLevel (primaryItem), fallback to highestLevel from drops
+        const level = enhanceProfit.currentLevel || enhanceProfit.highestLevel || 0;
+        const levelStr = level > 0 ? ` +${level}` : '';
         const itemTitle = `${enhanceProfit.itemName || 'Unknown'}${levelStr}`;
         
-        // Result is just the current level (from primaryItem)
-        const resultStr = enhanceProfit.currentLevel > 0 ? `+${enhanceProfit.currentLevel}` : '-';
+        // Result is just the level
+        const resultStr = level > 0 ? `+${level}` : '-';
         
         entriesHtml += `
             <div class="loot-entry enhance-entry">
@@ -629,6 +630,13 @@ function calculateEnhanceSessionProfit(session) {
     }
     const totalProtCost = protsUsed * protPrice;
     
+    // Find highest level from any drops (for display)
+    let highestLevel = 0;
+    for (const [lvl, count] of Object.entries(levelDrops)) {
+        const level = parseInt(lvl) || 0;
+        if (level > highestLevel) highestLevel = level;
+    }
+    
     // Calculate revenue - only count as sellable if:
     // 1. Highest level is a target (+8/+10/+12/+14)
     // 2. There is exactly 1 item at that level (multiple = still working on it)
@@ -677,6 +685,7 @@ function calculateEnhanceSessionProfit(session) {
         totalItems,
         levelDrops,
         currentLevel,
+        highestLevel,
         highestTargetLevel,
         protsUsed,
         matCostPerAction,
