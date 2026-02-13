@@ -683,7 +683,11 @@
             max-height: 500px;
             overflow-y: auto;
             z-index: 1000;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.9);
+            /* Ensure fully opaque - no table bleed through */
+            opacity: 1;
+            backdrop-filter: none;
+            isolation: isolate;
         }
         .loot-history-panel.visible { display: block; }
         .loot-history-panel h5 {
@@ -749,20 +753,27 @@
         .loot-values {
             display: flex;
             gap: 12px;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             font-family: 'SF Mono', Monaco, monospace;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.08);
         }
         .loot-value {
             color: #aaa;
+            font-weight: 600;
         }
         .loot-value.positive {
             color: #4ade80;
+            text-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
         }
         .loot-value.negative {
             color: #f87171;
+            text-shadow: 0 0 8px rgba(248, 113, 113, 0.4);
         }
         .loot-value.warning {
             color: #fbbf24;
+            text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
         }
         .loot-rate {
             color: #eeb357;

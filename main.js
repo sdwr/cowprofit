@@ -85,21 +85,13 @@ window.addEventListener('cowprofit-inventory-loaded', function(e) {
 // Listen for loot history from userscript
 window.addEventListener('cowprofit-loot-loaded', function(e) {
     console.log('[CowProfit v2] Loot history received:', e.detail?.length, 'entries');
-    const newData = e.detail || [];
-    
-    // Merge with existing data - replace sessions with same startTime (extended sessions)
-    const sessionMap = new Map();
-    for (const session of lootHistoryData) {
-        sessionMap.set(session.startTime, session);
-    }
-    for (const session of newData) {
-        // New/extended session replaces old one with same startTime
-        sessionMap.set(session.startTime, session);
-    }
-    lootHistoryData = Array.from(sessionMap.values());
-    
+    // Always use fresh data from userscript - it's the source of truth
+    lootHistoryData = e.detail || [];
     // Sort by startTime descending (most recent first)
     lootHistoryData.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+    console.log('[CowProfit v2] Loot sessions loaded:', lootHistoryData.map(s => 
+        `${s.actionHrid?.split('/').pop()} @ ${s.startTime} (${s.actionCount} actions)`
+    ).slice(0, 5));
     // Update loot history panel if open
     if (lootHistoryOpen) {
         renderLootHistoryPanel();
@@ -432,9 +424,6 @@ function renderLootHistoryPanel() {
         const profitStr = hasPriceErrors ? '⚠️' : (enhanceProfit.profit !== 0 ? formatCoins(enhanceProfit.profit) : '-');
         const rateStr = hasPriceErrors ? '-' : (enhanceProfit.profitPerHour !== 0 ? `${formatCoins(enhanceProfit.profitPerHour)}/hr` : '-');
         
-        // Format estimated prots
-        const estProtsStr = enhanceProfit.protsUsed > 0 ? `~${enhanceProfit.protsUsed} prots` : '';
-        
         entriesHtml += `
             <div class="loot-entry enhance-entry">
                 <div class="loot-header">
@@ -444,7 +433,7 @@ function renderLootHistoryPanel() {
                 <div class="loot-details">
                     <span class="loot-duration">${duration}</span>
                     <span class="loot-actions">${enhanceProfit.actionCount} actions</span>
-                    ${estProtsStr ? `<span class="loot-prots">${estProtsStr}</span>` : ''}
+                    <span class="loot-prots">${enhanceProfit.protsUsed} prots</span>
                 </div>
                 <div class="loot-costs">
                     <span>Mats: ${matCostStr}</span>
@@ -628,9 +617,9 @@ function calculateEnhanceSessionProfit(session) {
     }
     const totalProtCost = protsUsed * protPrice;
     
-    // Calculate revenue - only count the HIGHEST target level as sellable
-    // Lower levels are intermediate (consumed to make higher levels)
-    // E.g., if we have 7 +8s and 1 +10, the +8s were consumed making the +10
+    // Calculate revenue - only count as sellable if:
+    // 1. Highest level is a target (+8/+10/+12/+14)
+    // 2. There is exactly 1 item at that level (multiple = still working on it)
     let revenue = 0;
     let revenueBreakdown = {};
     let revenuePriceMissing = false;
@@ -643,14 +632,19 @@ function calculateEnhanceSessionProfit(session) {
         }
     }
     
-    // Only count the highest level as revenue (final sellable items)
+    // Only count as revenue if exactly 1 item at highest level (finished product)
+    // Multiple items at same level = still working, not sellable yet
     if (highestTargetLevel > 0) {
         const count = levelDrops[highestTargetLevel] || 0;
-        const sellPrice = prices.market?.[itemHrid]?.[String(highestTargetLevel)]?.b || 0;
-        if (sellPrice === 0) revenuePriceMissing = true;
-        const value = count * sellPrice;
-        revenue = value;
-        revenueBreakdown[highestTargetLevel] = { count, sellPrice, value };
+        if (count === 1) {
+            // Single item at target level = finished, count as revenue
+            const sellPrice = prices.market?.[itemHrid]?.[String(highestTargetLevel)]?.b || 0;
+            if (sellPrice === 0) revenuePriceMissing = true;
+            const value = count * sellPrice;
+            revenue = value;
+            revenueBreakdown[highestTargetLevel] = { count, sellPrice, value };
+        }
+        // If count > 1, don't count as revenue (work in progress)
     }
     
     const totalCost = totalMatCost + totalProtCost;
