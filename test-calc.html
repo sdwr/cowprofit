@@ -12,6 +12,13 @@
         th, td { border: 1px solid #444; padding: 8px; text-align: left; }
         th { background: #2d2d44; }
         .number { text-align: right; }
+        .number .expected { display: block; color: #888; font-size: 0.8em; }
+        .number .expected::before { content: "py: "; color: #666; }
+        .number .actual { display: block; color: #e8e8e8; }
+        .number .actual::before { content: "js: "; color: #666; }
+        .number .diff { display: block; font-size: 0.75em; }
+        .number .diff.pass { color: #4ade80; }
+        .number .diff.fail { color: #f87171; }
         .summary { font-size: 1.2em; margin: 20px 0; padding: 10px; background: #2d2d44; border-radius: 8px; }
         pre { background: #0d1117; padding: 10px; border-radius: 4px; overflow-x: auto; }
     </style>
@@ -160,8 +167,10 @@
                     
                     if (!cmp.pass) rowPass = false;
                     
-                    rowHtml += `<td class="number ${cmp.pass ? '' : 'fail'}" title="Exp: ${formatNum(expected)}, Got: ${formatNum(actual)}, Diff: ${cmp.diff.toFixed(2)}%">
-                        ${formatNum(actual)}
+                    rowHtml += `<td class="number ${cmp.pass ? '' : 'fail'}">
+                        <span class="expected">${formatNum(expected)}</span>
+                        <span class="actual">${formatNum(actual)}</span>
+                        <span class="diff ${cmp.pass ? 'pass' : 'fail'}">${cmp.diff.toFixed(2)}%</span>
                     </td>`;
                 }
                 
