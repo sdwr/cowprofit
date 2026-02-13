@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CowProfit Inventory Bridge
 // @namespace    https://github.com/sdwr/cowprofit
-// @version      1.0.1
+// @version      1.0.2
 // @description  Captures MWI inventory and coins, bridges to CowProfit via Tampermonkey storage
 // @author       sdwr
 // @license      MIT
@@ -93,29 +93,31 @@
     }
 
     function processCharacterData(data) {
-        // Debug: log structure to find coins
-        log('Character data keys:', Object.keys(data));
-        log('data.character:', data.character);
-        log('data.user:', data.user);
-        
-        // Try to find coins in various places
-        const coins = data.character?.gameCoins 
-            || data.gameCoins 
-            || data.user?.gameCoins
-            || data.coins
-            || 0;
-        log('Found coins:', coins);
-
         const inventory = {};
+        let coins = 0;
         const characterItems = data.characterItems || [];
 
         for (const item of characterItems) {
+            // Check for coins item
+            if (item.itemHrid === '/items/coin' || item.itemHrid === '/items/coins') {
+                coins = item.count;
+                log('Found coins in items:', coins);
+                continue; // Don't add coins to inventory
+            }
+            
             // Only count inventory items, not equipped gear
             if (item.itemLocationHrid === '/item_locations/inventory') {
                 const key = item.itemHrid;
                 inventory[key] = (inventory[key] || 0) + item.count;
             }
         }
+
+        // Also check other possible locations
+        if (coins === 0) {
+            coins = data.character?.gameCoins || data.characterInfo?.coins || 0;
+        }
+        
+        log('Final coins:', formatCoins(coins));
 
         const payload = {
             characterId: data.character?.id,
