@@ -316,7 +316,7 @@ function renderShoppingList(r) {
         const lineCost = toBuy * (r.protect_price || 0);
         totalCost += lineCost;
         rows += `<div class="shop-row prot-row">
-            <span class="shop-name">${r.protect_name} @ +${r.protect_at}</span>
+            <span class="shop-name">${r.protect_name} @ ${r.protect_at}</span>
             <span class="shop-owned ${owned >= needed ? 'complete' : ''}">${invLoaded ? owned.toLocaleString() : '-'}</span>
             <span class="shop-need">${needed.toFixed(1)}</span>
             <span class="shop-cost">${formatCoins(lineCost)}</span>
@@ -333,8 +333,12 @@ function renderShoppingList(r) {
         <span class="shop-cost">${formatCoins(totalCost)}</span>
     </div>`;
     
+    // Calculate overall material % for progress bar
+    const matPct = calculateMatPercent(r);
+    const barStyle = matPct !== null ? `width:${matPct.toFixed(1)}%` : 'display:none';
+    
     return `<div class="detail-section shopping-list">
-        <h4>&#x1F6D2; Shopping List${invLoaded ? '' : ' <span class="price-note">(no inventory synced)</span>'}</h4>
+        <h4><div class="shop-progress-bar" style="${barStyle}"></div><span class="shop-progress-text">&#x1F6D2; Shopping List${invLoaded ? '' : ' <span class="price-note">(no inventory synced)</span>'}</span></h4>
         <div class="shop-header">
             <span class="shop-col">Material</span>
             <span class="shop-col">Owned</span>
@@ -420,22 +424,22 @@ function renderDetailRow(r) {
         </div>`;
     }
     
-    const altLabel = r.base_source === 'craft' ? 'Market' : 'Craft';
-    const altPrice = r.alt_price > 0 ? formatCoins(r.alt_price) : 'N/A';
+    const priceSourceLabel = r.base_source === 'craft' ? 'Craft price' : 'Market price';
+    const altLabel = r.base_source === 'craft' ? 'Market price' : 'Craft price';
+    const altPrice = r.alt_price > 0 ? formatCoins(r.alt_price) : null;
     
     return `<div class="detail-content">
         <div class="detail-section">
             <h4>&#x1F4E6; Base Item</h4>
             <div class="detail-line">
-                <span class="label">Source</span>
-                <span class="value">${r.base_source} (${priceLabel})</span>
-            </div>
-            <div class="detail-line">
-                <span class="label">Base price</span>
+                <span class="label">${priceSourceLabel}</span>
                 <span class="value">${formatCoins(r.base_price)}</span>
             </div>
-            ${r.base_source === 'craft' ? craftMatsHtml : `<div class="detail-line"><span class="label">${altLabel} price</span><span class="value alt">${altPrice}</span></div>`}
+            ${altPrice ? `<div class="detail-line"><span class="label">${altLabel}</span><span class="value alt">${altPrice}</span></div>` : ''}
+            ${r.base_source === 'craft' ? craftMatsHtml : ''}
         </div>
+        
+        ${renderShoppingList(r)}
         
         <div class="detail-section">
             <h4>&#x1F527; Materials</h4>
@@ -446,8 +450,6 @@ function renderDetailRow(r) {
                 <span class="mat-price">${formatCoins(totalEnhanceCost)}</span>
             </div>
         </div>
-        
-        ${renderShoppingList(r)}
         
         <div class="detail-section">
             <h4>&#x1F4B0; Cost Summary</h4>
@@ -460,7 +462,7 @@ function renderDetailRow(r) {
                 <span class="value">${formatCoins(totalEnhanceCost)}</span>
             </div>
             <div class="detail-line">
-                <span class="label">${r.protect_name || 'Protection'} @ +${r.protect_at} (${formatCoins(r.protect_price)} × ${r.protect_count.toFixed(1)})</span>
+                <span class="label">${r.protect_name || 'Protection'} @ ${r.protect_at} (${formatCoins(r.protect_price)} × ${r.protect_count.toFixed(1)})</span>
                 <span class="value">${formatCoins(totalProtCost)}</span>
             </div>
             <div class="mat-row total-row">
@@ -592,11 +594,10 @@ function renderTable() {
         }
         
         const matPct = calculateMatPercent(r);
-        const matPctStr = matPct !== null ? matPct.toFixed(0) : '';
         const matBarStyle = matPct !== null ? `width:${matPct.toFixed(1)}%` : 'display:none';
         
         html += `<tr class="data-row ${isExpanded ? 'expanded' : ''}" onclick="toggleRow('${rowId}')" data-level="${r.target_level}" data-matpct="${matPct !== null ? matPct : -1}">
-            <td class="item-name"><div class="mat-pct-bar" style="${matBarStyle}"></div><span class="expand-icon">&#9654;</span>${r.item_name}${matPct !== null ? `<span class="mat-pct-label">${matPctStr}%</span>` : ''}</td>
+            <td class="item-name"><div class="mat-pct-bar" style="${matBarStyle}"></div><span class="expand-icon">&#9654;</span>${r.item_name}</td>
             <td><span class="level-badge">+${r.target_level}</span></td>
             <td class="number"><span class="price-source ${sourceClass}"></span>${formatCoins(r.base_price)}</td>
             <td class="number hide-mobile">${formatCoins(r.mat_cost)}</td>
