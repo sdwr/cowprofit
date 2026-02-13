@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CowProfit Inventory Bridge
 // @namespace    https://github.com/sdwr/cowprofit
-// @version      1.0.0
+// @version      1.0.1
 // @description  Captures MWI inventory and coins, bridges to CowProfit via Tampermonkey storage
 // @author       sdwr
 // @license      MIT
@@ -93,6 +93,19 @@
     }
 
     function processCharacterData(data) {
+        // Debug: log structure to find coins
+        log('Character data keys:', Object.keys(data));
+        log('data.character:', data.character);
+        log('data.user:', data.user);
+        
+        // Try to find coins in various places
+        const coins = data.character?.gameCoins 
+            || data.gameCoins 
+            || data.user?.gameCoins
+            || data.coins
+            || 0;
+        log('Found coins:', coins);
+
         const inventory = {};
         const characterItems = data.characterItems || [];
 
@@ -107,7 +120,7 @@
         const payload = {
             characterId: data.character?.id,
             characterName: data.character?.name,
-            gameCoins: data.character?.gameCoins || 0,
+            gameCoins: coins,
             inventory: inventory,
             itemCount: Object.keys(inventory).length,
             totalItems: Object.values(inventory).reduce((a, b) => a + b, 0),
