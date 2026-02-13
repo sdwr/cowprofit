@@ -415,11 +415,31 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(74, 222, 128, 0.3);
         }
-        .shopping-list .total-row {
-            background: rgba(0, 50, 0, 0.4);
-            margin: 4px -12px -12px -12px;
-            padding: 8px 12px;
-            border-radius: 0 0 8px 8px;
+        .shop-progress-bar {
+            position: relative;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .shop-progress-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, rgba(74, 222, 128, 0.6) 0%, rgba(74, 222, 128, 0.3) 100%);
+            transition: width 0.3s ease;
+        }
+        .shop-progress-label {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
         .shop-header {
             display: grid;
@@ -448,12 +468,6 @@
             margin-top: 4px;
             padding-top: 8px;
         }
-        .shop-row.total-row {
-            border-top: 1px solid rgba(238,179,87,0.3);
-            margin-top: 4px;
-            padding-top: 6px;
-            font-weight: bold;
-        }
         .shop-name { color: #ccc; }
         .shop-qty {
             position: relative;
@@ -475,24 +489,45 @@
         .shop-qty-text {
             position: relative;
             z-index: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 2px;
         }
-        .shop-need-num { color: #fff; font-weight: bold; }
-        .shop-total-num { color: #666; }
+        .shop-need-num { 
+            color: #fff; 
+            font-weight: bold;
+            min-width: 50px;
+            text-align: right;
+        }
+        .shop-total-num { 
+            color: #666;
+            min-width: 55px;
+            text-align: left;
+        }
         .shop-price { text-align: right; font-family: 'SF Mono', Monaco, monospace; color: #eeb357; }
         
         /* Enhance Panel */
         .enhance-panel {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(168, 85, 247, 0.3);
+            padding: 0 12px 12px 12px !important;
         }
         .enhance-header {
             background: rgba(168, 85, 247, 0.15);
-            margin: -12px -12px 12px -12px;
+            margin: 0 -12px 12px -12px;
             padding: 10px 12px;
             border-radius: 8px 8px 0 0;
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+        }
+        .enhance-header h4 {
+            color: #eeb357;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
         }
         .protect-badge {
             background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
@@ -503,13 +538,30 @@
             font-weight: bold;
             white-space: nowrap;
         }
-        .protect-detail {
+        .protect-line {
             display: flex;
-            flex-direction: column;
-            gap: 2px;
+            align-items: baseline;
+            gap: 6px;
+            flex: 1;
+            min-width: 150px;
         }
-        .protect-item { color: #d8b4fe; font-size: 0.8rem; font-weight: 500; }
-        .protect-avg { color: #a78bfa; font-size: 0.7rem; font-family: 'SF Mono', Monaco, monospace; }
+        .protect-count {
+            color: #d8b4fe;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        .protect-name {
+            color: #d8b4fe;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .protect-price {
+            color: #a78bfa;
+            font-size: 0.75rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            margin-left: auto;
+        }
         .enhance-mats {
             margin-bottom: 8px;
         }

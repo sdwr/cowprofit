@@ -438,10 +438,20 @@ function getCraftingMaterials(itemHrid, mode) {
     return { itemName, materials, total, baseItemHrid, baseItemName };
 }
 
+// Format number with commas
+function formatWithCommas(num) {
+    if (num >= 1000) {
+        return num.toLocaleString('en-US', { maximumFractionDigits: 1 });
+    }
+    return num.toFixed(1);
+}
+
 // Shopping list for detail row - 3 column layout with progress bars
 function renderShoppingList(r, materials) {
     let rows = '';
     let totalCost = 0;
+    let totalOwned = 0;
+    let totalNeed = 0;
     
     // Enhancement materials (exclude coins)
     for (const m of materials) {
@@ -452,12 +462,14 @@ function renderShoppingList(r, materials) {
         const pct = total > 0 ? (owned / total) * 100 : 0;
         const lineCost = need * m.price;
         totalCost += lineCost;
+        totalOwned += owned;
+        totalNeed += total;
         
         rows += `<div class="shop-row">
             <span class="shop-name">${m.name}</span>
             <span class="shop-qty">
                 <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
-                <span class="shop-qty-text"><span class="shop-need-num">${need.toFixed(1)}</span><span class="shop-total-num">/${total.toFixed(1)}</span></span>
+                <span class="shop-qty-text"><span class="shop-need-num">${formatWithCommas(need)}</span> <span class="shop-total-num">/ ${formatWithCommas(total)}</span></span>
             </span>
             <span class="shop-price">${formatCoins(m.price)}</span>
         </div>`;
@@ -473,12 +485,14 @@ function renderShoppingList(r, materials) {
         const pct = total > 0 ? (owned / total) * 100 : 0;
         const lineCost = need * r.protectPrice;
         totalCost += lineCost;
+        totalOwned += owned;
+        totalNeed += total;
         
         rows += `<div class="shop-row prot-row">
             <span class="shop-name">${protName}</span>
             <span class="shop-qty">
                 <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
-                <span class="shop-qty-text"><span class="shop-need-num">${need.toFixed(1)}</span><span class="shop-total-num">/${total.toFixed(1)}</span></span>
+                <span class="shop-qty-text"><span class="shop-need-num">${formatWithCommas(need)}</span> <span class="shop-total-num">/ ${formatWithCommas(total)}</span></span>
             </span>
             <span class="shop-price">${formatCoins(r.protectPrice)}</span>
         </div>`;
@@ -486,15 +500,16 @@ function renderShoppingList(r, materials) {
     
     if (!rows) return '';
     
-    // Total row
-    rows += `<div class="shop-row total-row">
-        <span class="shop-name">Cost to Buy</span>
-        <span class="shop-qty"></span>
-        <span class="shop-price">${formatCoins(totalCost)}</span>
+    // Overall progress bar at top (0-100%)
+    const overallPct = totalNeed > 0 ? (totalOwned / totalNeed) * 100 : 0;
+    const progressBar = `<div class="shop-progress-bar">
+        <div class="shop-progress-fill" style="width:${overallPct.toFixed(0)}%"></div>
+        <span class="shop-progress-label">${overallPct.toFixed(0)}%</span>
     </div>`;
     
     return `<div class="detail-section shopping-list">
         <h4>🛒 Shopping List</h4>
+        ${progressBar}
         <div class="shop-header">
             <span class="shop-col">Item</span>
             <span class="shop-col">Need / Total</span>
@@ -526,9 +541,11 @@ function renderDetailRow(r) {
     const totalEnhanceCost = matsPerAttempt * r.actions;
     const totalProtCost = r.protectPrice * r.protectCount;
     
-    // Protection item name
+    // Protection item name (shorter version without level)
     const protItem = gameData.items[r.protectHrid];
-    const protName = protItem?.name || (r.protectHrid ? r.protectHrid.split('/').pop().replace(/_/g, ' ') : 'Protection');
+    let protName = protItem?.name || (r.protectHrid ? r.protectHrid.split('/').pop().replace(/_/g, ' ') : 'Protection');
+    // Strip "Protection" prefix for display
+    protName = protName.replace(/^Protection /, '');
     
     // Base item section - check for craft alternative
     const marketPrice = getBuyPrice(r.item_hrid, 0, mode);
@@ -615,12 +632,13 @@ function renderDetailRow(r) {
         ${renderShoppingList(r, materials)}
         
         <div class="detail-section enhance-panel">
-            <h4>⚡ Enhance</h4>
             <div class="enhance-header">
+                <h4>⚡ Enhance</h4>
                 <div class="protect-badge">Protect @ +${r.protectAt}</div>
-                <div class="protect-detail">
-                    <span class="protect-item">${protName}</span>
-                    <span class="protect-avg">Avg: ${r.protectCount.toFixed(1)} @ ${formatCoins(r.protectPrice)}</span>
+                <div class="protect-line">
+                    <span class="protect-count">${r.protectCount.toFixed(1)}</span>
+                    <span class="protect-name">${protName}</span>
+                    <span class="protect-price">${formatCoins(r.protectPrice)}</span>
                 </div>
             </div>
             <div class="enhance-mats">
@@ -628,8 +646,8 @@ function renderDetailRow(r) {
                 ${matsHtml || '<div class="detail-line"><span class="label">None</span></div>'}
             </div>
             <div class="mat-row total-row">
-                <span class="mat-name">${formatCoins(matsPerAttempt)} / click</span>
-                <span class="mat-count">× ${r.actions.toFixed(0)} avg</span>
+                <span class="mat-name">${r.actions.toFixed(0)} enhances</span>
+                <span class="mat-count">${formatCoins(matsPerAttempt)} / click</span>
                 <span class="mat-price">${formatCoins(totalEnhanceCost)}</span>
             </div>
         </div>
