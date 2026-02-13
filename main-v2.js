@@ -500,16 +500,24 @@ function renderShoppingList(r, materials) {
     
     if (!rows) return '';
     
-    // Overall progress bar at top (0-100%)
+    // Overall progress bar inline with title (0-100%)
     const overallPct = totalNeed > 0 ? (totalOwned / totalNeed) * 100 : 0;
-    const progressBar = `<div class="shop-progress-bar">
-        <div class="shop-progress-fill" style="width:${overallPct.toFixed(0)}%"></div>
-        <span class="shop-progress-label">${overallPct.toFixed(0)}%</span>
+    
+    // Total cost row at bottom (no progress bar)
+    rows += `<div class="shop-row total-row">
+        <span class="shop-name">Total Cost</span>
+        <span class="shop-qty"></span>
+        <span class="shop-price">${formatCoins(totalCost)}</span>
     </div>`;
     
     return `<div class="detail-section shopping-list">
-        <h4>🛒 Shopping List</h4>
-        ${progressBar}
+        <div class="shop-title-row">
+            <h4>🛒 Shopping List</h4>
+            <div class="shop-progress-bar">
+                <div class="shop-progress-fill" style="width:${overallPct.toFixed(0)}%"></div>
+                <span class="shop-progress-label">${overallPct.toFixed(0)}%</span>
+            </div>
+        </div>
         <div class="shop-header">
             <span class="shop-col">Item</span>
             <span class="shop-col">Need / Total</span>
@@ -634,12 +642,12 @@ function renderDetailRow(r) {
         <div class="detail-section enhance-panel">
             <div class="enhance-header">
                 <h4>⚡ Enhance</h4>
-                <div class="protect-badge">Protect @ +${r.protectAt}</div>
-                <div class="protect-line">
-                    <span class="protect-count">${r.protectCount.toFixed(1)}</span>
-                    <span class="protect-name">${protName}</span>
-                    <span class="protect-price">${formatCoins(r.protectPrice)}</span>
-                </div>
+            </div>
+            <div class="enhance-prot-row">
+                <span class="protect-badge">Prot @ ${r.protectAt}</span>
+                <span class="protect-count">${r.protectCount.toFixed(1)}</span>
+                <span class="protect-name">${protName}</span>
+                <span class="protect-price">${formatCoins(r.protectPrice)}</span>
             </div>
             <div class="enhance-mats">
                 <div class="enhance-mats-label">Cost per click:</div>
@@ -647,29 +655,8 @@ function renderDetailRow(r) {
             </div>
             <div class="mat-row total-row">
                 <span class="mat-name">${r.actions.toFixed(0)} enhances</span>
-                <span class="mat-count">${formatCoins(matsPerAttempt)} / click</span>
-                <span class="mat-price">${formatCoins(totalEnhanceCost)}</span>
-            </div>
-        </div>
-        
-        <div class="detail-section">
-            <h4>💰 Cost Summary</h4>
-            <div class="detail-line">
-                <span class="label">Base item</span>
-                <span class="value">${formatCoins(r.basePrice)}</span>
-            </div>
-            <div class="detail-line">
-                <span class="label">Materials (${r.actions.toFixed(0)} attempts)</span>
-                <span class="value">${formatCoins(totalEnhanceCost)}</span>
-            </div>
-            <div class="detail-line">
-                <span class="label">Protection (${r.protectCount.toFixed(1)}× ${protName})</span>
-                <span class="value">${formatCoins(totalProtCost)}</span>
-            </div>
-            <div class="mat-row total-row">
-                <span class="mat-name">Total Cost</span>
                 <span class="mat-count"></span>
-                <span class="mat-price">${formatCoins(r.totalCost)}</span>
+                <span class="mat-price">${formatCoins(matsPerAttempt)} / click</span>
             </div>
         </div>
         
@@ -683,6 +670,25 @@ function renderDetailRow(r) {
             <div class="detail-line">
                 <span class="label">XP earned</span>
                 <span class="value">${formatXP(r.totalXp)}</span>
+            </div>
+            <div class="cost-summary-divider"></div>
+            <h4>💰 Cost Summary</h4>
+            <div class="detail-line">
+                <span class="label">Base item</span>
+                <span class="value">${formatCoins(r.basePrice)}</span>
+            </div>
+            <div class="detail-line">
+                <span class="label">Materials (${r.actions.toFixed(0)} × ${formatCoins(matsPerAttempt)})</span>
+                <span class="value">${formatCoins(totalEnhanceCost)}</span>
+            </div>
+            <div class="detail-line">
+                <span class="label">Protection (${r.protectCount.toFixed(1)} × ${formatCoins(r.protectPrice)})</span>
+                <span class="value">${formatCoins(totalProtCost)}</span>
+            </div>
+            <div class="mat-row total-row">
+                <span class="mat-name">Total Cost</span>
+                <span class="mat-count"></span>
+                <span class="mat-price">${formatCoins(r.totalCost)}</span>
             </div>
         </div>
     </div>`;
