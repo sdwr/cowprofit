@@ -397,6 +397,7 @@ function getCraftingMaterials(itemHrid, mode) {
     const materials = [];
     let total = 0;
     
+    // Recipe inputs (with artisan tea)
     for (const input of recipe.inputs) {
         const matItem = gameData.items[input.item];
         const matName = matItem?.name || input.item.split('/').pop().replace(/_/g, ' ');
@@ -414,7 +415,25 @@ function getCraftingMaterials(itemHrid, mode) {
         });
     }
     
-    return { itemName, materials, total };
+    // Base item (the "upgrade" source) - NO artisan tea, count 1
+    let baseItemHrid = null;
+    let baseItemName = null;
+    if (recipe.upgrade) {
+        baseItemHrid = recipe.upgrade;
+        const baseItem = gameData.items[baseItemHrid];
+        baseItemName = baseItem?.name || baseItemHrid.split('/').pop().replace(/_/g, ' ');
+        const basePrice = getBuyPrice(baseItemHrid, 0, mode);
+        total += basePrice;
+        materials.push({
+            hrid: baseItemHrid,
+            name: baseItemName,
+            count: 1,
+            price: basePrice,
+            total: basePrice
+        });
+    }
+    
+    return { itemName, materials, total, baseItemHrid, baseItemName };
 }
 
 // Shopping list for detail row - always shows (shows 100% needed if no inventory)
@@ -505,7 +524,7 @@ function renderDetailRow(r) {
     
     let baseItemHtml = '';
     if (r.baseSource === 'craft' && craftData) {
-        // Craft is cheaper - show item name and breakdown
+        // Craft is cheaper - show breakdown (base item now included in materials)
         const craftMatsHtml = craftData.materials.map(m => `
             <div class="mat-row">
                 <span class="mat-name">${m.name}</span>
@@ -520,7 +539,7 @@ function renderDetailRow(r) {
                 <span class="value alt">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
             </div>
             <div class="detail-line">
-                <span class="label">Craft ${craftData.itemName}</span>
+                <span class="label">Craft price</span>
                 <span class="value">${formatCoins(r.basePrice)}</span>
             </div>
             <div class="craft-breakdown">
