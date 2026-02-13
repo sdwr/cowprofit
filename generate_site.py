@@ -242,28 +242,36 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         .gear-row .label {{ color: #888; }}
         .gear-row .value {{ color: #e8e8e8; font-family: 'SF Mono', Monaco, monospace; }}
         .gear-row .value.highlight {{ color: #4ade80; }}
-        .subtitle {{
-            text-align: center;
-            color: #888;
+        .subtitle-row {{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
             margin-bottom: 15px;
+        }}
+        .subtitle {{
+            color: #888;
             font-size: 0.9rem;
         }}
         .history-dropdown {{
             position: relative;
             display: inline-block;
-            cursor: pointer;
         }}
         .history-btn {{
-            background: transparent;
-            border: none;
-            color: inherit;
-            font: inherit;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #888;
+            padding: 4px 10px;
+            border-radius: 6px;
             cursor: pointer;
-            padding: 2px 6px;
-            border-radius: 4px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }}
         .history-btn:hover {{
-            background: rgba(255,255,255,0.1);
+            background: rgba(238,179,87,0.2);
+            color: #eeb357;
         }}
         .history-panel {{
             display: none;
@@ -274,10 +282,10 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             margin-top: 8px;
             background: #0d1117;
             border: 1px solid rgba(238,179,87,0.5);
-            border-radius: 8px;
-            padding: 12px;
-            min-width: 280px;
-            z-index: 1000;
+            border-radius: 12px;
+            padding: 16px;
+            min-width: 300px;
+            z-index: 1001;
             box-shadow: 0 8px 32px rgba(0,0,0,0.8);
             text-align: left;
         }}
@@ -600,12 +608,13 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                 <div class="gear-panel" id="gear-panel"></div>
             </div>
         </div>
-        <p class="subtitle">MWI Enhancement Profit Tracker | Last check: <span id="time-check">-</span> | 
-            <span class="history-dropdown">
+        <div class="subtitle-row">
+            <span class="subtitle">MWI Enhancement Profit Tracker | Last check: <span id="time-check">-</span> |</span>
+            <div class="history-dropdown">
                 <button class="history-btn" onclick="toggleHistory(event)">Market update: <span id="time-market">-</span> <span id="history-arrow">&#9660;</span></button>
                 <div class="history-panel" id="history-panel"></div>
-            </span>
-        </p>
+            </div>
+        </div>
         
         <div class="controls">
             <div class="control-group">
@@ -675,11 +684,12 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                     <th onclick="sortTable(3, 'num')" class="number hide-mobile">Enhance<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(4, 'num')" class="number hide-mobile">Total<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(5, 'num')" class="number">Sell<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(6, 'num')" class="number" style="text-align:center">$/day<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(7, 'num')" class="number" title="Time since sell price changed">Age<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(8, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(9, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(10, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(6, 'num')" class="number" title="Time since sell price changed">Age<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(7, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(8, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(9, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(10, 'num')" class="number">$/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(11, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
                 </tr>
             </thead>
             <tbody id="table-body">
@@ -699,7 +709,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         const updateHistory = {update_history};
         let currentMode = 'pessimistic';
         let currentLevel = 'all';
-        let sortCol = 6; // Default to $/day column
+        let sortCol = 10; // Default to $/day column
         let sortAsc = false;
         let showFee = true; // Fee toggle on by default
         let showSuperPessimistic = false; // Include mat loss toggle
@@ -1061,11 +1071,11 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                 }};
             }});
             
-            // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, profit_day, age, profit, roi, xp_per_day
+            // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, _age, profit, roi, time_days, profit_day, xp_per_day
             const nowTs = Math.floor(Date.now() / 1000);
             // Add computed _age field for sorting
             filtered = filtered.map(r => ({{...r, _age: r.price_since_ts ? nowTs - r.price_since_ts : 0}}));
-            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_profit_day', '_age', '_profit', '_roi', 'xp_per_day'];
+            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_age', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day'];
             filtered.sort((a, b) => {{
                 let va = a[sortKeys[sortCol]];
                 let vb = b[sortKeys[sortCol]];
@@ -1121,15 +1131,16 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                     <td class="number hide-mobile">${{formatCoins(r.mat_cost)}}</td>
                     <td class="number hide-mobile">${{formatCoins(r.total_cost)}}</td>
                     <td class="number">${{formatCoins(r.sell_price)}}</td>
-                    <td class="number profit-bar-cell ${{profitClass}}" style="text-align:center"><div class="profit-bar ${{barClass}}" style="width:${{barWidth.toFixed(1)}}%"></div><span class="profit-bar-value">${{formatCoins(profitDay)}}</span></td>
                     <td class="number">${{formatAge(r._age)}} ${{getAgeArrow(r.price_direction)}}</td>
                     <td class="number ${{profitClass}}">${{formatCoins(profit)}}</td>
                     <td class="number ${{profitClass}}">${{roi.toFixed(1)}}%</td>
+                    <td class="number hide-mobile">${{r.time_days.toFixed(2)}}</td>
+                    <td class="number profit-bar-cell ${{profitClass}}"><div class="profit-bar ${{barClass}}" style="width:${{barWidth.toFixed(1)}}%"></div><span class="profit-bar-value">${{formatCoins(profitDay)}}</span></td>
                     <td class="number hide-mobile">${{formatXP(r.xp_per_day)}}</td>
                 </tr>`;
                 
                 html += `<tr class="detail-row ${{isExpanded ? 'visible' : ''}}">
-                    <td colspan="11">${{renderDetailRow(r)}}</td>
+                    <td colspan="12">${{renderDetailRow(r)}}</td>
                 </tr>`;
             }});
             
@@ -1152,6 +1163,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             if (historyOpen && !e.target.closest('.history-dropdown')) {{
                 historyOpen = false;
                 document.getElementById('history-panel').classList.remove('visible');
+                document.getElementById('history-arrow').innerHTML = '&#9660;';
             }}
         }});
         
