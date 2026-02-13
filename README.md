@@ -129,6 +129,28 @@ python3 generate_site.py
 3. Add `SPRITE_TOKEN` secret to GitHub repo settings
 4. Push to trigger first run
 
+### Troubleshooting
+
+**GitHub Actions failing at "Auth and Run Update":**
+- Check `SPRITE_TOKEN` secret is set and valid
+- Token may have expired — generate new one at Fly.io dashboard
+
+**Sprite exec hangs or returns no output:**
+- Use `bash -c "..."` wrapper for complex commands
+- Direct `python3 /path/to/script.py` may fail on module imports
+- ✅ Works: `sprite exec -s mwi-tracker -- bash -c "cd /home/sprite/cowprofit && python3 generate_site.py"`
+- ❌ Fails: `sprite exec -s mwi-tracker -- python3 /home/sprite/cowprofit/generate_site.py`
+
+**Module not found (requests, etc):**
+- Sprite uses pyenv — pip3 installs to correct location
+- But running python directly without bash may use different PATH
+- Always use `bash -c "cd /path && python3 script.py"` pattern
+
+**v2 site (client-side calcs):**
+- Branch: `client-side-calcs`
+- Uses `prices.js` + `game-data.js` instead of server-side calculation
+- Cron job updates `prices.js` every 30 min via separate workflow
+
 ## Roadmap
 
 ### Planned: Inventory Import
