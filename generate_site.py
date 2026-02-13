@@ -121,16 +121,18 @@ def get_price_age_info(item_hrid, target_level, price_history, now_ts):
     data = items.get(key, {})
     
     if not data:
-        return {'price_since_ts': 0, 'price_direction': None, 'last_price': None}
+        return {'price_since_ts': 0, 'price_direction': None, 'last_price': None, 'tracked_price': None}
     
     price_since_ts = data.get('current_price_since_ts', 0)
     direction = data.get('price_direction')  # 'up', 'down', or None
     last_price = data.get('last_price')
+    tracked_price = data.get('current_price')  # The actual tracked ask price
     
     return {
         'price_since_ts': price_since_ts,
         'price_direction': direction,
-        'last_price': last_price
+        'last_price': last_price,
+        'tracked_price': tracked_price
     }
 
 
@@ -211,13 +213,13 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             top: 100%;
             right: 0;
             margin-top: 8px;
-            background: #1a1a2e;
-            border: 1px solid rgba(238,179,87,0.3);
+            background: #0d1117;
+            border: 1px solid rgba(238,179,87,0.5);
             border-radius: 12px;
             padding: 16px;
             min-width: 320px;
             z-index: 1000;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
         }}
         .gear-panel.visible {{ display: block; }}
         .gear-section {{
@@ -249,6 +251,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         .history-dropdown {{
             position: relative;
             display: inline-block;
+            cursor: pointer;
         }}
         .history-trigger {{
             cursor: pointer;
@@ -265,13 +268,13 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             left: 50%;
             transform: translateX(-50%);
             margin-top: 8px;
-            background: #1a1a2e;
-            border: 1px solid rgba(238,179,87,0.3);
+            background: #0d1117;
+            border: 1px solid rgba(238,179,87,0.5);
             border-radius: 8px;
             padding: 12px;
             min-width: 280px;
             z-index: 1000;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
             text-align: left;
         }}
         .history-panel.visible {{ display: block; }}
@@ -927,13 +930,20 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             const totalProtCost = r.protect_price * r.protect_count;
             
             // Price display - 2 lines max
+            // Use tracked_price (ask) for direction comparison, sell_price for actual value
             let priceHtml = '';
-            if (r.last_price && r.price_since_ts) {{
-                const pctChange = ((r.sell_price - r.last_price) / r.last_price * 100).toFixed(1);
+            if (r.last_price && r.tracked_price && r.price_since_ts) {{
+                // Show tracked price change (ask → ask) which matches the direction arrow
+                const pctChange = ((r.tracked_price - r.last_price) / r.last_price * 100).toFixed(1);
                 const pctClass = pctChange > 0 ? 'positive' : 'negative';
                 priceHtml = `<div class="detail-line">
-                    <span class="label">Price</span>
-                    <span class="value ${{pctClass}}">${{formatCoins(r.last_price)}} → ${{formatCoins(r.sell_price)}} (${{pctChange > 0 ? '+' : ''}}${{pctChange}}%)</span>
+                    <span class="label">Market ask</span>
+                    <span class="value ${{pctClass}}">${{formatCoins(r.last_price)}} → ${{formatCoins(r.tracked_price)}} (${{pctChange > 0 ? '+' : ''}}${{pctChange}}%)</span>
+                </div>`;
+                // Also show actual sell price based on current mode
+                priceHtml += `<div class="detail-line">
+                    <span class="label">Sell price (${{currentMode}})</span>
+                    <span class="value">${{formatCoins(r.sell_price)}}</span>
                 </div>`;
             }} else {{
                 priceHtml = `<div class="detail-line">
@@ -1192,6 +1202,7 @@ def main():
             result['price_since_ts'] = age_info['price_since_ts']
             result['price_direction'] = age_info['price_direction']
             result['last_price'] = age_info['last_price']
+            result['tracked_price'] = age_info['tracked_price']
     
     profitable_count = len([r for r in all_modes['pessimistic'] if r['profit'] > MIN_PROFIT])
     print(f"Found {profitable_count} profitable opportunities (pessimistic)")
