@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EnhanceCalc Test Runner</title>
+    <style>
+        body { font-family: monospace; background: #1a1a2e; color: #e8e8e8; padding: 20px; }
+        h1 { color: #eeb357; }
+        .pass { color: #4ade80; }
+        .fail { color: #f87171; }
+        .warn { color: #fbbf24; }
+        table { border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #444; padding: 8px; text-align: left; }
+        th { background: #2d2d44; }
+        .number { text-align: right; }
+        .summary { font-size: 1.2em; margin: 20px 0; padding: 10px; background: #2d2d44; border-radius: 8px; }
+        pre { background: #0d1117; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 EnhanceCalc Test Runner</h1>
+    <div id="status">Loading...</div>
+    <div id="summary" class="summary"></div>
+    <div id="results"></div>
+    
+    <script src="game-data.js"></script>
+    <script src="enhance-calc.js"></script>
+    <script>
+        const TOLERANCE = 0.01; // 1% tolerance for floating point
+        
+        async function loadTestCases() {
+            const resp = await fetch('test-cases.json');
+            return resp.json();
+        }
+        
+        async function loadPrices() {
+            // For now, fetch fresh market data
+            const resp = await fetch('https://www.milkywayidle.com/game_data/marketplace.json');
+            const data = await resp.json();
+            return { market: data.marketData, ts: data.timestamp };
+        }
+        
+        function compare(expected, actual, field) {
+            if (expected === 0 && actual === 0) return { pass: true, diff: 0 };
+            if (expected === 0) return { pass: false, diff: Infinity };
+            
+            const diff = Math.abs((actual - expected) / expected);
+            return {
+                pass: diff <= TOLERANCE,
+                diff: diff * 100,
+                expected,
+                actual
+            };
+        }
+        
+        function formatNum(n) {
+            if (n === undefined || n === null) return '-';
+            if (Math.abs(n) >= 1e9) return (n/1e9).toFixed(2) + 'B';
+            if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(2) + 'M';
+            if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(2) + 'K';
+            return n.toFixed(2);
+        }
+        
+        async function runTests() {
+            const statusEl = document.getElementById('status');
+            const summaryEl = document.getElementById('summary');
+            const resultsEl = document.getElementById('results');
+            
+            statusEl.textContent = 'Loading test cases...';
+            const testData = await loadTestCases();
+            
+            statusEl.textContent = 'Loading prices...';
+            const prices = await loadPrices();
+            
+            statusEl.textContent = 'Running tests...';
+            
+            // Check if prices match
+            if (prices.ts !== testData.marketTimestamp) {
+                statusEl.innerHTML = `<span class="warn">⚠️ Market data timestamp mismatch! Tests may fail due to price changes.</span><br>
+                    Test cases: ${new Date(testData.marketTimestamp * 1000).toLocaleString()}<br>
+                    Current: ${new Date(prices.ts * 1000).toLocaleString()}`;
+            }
+            
+            const gameData = window.GAME_DATA_STATIC;
+            const calc = new EnhanceCalculator(gameData);
+            
+            // Verify player config matches
+            const configChecks = [
+                ['guzzlingBonus', testData.playerConfig.guzzling_bonus, calc.getGuzzlingBonus()],
+                ['enhancerBonus', testData.playerConfig.enhancer_bonus, calc.getEnhancerBonus()],
+                ['effectiveLevel', testData.playerConfig.effective_level, calc.getEffectiveLevel()],
+                ['artisanMultiplier', testData.playerConfig.artisan_multiplier, calc.getArtisanTeaMultiplier()],
+            ];
+            
+            let configHtml = '<h2>Player Config Check</h2><table><tr><th>Stat</th><th>Python</th><th>JS</th><th>Status</th></tr>';
+            for (const [name, expected, actual] of configChecks) {
+                const result = compare(expected, actual, name);
+                configHtml += `<tr>
+                    <td>${name}</td>
+                    <td class="number">${expected.toFixed(6)}</td>
+                    <td class="number">${actual.toFixed(6)}</td>
+                    <td class="${result.pass ? 'pass' : 'fail'}">${result.pass ? '✓' : '✗'} ${result.diff.toFixed(2)}%</td>
+                </tr>`;
+            }
+            configHtml += '</table>';
+            
+            // Run test cases
+            const fields = ['actions', 'protect_count', 'protect_at', 'mat_cost', 'total_cost', 'time_hours', 'total_xp', 'profit', 'roi'];
+            const fieldMap = {
+                'actions': 'actions',
+                'protect_count': 'protectCount',
+                'protect_at': 'protectAt',
+                'mat_cost': 'matCost',
+                'total_cost': 'totalCost',
+                'time_hours': 'timeHours',
+                'total_xp': 'totalXp',
+                'profit': 'profit',
+                'roi': 'roi',
+            };
+            
+            let passed = 0;
+            let failed = 0;
+            let skipped = 0;
+            let failedCases = [];
+            
+            let tableHtml = '<h2>Test Cases</h2><table><tr><th>Item</th><th>Lvl</th><th>Mode</th>';
+            for (const f of fields) {
+                tableHtml += `<th class="number">${f}</th>`;
+            }
+            tableHtml += '<th>Status</th></tr>';
+            
+            for (const testCase of testData.cases) {
+                const mode = testCase.mode === 'pessimistic' ? PriceMode.PESSIMISTIC :
+                             testCase.mode === 'optimistic' ? PriceMode.OPTIMISTIC :
+                             PriceMode.MIDPOINT;
+                
+                const result = calc.calculateProfit(testCase.item_hrid, testCase.target_level, prices, mode);
+                
+                if (!result) {
+                    skipped++;
+                    tableHtml += `<tr>
+                        <td>${testCase.item_hrid.split('/').pop()}</td>
+                        <td>+${testCase.target_level}</td>
+                        <td>${testCase.mode}</td>
+                        <td colspan="${fields.length + 1}" class="warn">SKIPPED (no result)</td>
+                    </tr>`;
+                    continue;
+                }
+                
+                let rowPass = true;
+                let rowHtml = `<tr>
+                    <td>${testCase.item_hrid.split('/').pop()}</td>
+                    <td>+${testCase.target_level}</td>
+                    <td>${testCase.mode}</td>`;
+                
+                for (const f of fields) {
+                    const jsField = fieldMap[f];
+                    const expected = testCase[f];
+                    const actual = result[jsField];
+                    const cmp = compare(expected, actual, f);
+                    
+                    if (!cmp.pass) rowPass = false;
+                    
+                    rowHtml += `<td class="number ${cmp.pass ? '' : 'fail'}" title="Exp: ${formatNum(expected)}, Got: ${formatNum(actual)}, Diff: ${cmp.diff.toFixed(2)}%">
+                        ${formatNum(actual)}
+                    </td>`;
+                }
+                
+                if (rowPass) {
+                    passed++;
+                    rowHtml += '<td class="pass">✓ PASS</td>';
+                } else {
+                    failed++;
+                    rowHtml += '<td class="fail">✗ FAIL</td>';
+                    failedCases.push({ testCase, result });
+                }
+                
+                tableHtml += rowHtml + '</tr>';
+            }
+            
+            tableHtml += '</table>';
+            
+            summaryEl.innerHTML = `
+                <span class="pass">✓ ${passed} passed</span> |
+                <span class="fail">✗ ${failed} failed</span> |
+                <span class="warn">⚠ ${skipped} skipped</span> |
+                Total: ${testData.cases.length}
+            `;
+            
+            resultsEl.innerHTML = configHtml + tableHtml;
+            
+            if (failedCases.length > 0 && failedCases.length <= 5) {
+                let detailHtml = '<h2>Failed Case Details</h2>';
+                for (const { testCase, result } of failedCases) {
+                    detailHtml += `<h3>${testCase.item_hrid} +${testCase.target_level} (${testCase.mode})</h3>`;
+                    detailHtml += '<pre>' + JSON.stringify({ expected: testCase, actual: result }, null, 2) + '</pre>';
+                }
+                resultsEl.innerHTML += detailHtml;
+            }
+            
+            statusEl.textContent = 'Done!';
+        }
+        
+        runTests().catch(err => {
+            document.getElementById('status').innerHTML = `<span class="fail">Error: ${err.message}</span><pre>${err.stack}</pre>`;
+        });
+    </script>
+</body>
+</html>
