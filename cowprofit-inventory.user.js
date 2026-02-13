@@ -141,20 +141,24 @@
         }
 
         let newCount = 0;
+        let updatedCount = 0;
         for (const entry of lootLog) {
             // Use startTime as unique key
             const key = entry.startTime || entry.endTime || Date.now().toString();
-            if (!stored[charId][key]) {
-                stored[charId][key] = {
-                    startTime: entry.startTime,
-                    endTime: entry.endTime,
-                    actionHrid: entry.actionHrid,
-                    actionCount: entry.actionCount || 0,
-                    drops: entry.drops || {},
-                    storedAt: Date.now()
-                };
-                newCount++;
-            }
+            const isNew = !stored[charId][key];
+            
+            // Always update - sessions can extend with more actions
+            stored[charId][key] = {
+                startTime: entry.startTime,
+                endTime: entry.endTime,
+                actionHrid: entry.actionHrid,
+                actionCount: entry.actionCount || 0,
+                drops: entry.drops || {},
+                storedAt: Date.now()
+            };
+            
+            if (isNew) newCount++;
+            else updatedCount++;
         }
 
         // Limit to last 200 entries per character (sorted by startTime)
@@ -165,7 +169,7 @@
         }
 
         GM_setValue(LOOT_STORAGE_KEY, JSON.stringify(stored));
-        log(`Stored ${newCount} new loot entries. Total: ${Object.keys(stored[charId]).length}`);
+        log(`Loot: ${newCount} new, ${updatedCount} updated. Total: ${Object.keys(stored[charId]).length}`);
     }
 
     function processMarketTransaction(data) {

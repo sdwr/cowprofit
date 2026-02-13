@@ -424,10 +424,19 @@ function renderLootHistoryPanel() {
         const profitStr = hasPriceErrors ? '⚠️' : (enhanceProfit.profit !== 0 ? formatCoins(enhanceProfit.profit) : '-');
         const rateStr = hasPriceErrors ? '-' : (enhanceProfit.profitPerHour !== 0 ? `${formatCoins(enhanceProfit.profitPerHour)}/hr` : '-');
         
+        // Build title with level if we have a result
+        const levelStr = enhanceProfit.highestTargetLevel > 0 ? ` +${enhanceProfit.highestTargetLevel}` : '';
+        const itemTitle = `${enhanceProfit.itemName || 'Unknown'}${levelStr}`;
+        
+        // Build result summary (only highest level counts)
+        const resultSummary = Object.entries(enhanceProfit.revenueBreakdown)
+            .map(([lvl, data]) => `+${lvl}×${data.count}`)
+            .join(', ') || targetSummary;
+        
         entriesHtml += `
             <div class="loot-entry enhance-entry">
                 <div class="loot-header">
-                    <span class="loot-action">⚔️ ${enhanceProfit.itemName || 'Unknown'}</span>
+                    <span class="loot-action">⚔️ ${itemTitle}</span>
                     <span class="loot-time">${formatLootTime(session.startTime)}</span>
                 </div>
                 <div class="loot-details">
@@ -440,7 +449,7 @@ function renderLootHistoryPanel() {
                     <span>Prot: ${protCostStr}</span>
                 </div>
                 <div class="loot-revenue">
-                    <span>Targets: ${targetSummary}</span>
+                    <span>Result: ${resultSummary}</span>
                     <span>Revenue: ${revenueStr}</span>
                 </div>
                 <div class="loot-values">
@@ -667,6 +676,7 @@ function calculateEnhanceSessionProfit(session) {
         actionCount,
         totalItems,
         levelDrops,
+        highestTargetLevel,
         protsUsed,
         matCostPerAction,
         totalMatCost,

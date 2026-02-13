@@ -675,19 +675,23 @@
             top: 100%;
             right: 0;
             margin-top: 8px;
-            background: #0d1117;
+            background: #0a0e14;
             border: 1px solid rgba(238,179,87,0.5);
             border-radius: 12px;
             padding: 16px;
             min-width: 380px;
             max-height: 500px;
             overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.9);
-            /* Ensure fully opaque - no table bleed through */
-            opacity: 1;
-            backdrop-filter: none;
-            isolation: isolate;
+            z-index: 9999;
+            box-shadow: 0 8px 32px rgba(0,0,0,1), 0 0 0 1000px rgba(0,0,0,0.3);
+        }
+        .loot-history-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: #0a0e14;
+            border-radius: 12px;
+            z-index: -1;
         }
         .loot-history-panel.visible { display: block; }
         .loot-header-row {
