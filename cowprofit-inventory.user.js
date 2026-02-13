@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CowProfit Inventory Bridge
 // @namespace    https://github.com/sdwr/cowprofit
-// @version      1.0.2
+// @version      1.0.3
 // @description  Captures MWI inventory and coins, bridges to CowProfit via Tampermonkey storage
 // @author       sdwr
 // @license      MIT
@@ -182,42 +182,41 @@
         GM_addStyle(`
             #cowprofit-status {
                 position: fixed;
-                bottom: 10px;
-                right: 10px;
+                bottom: 134px;
+                right: 408px;
                 background: rgba(0, 0, 0, 0.85);
                 color: #eeb357;
-                padding: 10px 15px;
-                border-radius: 8px;
+                padding: 6px 12px;
+                border-radius: 6px;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                font-size: 12px;
+                font-size: 11px;
                 z-index: 99999;
                 border: 1px solid #eeb357;
-                max-width: 250px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                white-space: nowrap;
             }
             #cowprofit-status .title {
                 font-weight: bold;
-                margin-bottom: 5px;
                 display: flex;
                 align-items: center;
-                gap: 6px;
+                gap: 4px;
             }
             #cowprofit-status .title::before {
                 content: '🐄';
             }
             #cowprofit-status .stats {
                 color: #ccc;
-                font-size: 11px;
-                margin-bottom: 8px;
             }
             #cowprofit-status .btn {
                 background: #eeb357;
                 color: black;
                 border: none;
-                padding: 5px 10px;
+                padding: 4px 8px;
                 border-radius: 4px;
                 cursor: pointer;
-                font-size: 11px;
-                margin-right: 5px;
+                font-size: 10px;
             }
             #cowprofit-status .btn:hover {
                 background: #d9a347;
@@ -225,19 +224,16 @@
             #cowprofit-status .time {
                 color: #888;
                 font-size: 10px;
-                margin-top: 6px;
             }
         `);
 
         const div = document.createElement('div');
         div.id = 'cowprofit-status';
         div.innerHTML = `
-            <div class="title">CowProfit Bridge</div>
-            <div class="stats">Waiting for game data...</div>
-            <div class="actions">
-                <button class="btn" id="cowprofit-open">Open CowProfit</button>
-            </div>
+            <div class="title">CowProfit</div>
+            <div class="stats">Waiting...</div>
             <div class="time"></div>
+            <button class="btn" id="cowprofit-open">Open</button>
         `;
         document.body.appendChild(div);
 
@@ -260,10 +256,11 @@
         const statsEl = document.querySelector('#cowprofit-status .stats');
         const timeEl = document.querySelector('#cowprofit-status .time');
         if (statsEl) {
-            statsEl.textContent = `${payload.itemCount} items • ${formatCoins(payload.gameCoins)} coins`;
+            statsEl.textContent = `${payload.itemCount} items • ${formatCoins(payload.gameCoins)}`;
         }
         if (timeEl) {
-            timeEl.textContent = `Last sync: ${new Date(payload.capturedAt).toLocaleTimeString()}`;
+            const age = Math.floor((Date.now() - payload.capturedAt) / 60000);
+            timeEl.textContent = age < 1 ? 'just now' : `${age}m ago`;
         }
     }
 
