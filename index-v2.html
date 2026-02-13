@@ -410,47 +410,42 @@
             opacity: 0.8;
         }
         /* Shopping List */
-        /* Shopping List - 3 column layout with progress bars */
         .shopping-list {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(74, 222, 128, 0.3);
         }
-        .shopping-list h4 { margin: 0; }
-        .shop-title-row {
+        .shopping-list h4 {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 10px;
+            gap: 10px;
         }
-        .shop-progress-bar {
+        .shop-pct-bar {
+            display: inline-flex;
+            align-items: center;
+            width: 80px;
+            height: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(74, 222, 128, 0.5);
+            border-radius: 3px;
             position: relative;
-            flex: 1;
-            max-width: 180px;
-            height: 12px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-left: 8px;
-            margin-top: 2px;
+            margin-left: auto;
         }
-        .shop-progress-fill {
+        .shop-pct-fill {
             position: absolute;
             left: 0;
             top: 0;
             bottom: 0;
             background: linear-gradient(90deg, rgba(74, 222, 128, 0.6) 0%, rgba(74, 222, 128, 0.3) 100%);
-            transition: width 0.3s ease;
+            border-radius: 2px;
         }
-        .shop-progress-label {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 0.6rem;
+        .shop-pct-text {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #4ade80;
             font-weight: bold;
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            line-height: 1;
         }
         .shop-header {
             display: grid;

@@ -502,6 +502,8 @@ function renderShoppingList(r, materials) {
     
     // Overall progress bar inline with title (0-100%)
     const overallPct = totalNeed > 0 ? (totalOwned / totalNeed) * 100 : 0;
+    const pctDisplay = `${overallPct.toFixed(0)}%`;
+    const barWidth = overallPct.toFixed(1);
     
     // Total cost row at bottom (no progress bar)
     rows += `<div class="shop-row total-row">
@@ -511,13 +513,7 @@ function renderShoppingList(r, materials) {
     </div>`;
     
     return `<div class="detail-section shopping-list">
-        <div class="shop-title-row">
-            <h4>🛒 Shopping List</h4>
-            <div class="shop-progress-bar">
-                <div class="shop-progress-fill" style="width:${overallPct.toFixed(0)}%"></div>
-                <span class="shop-progress-label">${overallPct.toFixed(0)}%</span>
-            </div>
-        </div>
+        <h4>🛒 Shopping List <span class="shop-pct-bar"><span class="shop-pct-fill" style="width:${barWidth}%"></span><span class="shop-pct-text">${pctDisplay}</span></span></h4>
         <div class="shop-header">
             <span class="shop-col">Item</span>
             <span class="shop-col">Need / Total</span>
@@ -773,7 +769,7 @@ function renderTable() {
         const priceInfo = getPriceAge(r.item_hrid, r.target_level);
         const ageStr = priceInfo ? formatAge(priceInfo.age) : '-';
         const ageArrow = priceInfo?.direction === 'up' ? '<span class="price-up">↑</span>' : 
-                         priceInfo?.direction === 'down' ? '<span class="price-down">↓</span>' : '';
+                         priceInfo?.direction === 'down' ? '<span class="price-down">↓</span>' : '-';
         
         let barWidth = 0;
         let barClass = 'positive';
