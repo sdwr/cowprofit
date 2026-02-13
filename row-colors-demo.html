@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CowProfit Row Color Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #e8e8e8;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { color: #eeb357; margin-bottom: 5px; }
+        h2 { color: #eeb357; margin-top: 30px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 20px; }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .control-group label {
+            color: #eeb357;
+            font-size: 0.85rem;
+        }
+        .control-group input[type="range"] {
+            width: 150px;
+        }
+        .control-group .value {
+            font-family: 'SF Mono', Monaco, monospace;
+            color: #aaa;
+            width: 40px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        th {
+            background: rgba(238,179,87,0.2);
+            color: #eeb357;
+            padding: 10px 8px;
+            text-align: left;
+            font-size: 0.75rem;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.8rem;
+        }
+        .item { color: #ccc; font-family: inherit; }
+        .profit { color: #4ade80; }
+        .number { text-align: right; }
+        
+        .output {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            color: #aaa;
+            max-height: 300px;
+            overflow: auto;
+        }
+        
+        button {
+            background: rgba(238,179,87,0.2);
+            border: 1px solid #eeb357;
+            color: #eeb357;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        button:hover { background: rgba(238,179,87,0.4); }
+        button.primary { background: #eeb357; color: #1a1a2e; }
+    </style>
+</head>
+<body>
+    <h1>🎨 Row Background Color Demo</h1>
+    <p class="subtitle">Full-row transparent backgrounds by cost tier</p>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>&lt;100M α</label>
+            <input type="range" id="alpha1" min="0" max="30" value="8" onchange="updatePreview()">
+            <span class="value" id="alpha1Val">0.08</span>
+        </div>
+        <div class="control-group">
+            <label>100-500M α</label>
+            <input type="range" id="alpha2" min="0" max="30" value="10" onchange="updatePreview()">
+            <span class="value" id="alpha2Val">0.10</span>
+        </div>
+        <div class="control-group">
+            <label>500M-1B α</label>
+            <input type="range" id="alpha3" min="0" max="30" value="8" onchange="updatePreview()">
+            <span class="value" id="alpha3Val">0.08</span>
+        </div>
+        <div class="control-group">
+            <label>1-2B α</label>
+            <input type="range" id="alpha4" min="0" max="30" value="10" onchange="updatePreview()">
+            <span class="value" id="alpha4Val">0.10</span>
+        </div>
+        <div class="control-group">
+            <label>&gt;2B α</label>
+            <input type="range" id="alpha5" min="0" max="30" value="12" onchange="updatePreview()">
+            <span class="value" id="alpha5Val">0.12</span>
+        </div>
+    </div>
+    
+    <h2>Preview</h2>
+    <table>
+        <thead>
+            <tr><th>Item</th><th>Lvl</th><th class="number">Buy</th><th class="number">Enhance</th><th class="number">Total</th><th class="number">Sell</th><th class="number">Profit</th><th class="number">$/day</th></tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+    </table>
+    
+    <h2>Generated CSS</h2>
+    <button class="primary" onclick="copyCSS()" style="margin-bottom:10px">Copy CSS</button>
+    <div class="output" id="cssOutput"></div>
+
+<script>
+// Base colors (RGB)
+const colors = {
+    '100m': { r: 183, g: 177, b: 154 },
+    '500m': { r: 48, g: 134, b: 171 },
+    '1b': { r: 192, g: 132, b: 252 },
+    '2b': { r: 250, g: 204, b: 21 },
+    'over2b': { r: 177, g: 100, b: 37 }
+};
+
+// Sample data
+const items = [
+    { name: 'Copper Pickaxe', lvl: 8, buy: '12.00M', enh: '33.20M', total: '45.20M', sell: '60.00M', profit: '12.50M', day: '8.50M', tier: '100m' },
+    { name: 'Iron Sword', lvl: 8, buy: '18.00M', enh: '45.00M', total: '63.00M', sell: '82.00M', profit: '16.30M', day: '11.20M', tier: '100m' },
+    { name: 'Steel Armor', lvl: 10, buy: '45.00M', enh: '111.30M', total: '156.30M', sell: '210.00M', profit: '45.80M', day: '31.50M', tier: '500m' },
+    { name: 'Mithril Helm', lvl: 10, buy: '120.00M', enh: '180.00M', total: '300.00M', sell: '380.00M', profit: '68.40M', day: '45.60M', tier: '500m' },
+    { name: 'Adamant Bow', lvl: 10, buy: '200.00M', enh: '250.00M', total: '450.00M', sell: '550.00M', profit: '85.00M', day: '56.70M', tier: '500m' },
+    { name: 'Celestial Hatchet', lvl: 10, buy: '268.71M', enh: '527.59M', total: '796.30M', sell: '850.00M', profit: '26.90M', day: '192.83M', tier: '1b' },
+    { name: 'Runite Gloves', lvl: 12, buy: '350.00M', enh: '400.00M', total: '750.00M', sell: '900.00M', profit: '132.00M', day: '88.00M', tier: '1b' },
+    { name: 'Sundering Crossbow', lvl: 12, buy: '1.10B', enh: '560.00M', total: '1.66B', sell: '1.85B', profit: '151.41M', day: '161.31M', tier: '2b' },
+    { name: 'Dragon Lance', lvl: 12, buy: '900.00M', enh: '700.00M', total: '1.60B', sell: '1.80B', profit: '164.00M', day: '109.30M', tier: '2b' },
+    { name: 'Furious Spear', lvl: 12, buy: '1.00B', enh: '750.00M', total: '1.75B', sell: '1.90B', profit: '110.67M', day: '185.67M', tier: '2b' },
+    { name: 'Furious Spear (R)', lvl: 12, buy: '1.26B', enh: '1.48B', total: '2.74B', sell: '2.95B', profit: '153.20M', day: '257.02M', tier: 'over2b' },
+    { name: 'Sundering Crossbow (R)', lvl: 12, buy: '1.40B', enh: '1.25B', total: '2.65B', sell: '2.85B', profit: '144.61M', day: '154.07M', tier: 'over2b' },
+    { name: 'Ancient Staff (R)', lvl: 14, buy: '1.80B', enh: '1.50B', total: '3.30B', sell: '3.60B', profit: '228.00M', day: '95.00M', tier: 'over2b' },
+];
+
+function updatePreview() {
+    const alphas = {
+        '100m': document.getElementById('alpha1').value / 100,
+        '500m': document.getElementById('alpha2').value / 100,
+        '1b': document.getElementById('alpha3').value / 100,
+        '2b': document.getElementById('alpha4').value / 100,
+        'over2b': document.getElementById('alpha5').value / 100
+    };
+    
+    // Update value displays
+    document.getElementById('alpha1Val').textContent = alphas['100m'].toFixed(2);
+    document.getElementById('alpha2Val').textContent = alphas['500m'].toFixed(2);
+    document.getElementById('alpha3Val').textContent = alphas['1b'].toFixed(2);
+    document.getElementById('alpha4Val').textContent = alphas['2b'].toFixed(2);
+    document.getElementById('alpha5Val').textContent = alphas['over2b'].toFixed(2);
+    
+    // Render table
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = items.map(item => {
+        const c = colors[item.tier];
+        const a = alphas[item.tier];
+        const bg = `rgba(${c.r}, ${c.g}, ${c.b}, ${a})`;
+        return `<tr style="background: ${bg}">
+            <td class="item">${item.name}</td>
+            <td>+${item.lvl}</td>
+            <td class="number">${item.buy}</td>
+            <td class="number">${item.enh}</td>
+            <td class="number">${item.total}</td>
+            <td class="number">${item.sell}</td>
+            <td class="number profit">${item.profit}</td>
+            <td class="number profit">${item.day}</td>
+        </tr>`;
+    }).join('');
+    
+    // Generate CSS
+    let css = '/* Row background colors by cost tier */\n';
+    for (const [tier, c] of Object.entries(colors)) {
+        const a = alphas[tier];
+        css += `tr.cost-${tier} { background: rgba(${c.r}, ${c.g}, ${c.b}, ${a}); }\n`;
+    }
+    css += '\n/* Hover states */\n';
+    for (const [tier, c] of Object.entries(colors)) {
+        const a = Math.min(alphas[tier] + 0.05, 0.3);
+        css += `tr.cost-${tier}:hover { background: rgba(${c.r}, ${c.g}, ${c.b}, ${a.toFixed(2)}); }\n`;
+    }
+    document.getElementById('cssOutput').textContent = css;
+}
+
+function copyCSS() {
+    const css = document.getElementById('cssOutput').textContent;
+    navigator.clipboard.writeText(css).then(() => alert('CSS copied!'));
+}
+
+updatePreview();
+</script>
+</body>
+</html>

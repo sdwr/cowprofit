@@ -9,7 +9,7 @@ const updateHistory = window.GAME_DATA?.updateHistory || [];
 
 let currentMode = 'pessimistic';
 let currentLevel = 'all';
-let sortCol = 10; // Default to $/day column
+let sortCol = 9; // Default to $/day column
 let sortAsc = false;
 let showFee = true; // Fee toggle on by default
 let showSuperPessimistic = false; // Include mat loss toggle
@@ -565,7 +565,7 @@ function renderTable() {
             return a.item_name.localeCompare(b.item_name);
         });
     } else {
-        const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_age', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day'];
+        const sortKeys = ['item_name', 'target_level', '_age', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_profit', '_roi', '_profit_day', 'time_days', 'xp_per_day'];
         filtered.sort((a, b) => {
             let va = a[sortKeys[sortCol]];
             let vb = b[sortKeys[sortCol]];
@@ -622,15 +622,15 @@ function renderTable() {
         html += `<tr class="data-row ${isExpanded ? 'expanded' : ''}" onclick="toggleRow('${rowId}')" data-level="${r.target_level}" data-matpct="${matPct !== null ? matPct : -1}">
             <td class="item-name"><div class="mat-pct-bar" style="${matBarStyle}"></div><span class="expand-icon">&#9654;</span>${r.item_name}</td>
             <td><span class="level-badge">+${r.target_level}</span></td>
+            <td class="number">${formatAge(r._age)} ${getAgeArrow(r.price_direction)}</td>
             <td class="number"><span class="price-source ${sourceClass}"></span>${formatCoins(r.base_price)}</td>
             <td class="number hide-mobile">${formatCoins(r.mat_cost)}</td>
-            <td class="number hide-mobile cost-${getCostBucket(r.total_cost)}">${formatCoins(r.total_cost)}</td>
-            <td class="number">${formatCoins(r.sell_price)}</td>
-            <td class="number">${formatAge(r._age)} ${getAgeArrow(r.price_direction)}</td>
+            <td class="number hide-mobile">${formatCoins(r.total_cost)}</td>
+            <td class="number cost-${getCostBucket(r.total_cost)}" style="text-align:center">${formatCoins(r.sell_price)}</td>
             <td class="number ${profitClass}">${formatCoins(profit)}</td>
             <td class="number ${profitClass}">${roi.toFixed(1)}%</td>
-            <td class="number hide-mobile">${r.time_days.toFixed(2)}</td>
             <td class="number profit-bar-cell ${profitClass}"><div class="profit-bar ${barClass}" style="width:${barWidth.toFixed(1)}%"></div><span class="profit-bar-value">${formatCoins(profitDay)}</span></td>
+            <td class="number hide-mobile">${r.time_days.toFixed(2)}</td>
             <td class="number hide-mobile">${formatXP(r.xp_per_day)}</td>
         </tr>`;
         

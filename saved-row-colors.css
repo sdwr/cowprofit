@@ -1,0 +1,13 @@
+/* Row background colors by cost tier */
+tr.cost-100m { background: rgba(183, 177, 154, 0.08); }
+tr.cost-500m { background: rgba(48, 134, 171, 0.22); }
+tr.cost-1b { background: rgba(192, 132, 252, 0.08); }
+tr.cost-2b { background: rgba(250, 204, 21, 0.15); }
+tr.cost-over2b { background: rgba(177, 100, 37, 0.12); }
+
+/* Hover states */
+tr.cost-100m:hover { background: rgba(183, 177, 154, 0.13); }
+tr.cost-500m:hover { background: rgba(48, 134, 171, 0.27); }
+tr.cost-1b:hover { background: rgba(192, 132, 252, 0.13); }
+tr.cost-2b:hover { background: rgba(250, 204, 21, 0.20); }
+tr.cost-over2b:hover { background: rgba(177, 100, 37, 0.17); }
