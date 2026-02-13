@@ -21,6 +21,63 @@ let allResults = { pessimistic: [], midpoint: [], optimistic: [] };
 let gearOpen = false;
 let historyOpen = false;
 
+// Inventory data (set via event from userscript)
+let inventoryData = null;
+
+// Inventory helpers (for userscript integration)
+function getInventoryCount(hrid) {
+    const inv = inventoryData?.inventory || {};
+    return inv[hrid] || 0;
+}
+
+function hasInventory() {
+    return inventoryData && Object.keys(inventoryData.inventory || {}).length > 0;
+}
+
+function getCoins() {
+    return inventoryData?.gameCoins || 0;
+}
+
+function calculateMatPercent(r) {
+    if (!hasInventory()) return null;
+    
+    let totalValue = 0;
+    let ownedValue = 0;
+    
+    // Get materials for this item
+    const materials = getMaterialDetails(r.item_hrid, 1, currentMode);
+    
+    // Enhancement materials (per attempt * actions)
+    for (const m of materials) {
+        if (m.name === 'Coins') continue;
+        const needed = m.count * r.actions;
+        const owned = Math.min(getInventoryCount(m.hrid), needed);
+        const price = m.price || 0;
+        totalValue += needed * price;
+        ownedValue += owned * price;
+    }
+    
+    // Protection items
+    if (r.protectHrid && r.protectCount > 0) {
+        const needed = Math.ceil(r.protectCount);
+        const owned = Math.min(getInventoryCount(r.protectHrid), needed);
+        const price = r.protectPrice || 0;
+        totalValue += needed * price;
+        ownedValue += owned * price;
+    }
+    
+    if (totalValue === 0) return 100;
+    return (ownedValue / totalValue) * 100;
+}
+
+// Listen for inventory data from userscript
+window.addEventListener('cowprofit-inventory-loaded', function(e) {
+    console.log('[CowProfit v2] Inventory event received:', e.detail);
+    inventoryData = e.detail;
+    console.log('[CowProfit v2] hasInventory():', hasInventory());
+    renderTable();
+});
+
 const TARGET_LEVELS = [8, 10, 12, 14];
 const MIN_PROFIT = 1_000_000;
 const MAX_ROI = 1000;
@@ -452,12 +509,13 @@ function renderShoppingList(r, materials) {
     let totalCost = 0;
     let totalOwned = 0;
     let totalNeed = 0;
+    const invLoaded = hasInventory();
     
     // Enhancement materials (exclude coins)
     for (const m of materials) {
         if (m.name === 'Coins') continue;
         const total = m.count * r.actions;
-        const owned = 0; // No inventory support yet
+        const owned = invLoaded ? getInventoryCount(m.hrid) : 0;
         const need = Math.max(0, total - owned);
         const pct = total > 0 ? (owned / total) * 100 : 0;
         const lineCost = need * m.price;
@@ -480,7 +538,7 @@ function renderShoppingList(r, materials) {
         const protItem = gameData.items[r.protectHrid];
         const protName = protItem?.name || r.protectHrid.split('/').pop().replace(/_/g, ' ');
         const total = r.protectCount;
-        const owned = 0;
+        const owned = invLoaded ? getInventoryCount(r.protectHrid) : 0;
         const need = Math.max(0, total - owned);
         const pct = total > 0 ? (owned / total) * 100 : 0;
         const lineCost = need * r.protectPrice;
@@ -513,7 +571,7 @@ function renderShoppingList(r, materials) {
     </div>`;
     
     return `<div class="detail-section shopping-list">
-        <h4>🛒 Shopping List <span class="shop-pct-bar"><span class="shop-pct-fill" style="width:${barWidth}%"></span><span class="shop-pct-text">${pctDisplay}</span></span></h4>
+        <h4>🛒 Shopping List${invLoaded ? '' : ' <span class="price-note">(no inventory)</span>'} <span class="shop-pct-bar"><span class="shop-pct-fill" style="width:${barWidth}%"></span><span class="shop-pct-text">${pctDisplay}</span></span></h4>
         <div class="shop-header">
             <span class="shop-col">Item</span>
             <span class="shop-col">Need / Total</span>
