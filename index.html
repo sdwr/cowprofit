@@ -27,6 +27,15 @@
             font-size: 2rem;
             margin: 0;
         }
+        .version-tag {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.65rem;
+            color: #666;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
         .gear-dropdown {
             position: absolute;
             right: 120px; /* Moved further left to avoid bridge icon */
@@ -554,6 +563,7 @@
 <body>
     <div class="container">
         <div class="header-row">
+            <span class="version-tag" id="version-tag"></span>
             <h1>&#x1F404; CowProfit</h1>
             <div class="gear-dropdown">
                 <button class="gear-btn" onclick="toggleGear()">&#x2699; Gear <span id="gear-arrow">&#9660;</span></button>
