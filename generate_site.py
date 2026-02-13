@@ -543,6 +543,63 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             position: relative;
             z-index: 1;
         }}
+        /* Material % bar in item name cell */
+        .item-name {{
+            position: relative;
+        }}
+        .mat-pct-bar {{
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, rgba(74, 222, 128, 0.3) 0%, rgba(74, 222, 128, 0.1) 100%);
+            border-radius: 2px;
+            z-index: 0;
+        }}
+        .mat-pct-label {{
+            position: relative;
+            z-index: 1;
+            font-size: 0.7rem;
+            color: #4ade80;
+            margin-left: 6px;
+            opacity: 0.8;
+        }}
+        /* Shopping List */
+        .shopping-list {{
+            background: rgba(0, 50, 0, 0.3);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }}
+        .shop-header {{
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+        }}
+        .shop-row {{
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+        }}
+        .shop-row.prot-row {{
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 4px;
+            padding-top: 8px;
+        }}
+        .shop-name {{ color: #ccc; }}
+        .shop-owned {{ color: #888; text-align: right; }}
+        .shop-owned.complete {{ color: #4ade80; }}
+        .shop-need {{ color: #888; text-align: right; }}
+        .shop-buy {{ text-align: right; }}
+        .shop-buy.missing {{ color: #f87171; }}
+        .shop-buy.complete {{ color: #4ade80;
+        }}
         .price-note {{
             font-weight: normal;
             font-size: 0.65rem;
@@ -788,6 +845,102 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             return value.toFixed(0);
         }}
         
+        // Inventory helpers
+        function getInventoryCount(hrid) {{
+            const inv = window.cowprofitInventory?.inventory || {{}};
+            return inv[hrid] || 0;
+        }}
+        
+        function hasInventory() {{
+            return window.cowprofitInventory && Object.keys(window.cowprofitInventory.inventory || {{}}).length > 0;
+        }}
+        
+        function calculateMatPercent(r) {{
+            // Calculate value-weighted percentage of materials owned
+            // Returns 0-100
+            if (!hasInventory()) return null;
+            
+            let totalValue = 0;
+            let ownedValue = 0;
+            
+            // Enhancement materials (per attempt * actions)
+            if (r.materials) {{
+                for (const m of r.materials) {{
+                    const needed = m.count * r.actions;
+                    const owned = Math.min(getInventoryCount(m.hrid), needed);
+                    const price = m.price || 0;
+                    totalValue += needed * price;
+                    ownedValue += owned * price;
+                }}
+            }}
+            
+            // Protection items
+            if (r.protect_hrid && r.protect_count > 0) {{
+                const needed = Math.ceil(r.protect_count);
+                const owned = Math.min(getInventoryCount(r.protect_hrid), needed);
+                const price = r.protect_price || 0;
+                totalValue += needed * price;
+                ownedValue += owned * price;
+            }}
+            
+            if (totalValue === 0) return 100;
+            return (ownedValue / totalValue) * 100;
+        }}
+        
+        // Listen for inventory data from userscript
+        window.addEventListener('cowprofit-inventory-loaded', function(e) {{
+            console.log('[CowProfit] Inventory loaded, re-rendering...');
+            renderTable();
+        }});
+        
+        // Sort by mat % toggle
+        let sortByMatPct = false;
+        
+        function renderShoppingList(r) {{
+            if (!hasInventory()) return '';
+            
+            let rows = '';
+            
+            // Materials
+            if (r.materials) {{
+                for (const m of r.materials) {{
+                    const needed = Math.ceil(m.count * r.actions);
+                    const owned = getInventoryCount(m.hrid);
+                    const toBuy = Math.max(0, needed - owned);
+                    rows += `<div class="shop-row">
+                        <span class="shop-name">${{m.name}}</span>
+                        <span class="shop-owned ${{owned >= needed ? 'complete' : ''}}">${{owned.toLocaleString()}}</span>
+                        <span class="shop-need">${{needed.toLocaleString()}}</span>
+                        <span class="shop-buy ${{toBuy > 0 ? 'missing' : 'complete'}}">${{toBuy > 0 ? toBuy.toLocaleString() : '✓'}}</span>
+                    </div>`;
+                }}
+            }}
+            
+            // Protection item
+            if (r.protect_hrid && r.protect_count > 0) {{
+                const needed = Math.ceil(r.protect_count);
+                const owned = getInventoryCount(r.protect_hrid);
+                const toBuy = Math.max(0, needed - owned);
+                rows += `<div class="shop-row prot-row">
+                    <span class="shop-name">${{r.protect_name}} @ +${{r.protect_at}}</span>
+                    <span class="shop-owned ${{owned >= needed ? 'complete' : ''}}">${{owned.toLocaleString()}}</span>
+                    <span class="shop-need">${{needed.toLocaleString()}}</span>
+                    <span class="shop-buy ${{toBuy > 0 ? 'missing' : 'complete'}}">${{toBuy > 0 ? toBuy.toLocaleString() : '✓'}}</span>
+                </div>`;
+            }}
+            
+            return `<div class="detail-section shopping-list">
+                <h4>&#x1F6D2; Shopping List</h4>
+                <div class="shop-header">
+                    <span class="shop-col">Material</span>
+                    <span class="shop-col">Owned</span>
+                    <span class="shop-col">Need</span>
+                    <span class="shop-col">Buy</span>
+                </div>
+                ${{rows}}
+            </div>`;
+        }}
+        
         function toggleGear() {{
             gearOpen = !gearOpen;
             document.getElementById('gear-panel').classList.toggle('visible', gearOpen);
@@ -876,11 +1029,39 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
         }}
         
         function sortTable(col, type) {{
-            if (sortCol === col) {{
-                sortAsc = !sortAsc;
+            if (col === 0 && hasInventory()) {{
+                // For item column with inventory: toggle between name sort and mat% sort
+                if (sortCol === 0) {{
+                    if (sortByMatPct) {{
+                        // Currently mat%, toggle direction or switch to name
+                        if (!sortAsc) {{
+                            sortAsc = true; // mat% asc
+                        }} else {{
+                            sortByMatPct = false; // switch to name
+                            sortAsc = true;
+                        }}
+                    }} else {{
+                        // Currently name, toggle direction or switch to mat%
+                        if (sortAsc) {{
+                            sortAsc = false; // name desc
+                        }} else {{
+                            sortByMatPct = true; // switch to mat%
+                            sortAsc = false; // mat% desc (highest first)
+                        }}
+                    }}
+                }} else {{
+                    sortCol = 0;
+                    sortByMatPct = true; // default to mat% when inventory exists
+                    sortAsc = false;
+                }}
             }} else {{
-                sortCol = col;
-                sortAsc = (col === 0); // Only item name sorts ascending by default
+                sortByMatPct = false;
+                if (sortCol === col) {{
+                    sortAsc = !sortAsc;
+                }} else {{
+                    sortCol = col;
+                    sortAsc = (col === 0); // Only item name sorts ascending by default
+                }}
             }}
             renderTable();
         }}
@@ -997,6 +1178,8 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                     </div>
                 </div>
                 
+                ${{renderShoppingList(r)}}
+                
                 <div class="detail-section">
                     <h4>&#x1F4B0; Cost Summary</h4>
                     <div class="detail-line">
@@ -1008,7 +1191,7 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                         <span class="value">${{formatCoins(totalEnhanceCost)}}</span>
                     </div>
                     <div class="detail-line">
-                        <span class="label">Protection (${{formatCoins(r.protect_price)}} × ${{r.protect_count.toFixed(1)}})</span>
+                        <span class="label">${{r.protect_name || 'Protection'}} @ +${{r.protect_at}} (${{formatCoins(r.protect_price)}} × ${{r.protect_count.toFixed(1)}})</span>
                         <span class="value">${{formatCoins(totalProtCost)}}</span>
                     </div>
                     <div class="mat-row total-row">
@@ -1073,17 +1256,34 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
             
             // Sort keys: item_name, target_level, base_price, mat_cost, total_cost, sell_price, _age, profit, roi, time_days, profit_day, xp_per_day
             const nowTs = Math.floor(Date.now() / 1000);
-            // Add computed _age field for sorting
-            filtered = filtered.map(r => ({{...r, _age: r.price_since_ts ? nowTs - r.price_since_ts : 0}}));
-            const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_age', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day'];
-            filtered.sort((a, b) => {{
-                let va = a[sortKeys[sortCol]];
-                let vb = b[sortKeys[sortCol]];
-                if (typeof va === 'string') {{
-                    return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
-                }}
-                return sortAsc ? va - vb : vb - va;
-            }});
+            // Add computed _age and _mat_pct fields for sorting
+            filtered = filtered.map(r => ({{
+                ...r, 
+                _age: r.price_since_ts ? nowTs - r.price_since_ts : 0,
+                _mat_pct: calculateMatPercent(r) ?? -1
+            }}));
+            
+            // If sorting by item col (0) and inventory exists, sort by mat% desc, then name
+            if (sortCol === 0 && hasInventory() && sortByMatPct) {{
+                filtered.sort((a, b) => {{
+                    // Sort by mat% descending first
+                    if (a._mat_pct !== b._mat_pct) {{
+                        return sortAsc ? a._mat_pct - b._mat_pct : b._mat_pct - a._mat_pct;
+                    }}
+                    // Tiebreak by name
+                    return a.item_name.localeCompare(b.item_name);
+                }});
+            }} else {{
+                const sortKeys = ['item_name', 'target_level', 'base_price', 'mat_cost', 'total_cost', 'sell_price', '_age', '_profit', '_roi', 'time_days', '_profit_day', 'xp_per_day'];
+                filtered.sort((a, b) => {{
+                    let va = a[sortKeys[sortCol]];
+                    let vb = b[sortKeys[sortCol]];
+                    if (typeof va === 'string') {{
+                        return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+                    }}
+                    return sortAsc ? va - vb : vb - va;
+                }});
+            }}
             
             const profitable = data.filter(r => r[profitKey] > 1000000 && (r[roiKey] || r.roi) < 1000);
             const bestProfit = profitable.length ? Math.max(...profitable.map(r => r[profitKey])) : 0;
@@ -1124,8 +1324,12 @@ def generate_html(timestamp, data_by_mode, player_stats, price_history_meta=None
                     barClass = 'negative';
                 }}
                 
-                html += `<tr class="data-row ${{isExpanded ? 'expanded' : ''}}" onclick="toggleRow('${{rowId}}')" data-level="${{r.target_level}}">
-                    <td class="item-name"><span class="expand-icon">&#9654;</span>${{r.item_name}}</td>
+                const matPct = calculateMatPercent(r);
+                const matPctStr = matPct !== null ? matPct.toFixed(0) : '';
+                const matBarStyle = matPct !== null ? \`width:\${matPct.toFixed(1)}%\` : 'display:none';
+                
+                html += `<tr class="data-row ${{isExpanded ? 'expanded' : ''}}" onclick="toggleRow('${{rowId}}')" data-level="${{r.target_level}}" data-matpct="${{matPct !== null ? matPct : -1}}">
+                    <td class="item-name"><div class="mat-pct-bar" style="${{matBarStyle}}"></div><span class="expand-icon">&#9654;</span>${{r.item_name}}${{matPct !== null ? \`<span class="mat-pct-label">\${matPctStr}%</span>\` : ''}}</td>
                     <td><span class="level-badge">+${{r.target_level}}</span></td>
                     <td class="number"><span class="price-source ${{sourceClass}}"></span>${{formatCoins(r.base_price)}}</td>
                     <td class="number hide-mobile">${{formatCoins(r.mat_cost)}}</td>
