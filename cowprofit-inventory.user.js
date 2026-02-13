@@ -154,6 +154,7 @@
                 actionHrid: entry.actionHrid,
                 actionCount: entry.actionCount || 0,
                 drops: entry.drops || {},
+                primaryItem: entry.primaryItem || null,
                 storedAt: Date.now()
             };
             

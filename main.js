@@ -391,11 +391,6 @@ function renderLootHistoryPanel() {
         
         const profitClass = hasPriceErrors ? 'warning' : (enhanceProfit.profit > 0 ? 'positive' : (enhanceProfit.profit < 0 ? 'negative' : 'neutral'));
         
-        // Build target level summary
-        const targetSummary = Object.entries(enhanceProfit.revenueBreakdown)
-            .map(([lvl, data]) => `+${lvl}×${data.count}`)
-            .join(', ') || '-';
-        
         // Format costs - show error if price missing
         let matCostStr = '-';
         if (enhanceProfit.matPriceMissing) {
@@ -424,14 +419,12 @@ function renderLootHistoryPanel() {
         const profitStr = hasPriceErrors ? '⚠️' : (enhanceProfit.profit !== 0 ? formatCoins(enhanceProfit.profit) : '-');
         const rateStr = hasPriceErrors ? '-' : (enhanceProfit.profitPerHour !== 0 ? `${formatCoins(enhanceProfit.profitPerHour)}/hr` : '-');
         
-        // Build title with level if we have a result
-        const levelStr = enhanceProfit.highestTargetLevel > 0 ? ` +${enhanceProfit.highestTargetLevel}` : '';
+        // Build title with current level from primaryItem
+        const levelStr = enhanceProfit.currentLevel > 0 ? ` +${enhanceProfit.currentLevel}` : '';
         const itemTitle = `${enhanceProfit.itemName || 'Unknown'}${levelStr}`;
         
-        // Build result summary (only highest level counts)
-        const resultSummary = Object.entries(enhanceProfit.revenueBreakdown)
-            .map(([lvl, data]) => `+${lvl}×${data.count}`)
-            .join(', ') || targetSummary;
+        // Result is just the current level (from primaryItem)
+        const resultStr = enhanceProfit.currentLevel > 0 ? `+${enhanceProfit.currentLevel}` : '-';
         
         entriesHtml += `
             <div class="loot-entry enhance-entry">
@@ -449,7 +442,7 @@ function renderLootHistoryPanel() {
                     <span>Prot: ${protCostStr}</span>
                 </div>
                 <div class="loot-revenue">
-                    <span>Result: ${resultSummary}</span>
+                    <span>Result: ${resultStr}</span>
                     <span>Revenue: ${revenueStr}</span>
                 </div>
                 <div class="loot-values">
@@ -465,10 +458,7 @@ function renderLootHistoryPanel() {
     const profitClass = totalProfit >= 0 ? 'positive' : 'negative';
     
     panel.innerHTML = `
-        <div class="loot-header-row">
-            <h5>📜 Enhance History</h5>
-            <button class="refresh-btn" onclick="window.dispatchEvent(new Event('cowprofit-request-loot'))" title="Refresh data from game">🔄</button>
-        </div>
+        <h5>📜 Enhance History</h5>
         <div class="loot-summary">
             <span>${validCount} sessions</span>
             <span class="loot-summary-value ${profitClass}">Total: ${formatCoins(totalProfit)}</span>
@@ -532,9 +522,19 @@ function calculateEnhanceSessionProfit(session) {
     const drops = session.drops || {};
     const actionCount = session.actionCount || 0;
     
-    // Parse primary item to get the item being enhanced
+    // Parse primary item to get the item being enhanced and its current level
     let itemHrid = null;
-    if (session.primaryItemHash) {
+    let currentLevel = 0;
+    
+    // primaryItem format: "/items/enhancers_top::10" (item::level)
+    if (session.primaryItem) {
+        const parts = session.primaryItem.split('::');
+        itemHrid = parts[0];
+        currentLevel = parseInt(parts[1]) || 0;
+    }
+    
+    // Fallback to primaryItemHash
+    if (!itemHrid && session.primaryItemHash) {
         // Format: "charId::/item_locations/inventory::/items/{item_hrid}::{level}"
         const match = session.primaryItemHash.match(/\/items\/([^:]+)/);
         if (match) itemHrid = '/items/' + match[1];
@@ -676,6 +676,7 @@ function calculateEnhanceSessionProfit(session) {
         actionCount,
         totalItems,
         levelDrops,
+        currentLevel,
         highestTargetLevel,
         protsUsed,
         matCostPerAction,
