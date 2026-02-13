@@ -438,7 +438,7 @@ function getCraftingMaterials(itemHrid, mode) {
     return { itemName, materials, total, baseItemHrid, baseItemName };
 }
 
-// Shopping list for detail row - always shows (shows 100% needed if no inventory)
+// Shopping list for detail row - 3 column layout with progress bars
 function renderShoppingList(r, materials) {
     let rows = '';
     let totalCost = 0;
@@ -446,14 +446,20 @@ function renderShoppingList(r, materials) {
     // Enhancement materials (exclude coins)
     for (const m of materials) {
         if (m.name === 'Coins') continue;
-        const needed = m.count * r.actions;
-        const lineCost = needed * m.price;
+        const total = m.count * r.actions;
+        const owned = 0; // No inventory support yet
+        const need = Math.max(0, total - owned);
+        const pct = total > 0 ? (owned / total) * 100 : 0;
+        const lineCost = need * m.price;
         totalCost += lineCost;
+        
         rows += `<div class="shop-row">
             <span class="shop-name">${m.name}</span>
-            <span class="shop-owned">-</span>
-            <span class="shop-need">${needed.toFixed(1)}</span>
-            <span class="shop-cost">${formatCoins(lineCost)}</span>
+            <span class="shop-qty">
+                <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
+                <span class="shop-qty-text"><span class="shop-need-num">${need.toFixed(1)}</span><span class="shop-total-num">/${total.toFixed(1)}</span></span>
+            </span>
+            <span class="shop-price">${formatCoins(m.price)}</span>
         </div>`;
     }
     
@@ -461,14 +467,20 @@ function renderShoppingList(r, materials) {
     if (r.protectHrid && r.protectCount > 0) {
         const protItem = gameData.items[r.protectHrid];
         const protName = protItem?.name || r.protectHrid.split('/').pop().replace(/_/g, ' ');
-        const needed = r.protectCount;
-        const lineCost = needed * r.protectPrice;
+        const total = r.protectCount;
+        const owned = 0;
+        const need = Math.max(0, total - owned);
+        const pct = total > 0 ? (owned / total) * 100 : 0;
+        const lineCost = need * r.protectPrice;
         totalCost += lineCost;
+        
         rows += `<div class="shop-row prot-row">
-            <span class="shop-name">${protName} - prot @ ${r.protectAt}</span>
-            <span class="shop-owned">-</span>
-            <span class="shop-need">${needed.toFixed(1)}</span>
-            <span class="shop-cost">${formatCoins(lineCost)}</span>
+            <span class="shop-name">${protName}</span>
+            <span class="shop-qty">
+                <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
+                <span class="shop-qty-text"><span class="shop-need-num">${need.toFixed(1)}</span><span class="shop-total-num">/${total.toFixed(1)}</span></span>
+            </span>
+            <span class="shop-price">${formatCoins(r.protectPrice)}</span>
         </div>`;
     }
     
@@ -476,19 +488,17 @@ function renderShoppingList(r, materials) {
     
     // Total row
     rows += `<div class="shop-row total-row">
-        <span class="shop-name">Total</span>
-        <span class="shop-owned"></span>
-        <span class="shop-need"></span>
-        <span class="shop-cost">${formatCoins(totalCost)}</span>
+        <span class="shop-name">Cost to Buy</span>
+        <span class="shop-qty"></span>
+        <span class="shop-price">${formatCoins(totalCost)}</span>
     </div>`;
     
     return `<div class="detail-section shopping-list">
-        <h4>🛒 Shopping List <span class="price-note">(no inventory)</span></h4>
+        <h4>🛒 Shopping List</h4>
         <div class="shop-header">
-            <span class="shop-col">Material</span>
-            <span class="shop-col">Owned</span>
-            <span class="shop-col">Need</span>
-            <span class="shop-col">Cost</span>
+            <span class="shop-col">Item</span>
+            <span class="shop-col">Need / Total</span>
+            <span class="shop-col">Unit</span>
         </div>
         ${rows}
     </div>`;
@@ -604,12 +614,22 @@ function renderDetailRow(r) {
         
         ${renderShoppingList(r, materials)}
         
-        <div class="detail-section">
-            <h4>🔧 Materials</h4>
-            ${matsHtml || '<div class="detail-line"><span class="label">None</span></div>'}
+        <div class="detail-section enhance-panel">
+            <h4>⚡ Enhance</h4>
+            <div class="enhance-header">
+                <div class="protect-badge">Protect @ +${r.protectAt}</div>
+                <div class="protect-detail">
+                    <span class="protect-item">${protName}</span>
+                    <span class="protect-avg">Avg: ${r.protectCount.toFixed(1)} @ ${formatCoins(r.protectPrice)}</span>
+                </div>
+            </div>
+            <div class="enhance-mats">
+                <div class="enhance-mats-label">Cost per click:</div>
+                ${matsHtml || '<div class="detail-line"><span class="label">None</span></div>'}
+            </div>
             <div class="mat-row total-row">
-                <span class="mat-name">Total (${formatCoins(matsPerAttempt)}/attempt × ${r.actions.toFixed(0)})</span>
-                <span class="mat-count"></span>
+                <span class="mat-name">${formatCoins(matsPerAttempt)} / click</span>
+                <span class="mat-count">× ${r.actions.toFixed(0)} avg</span>
                 <span class="mat-price">${formatCoins(totalEnhanceCost)}</span>
             </div>
         </div>
@@ -625,7 +645,7 @@ function renderDetailRow(r) {
                 <span class="value">${formatCoins(totalEnhanceCost)}</span>
             </div>
             <div class="detail-line">
-                <span class="label">${protName} @ ${r.protectAt} (${formatCoins(r.protectPrice)} × ${r.protectCount.toFixed(1)})</span>
+                <span class="label">Protection (${r.protectCount.toFixed(1)}× ${protName})</span>
                 <span class="value">${formatCoins(totalProtCost)}</span>
             </div>
             <div class="mat-row total-row">

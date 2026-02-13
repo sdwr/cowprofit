@@ -410,42 +410,10 @@
             opacity: 0.8;
         }
         /* Shopping List */
+        /* Shopping List - 3 column layout with progress bars */
         .shopping-list {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(74, 222, 128, 0.3);
-        }
-        .shopping-list h4 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .shop-pct-bar {
-            display: inline-flex;
-            align-items: center;
-            width: 80px;
-            height: 16px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(74, 222, 128, 0.5);
-            border-radius: 3px;
-            position: relative;
-            margin-left: auto;
-        }
-        .shop-pct-fill {
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, rgba(74, 222, 128, 0.6) 0%, rgba(74, 222, 128, 0.3) 100%);
-            border-radius: 2px;
-        }
-        .shop-pct-text {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            text-align: center;
-            font-size: 0.65rem;
-            color: #4ade80;
-            font-weight: bold;
         }
         .shopping-list .total-row {
             background: rgba(0, 50, 0, 0.4);
@@ -455,7 +423,7 @@
         }
         .shop-header {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
+            grid-template-columns: 2fr 1.2fr 0.8fr;
             gap: 8px;
             padding: 4px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -468,11 +436,12 @@
         }
         .shop-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
+            grid-template-columns: 2fr 1.2fr 0.8fr;
             gap: 8px;
             padding: 4px 0;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             font-size: 0.8rem;
+            align-items: center;
         }
         .shop-row.prot-row {
             border-top: 1px solid rgba(255,255,255,0.1);
@@ -486,10 +455,76 @@
             font-weight: bold;
         }
         .shop-name { color: #ccc; }
-        .shop-owned { color: #888; text-align: right; font-family: 'SF Mono', Monaco, monospace; }
-        .shop-owned.complete { color: #4ade80; }
-        .shop-need { color: #888; text-align: right; font-family: 'SF Mono', Monaco, monospace; }
-        .shop-cost { text-align: right; font-family: 'SF Mono', Monaco, monospace; color: #eeb357; }
+        .shop-qty {
+            position: relative;
+            text-align: right;
+            font-family: 'SF Mono', Monaco, monospace;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .shop-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: rgba(74, 222, 128, 0.25);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .shop-qty-text {
+            position: relative;
+            z-index: 1;
+        }
+        .shop-need-num { color: #fff; font-weight: bold; }
+        .shop-total-num { color: #666; }
+        .shop-price { text-align: right; font-family: 'SF Mono', Monaco, monospace; color: #eeb357; }
+        
+        /* Enhance Panel */
+        .enhance-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        .enhance-header {
+            background: rgba(168, 85, 247, 0.15);
+            margin: -12px -12px 12px -12px;
+            padding: 10px 12px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .protect-badge {
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .protect-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .protect-item { color: #d8b4fe; font-size: 0.8rem; font-weight: 500; }
+        .protect-avg { color: #a78bfa; font-size: 0.7rem; font-family: 'SF Mono', Monaco, monospace; }
+        .enhance-mats {
+            margin-bottom: 8px;
+        }
+        .enhance-mats-label {
+            color: #888;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .enhance-panel .mat-row.total-row {
+            background: rgba(168, 85, 247, 0.15);
+            margin: 4px -12px -12px -12px;
+            padding: 8px 12px;
+            border-radius: 0 0 8px 8px;
+        }
         .price-note {
             font-weight: normal;
             font-size: 0.65rem;
