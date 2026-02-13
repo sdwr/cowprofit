@@ -41,6 +41,7 @@
             right: 120px; /* Moved further left to avoid bridge icon */
             top: 50%;
             transform: translateY(-50%);
+            z-index: 2000; /* Elevate entire stacking context above table */
         }
         .loot-history-dropdown {
             right: 240px; /* Left of gear dropdown */
@@ -107,6 +108,7 @@
         .history-dropdown {
             position: relative;
             display: inline-block;
+            z-index: 2000; /* Elevate entire stacking context above table */
         }
         .history-btn {
             background: rgba(255,255,255,0.1);
