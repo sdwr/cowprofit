@@ -312,6 +312,8 @@ function toggleRow(rowId) {
     if (expandedRows.has(rowId)) {
         expandedRows.delete(rowId);
     } else {
+        // Close all other rows first (single expand)
+        expandedRows.clear();
         expandedRows.add(rowId);
     }
     renderTable();
