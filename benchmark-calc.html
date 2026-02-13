@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CowProfit Calculation Benchmark</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #e8e8e8;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { color: #eeb357; }
+        .result { 
+            background: rgba(255,255,255,0.1); 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .good { color: #4ade80; }
+        .warn { color: #fbbf24; }
+        .bad { color: #f87171; }
+        button {
+            background: #eeb357;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover { background: #d9a347; }
+        button:disabled { background: #666; cursor: not-allowed; }
+        .progress { color: #888; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        th { color: #eeb357; }
+    </style>
+</head>
+<body>
+    <h1>🐄 CowProfit Calculation Benchmark</h1>
+    <p>Tests client-side enhancement profit calculation performance.</p>
+    <p>Simulates: <strong>518 items × 4 levels = 2072 calculations</strong></p>
+    
+    <button onclick="runBenchmark()">Run Benchmark</button>
+    <button onclick="runBenchmark(5)">Run 5x (stress test)</button>
+    
+    <div class="progress" id="progress"></div>
+    <div class="result" id="result" style="display:none;"></div>
+    
+    <h2>What's Being Tested</h2>
+    <table>
+        <tr><th>Operation</th><th>Per Item</th><th>Total</th></tr>
+        <tr><td>Markov matrix build (15×15)</td><td>1</td><td>2,072</td></tr>
+        <tr><td>Matrix inversion</td><td>1</td><td>2,072</td></tr>
+        <tr><td>Protection level optimization</td><td>~10 iterations</td><td>~20,720</td></tr>
+        <tr><td>Material price lookups</td><td>~5 materials</td><td>~10,360</td></tr>
+        <tr><td>Profit/ROI calculations</td><td>1</td><td>2,072</td></tr>
+    </table>
+
+<script>
+// ============================================
+// ENHANCEMENT CALCULATOR (Ported from Python)
+// ============================================
+
+// Enhancement bonus multipliers for levels +0 to +20
+const ENHANCE_BONUS = [
+    1.000, 1.020, 1.042, 1.066, 1.092,  // +0 to +4
+    1.120, 1.150, 1.182, 1.216, 1.252,  // +5 to +9
+    1.290, 1.334, 1.384, 1.440, 1.502,  // +10 to +14
+    1.570, 1.644, 1.724, 1.810, 1.902,  // +15 to +19
+    2.000  // +20
+];
+
+// Base success rates for levels +1 to +20 (index 0 = +1)
+const SUCCESS_RATE = [
+    50, 45, 45, 40, 40, 40, 35, 35, 35, 35,  // +1 to +10
+    30, 30, 30, 30, 30, 30, 30, 30, 30, 30   // +11 to +20
+];
+
+// Simulated gear config (same as Python USER_CONFIG)
+const USER_CONFIG = {
+    enhancing_level: 125,
+    observatory_level: 8,
+    enchanted_gloves_level: 10,
+    guzzling_pouch_level: 8,
+    enhancer_top_level: 8,
+    enhancer_bot_level: 8,
+    philo_neck_level: 7,
+    charm_level: 6,
+    enhancing_buff_level: 20,
+    enhancer_level: 14,
+    tea_ultra_enhancing: true,
+    tea_blessed: true,
+    tea_wisdom: true,
+    artisan_tea: true,
+    achievement_success_bonus: 0.2,
+    
+    // Pre-computed bonuses (would normally look up from game data)
+    enhancer_success_base: 0.0008,  // celestial enhancer base
+    guzzling_base: 0.06,            // guzzling pouch concentration
+};
+
+// Calculate guzzling bonus
+function getGuzzlingBonus() {
+    const base = USER_CONFIG.guzzling_base;
+    const level = USER_CONFIG.guzzling_pouch_level;
+    const bonus = base * 100 * ENHANCE_BONUS[level];
+    return 1 + bonus / 100;
+}
+
+// Calculate effective enhancing level
+function getEffectiveLevel() {
+    let level = USER_CONFIG.enhancing_level;
+    const guzzling = getGuzzlingBonus();
+    
+    if (USER_CONFIG.tea_ultra_enhancing) level += 8 * guzzling;
+    else if (USER_CONFIG.tea_super_enhancing) level += 6 * guzzling;
+    else if (USER_CONFIG.tea_enhancing) level += 3 * guzzling;
+    
+    return level;
+}
+
+// Calculate total success bonus
+function getTotalBonus(itemLevel) {
+    const enhancerBonus = USER_CONFIG.enhancer_success_base * 100 * ENHANCE_BONUS[USER_CONFIG.enhancer_level];
+    const achievementBonus = USER_CONFIG.achievement_success_bonus;
+    const totalToolBonus = enhancerBonus + achievementBonus;
+    
+    const effectiveLevel = getEffectiveLevel();
+    const observatory = USER_CONFIG.observatory_level;
+    
+    let bonus;
+    if (effectiveLevel >= itemLevel) {
+        bonus = 1 + (0.05 * (effectiveLevel + observatory - itemLevel) + totalToolBonus) / 100;
+    } else {
+        bonus = (1 - (0.5 * (1 - effectiveLevel / itemLevel))) + (0.05 * observatory + totalToolBonus) / 100;
+    }
+    
+    return bonus;
+}
+
+// Matrix operations
+function createMatrix(n) {
+    const m = new Array(n);
+    for (let i = 0; i < n; i++) {
+        m[i] = new Float64Array(n);
+    }
+    return m;
+}
+
+function identityMatrix(n) {
+    const m = createMatrix(n);
+    for (let i = 0; i < n; i++) m[i][i] = 1;
+    return m;
+}
+
+function subtractMatrix(a, b) {
+    const n = a.length;
+    const result = createMatrix(n);
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            result[i][j] = a[i][j] - b[i][j];
+        }
+    }
+    return result;
+}
+
+// LU decomposition for matrix inversion (faster than Gauss-Jordan)
+function invertMatrix(matrix) {
+    const n = matrix.length;
+    const augmented = createMatrix(n);
+    const identity = identityMatrix(n);
+    
+    // Copy matrix and create augmented matrix
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            augmented[i][j] = matrix[i][j];
+        }
+    }
+    
+    const result = createMatrix(n);
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            result[i][j] = identity[i][j];
+        }
+    }
+    
+    // Gaussian elimination with partial pivoting
+    for (let col = 0; col < n; col++) {
+        // Find pivot
+        let maxRow = col;
+        for (let row = col + 1; row < n; row++) {
+            if (Math.abs(augmented[row][col]) > Math.abs(augmented[maxRow][col])) {
+                maxRow = row;
+            }
+        }
+        
+        // Swap rows
+        [augmented[col], augmented[maxRow]] = [augmented[maxRow], augmented[col]];
+        [result[col], result[maxRow]] = [result[maxRow], result[col]];
+        
+        // Check for singular matrix
+        if (Math.abs(augmented[col][col]) < 1e-10) {
+            // Use pseudo-inverse behavior - set to small value
+            augmented[col][col] = 1e-10;
+        }
+        
+        // Scale pivot row
+        const pivot = augmented[col][col];
+        for (let j = 0; j < n; j++) {
+            augmented[col][j] /= pivot;
+            result[col][j] /= pivot;
+        }
+        
+        // Eliminate column
+        for (let row = 0; row < n; row++) {
+            if (row !== col) {
+                const factor = augmented[row][col];
+                for (let j = 0; j < n; j++) {
+                    augmented[row][j] -= factor * augmented[col][j];
+                    result[row][j] -= factor * result[col][j];
+                }
+            }
+        }
+    }
+    
+    return result;
+}
+
+// Sum a row of a matrix
+function sumRow(matrix, row) {
+    let sum = 0;
+    for (let j = 0; j < matrix[row].length; j++) {
+        sum += matrix[row][j];
+    }
+    return sum;
+}
+
+// Core Markov chain enhancement calculation
+function markovEnhance(stopAt, protectAt, totalBonus, matPrices, coinCost, protectPrice, basePrice, useBlessed = false, guzzling = 1) {
+    const n = stopAt + 1;
+    const Q = createMatrix(stopAt);
+    
+    for (let i = 0; i < stopAt; i++) {
+        let successChance = (SUCCESS_RATE[i] / 100.0) * totalBonus;
+        successChance = Math.min(successChance, 1.0);
+        
+        let remainingSuccess = successChance;
+        
+        // Blessed tea: 1% chance (boosted by guzzling) to gain +2 instead of +1
+        if (useBlessed && i + 2 <= stopAt) {
+            const blessedChance = successChance * 0.01 * guzzling;
+            if (i + 2 < stopAt) {
+                Q[i][i + 2] = blessedChance;
+            }
+            remainingSuccess -= blessedChance;
+        }
+        
+        const failChance = 1.0 - successChance;
+        
+        let destination = (i >= protectAt) ? (i - 1) : 0;
+        destination = Math.max(0, destination);
+        
+        if (i + 1 < stopAt) {
+            Q[i][i + 1] = remainingSuccess;
+        }
+        
+        Q[i][destination] += failChance;
+    }
+    
+    // M = (I - Q)^-1
+    const I = identityMatrix(stopAt);
+    const IminusQ = subtractMatrix(I, Q);
+    const M = invertMatrix(IminusQ);
+    
+    // Expected attempts = sum of first row of M
+    const attempts = sumRow(M, 0);
+    
+    // Protection count
+    let protectCount = 0;
+    for (let i = protectAt; i < stopAt; i++) {
+        let successChance = (SUCCESS_RATE[i] / 100.0) * totalBonus;
+        successChance = Math.min(successChance, 1.0);
+        const failChance = 1.0 - successChance;
+        protectCount += M[0][i] * failChance;
+    }
+    
+    // Material cost
+    let matCost = 0;
+    for (const [count, price] of matPrices) {
+        matCost += count * price * attempts;
+    }
+    matCost += coinCost * attempts;
+    matCost += protectPrice * protectCount;
+    
+    const totalCost = basePrice + matCost;
+    
+    return {
+        attempts,
+        protectCount,
+        matCost,
+        totalCost
+    };
+}
+
+// Calculate profit for one item at one target level
+function calculateItemProfit(itemLevel, targetLevel, basePrice, sellPrice, matPrices, coinCost, protectPrice) {
+    const totalBonus = getTotalBonus(itemLevel);
+    const guzzling = getGuzzlingBonus();
+    const useBlessed = USER_CONFIG.tea_blessed;
+    
+    // Find optimal protection level (iterate from 2 to targetLevel)
+    let bestResult = null;
+    let bestTotal = Infinity;
+    
+    for (let protLevel = 2; protLevel <= targetLevel; protLevel++) {
+        const result = markovEnhance(
+            targetLevel, protLevel, totalBonus,
+            matPrices, coinCost, protectPrice, basePrice,
+            useBlessed, guzzling
+        );
+        
+        if (result.totalCost < bestTotal) {
+            bestTotal = result.totalCost;
+            bestResult = result;
+            bestResult.protectAt = protLevel;
+        }
+    }
+    
+    // Calculate profit
+    const marketFee = sellPrice * 0.02;
+    bestResult.profit = sellPrice - bestResult.totalCost;
+    bestResult.profitAfterFee = bestResult.profit - marketFee;
+    bestResult.roi = (bestResult.profit / bestResult.totalCost) * 100;
+    
+    return bestResult;
+}
+
+// ============================================
+// BENCHMARK
+// ============================================
+
+// Simulated market data (realistic ranges)
+function generateMockData() {
+    const items = [];
+    
+    // 518 items with varying levels and prices
+    for (let i = 0; i < 518; i++) {
+        const itemLevel = 20 + Math.floor(Math.random() * 100); // Level 20-120
+        const basePrice = Math.floor(Math.random() * 500000000) + 1000000; // 1M - 500M
+        
+        // 4 target levels per item
+        for (const targetLevel of [8, 10, 12, 14]) {
+            const sellMultiplier = 1.5 + Math.random() * 3; // 1.5x - 4.5x base
+            const sellPrice = Math.floor(basePrice * sellMultiplier * (1 + targetLevel * 0.1));
+            
+            // Random materials (3-6 types)
+            const numMats = 3 + Math.floor(Math.random() * 4);
+            const matPrices = [];
+            for (let m = 0; m < numMats; m++) {
+                const count = 1 + Math.floor(Math.random() * 20);
+                const price = 100 + Math.floor(Math.random() * 10000);
+                matPrices.push([count, price]);
+            }
+            
+            const coinCost = Math.floor(Math.random() * 10000);
+            const protectPrice = Math.floor(Math.random() * 50000000) + 100000;
+            
+            items.push({
+                itemLevel,
+                targetLevel,
+                basePrice,
+                sellPrice,
+                matPrices,
+                coinCost,
+                protectPrice
+            });
+        }
+    }
+    
+    return items;
+}
+
+async function runBenchmark(iterations = 1) {
+    const resultDiv = document.getElementById('result');
+    const progressDiv = document.getElementById('progress');
+    
+    resultDiv.style.display = 'none';
+    progressDiv.textContent = 'Generating mock data...';
+    
+    // Let UI update
+    await new Promise(r => setTimeout(r, 10));
+    
+    const items = generateMockData();
+    const totalCalcs = items.length * iterations;
+    
+    progressDiv.textContent = `Running ${totalCalcs.toLocaleString()} calculations...`;
+    await new Promise(r => setTimeout(r, 10));
+    
+    const times = [];
+    
+    for (let iter = 0; iter < iterations; iter++) {
+        const startTime = performance.now();
+        
+        let profitable = 0;
+        let maxProfit = 0;
+        
+        for (const item of items) {
+            const result = calculateItemProfit(
+                item.itemLevel,
+                item.targetLevel,
+                item.basePrice,
+                item.sellPrice,
+                item.matPrices,
+                item.coinCost,
+                item.protectPrice
+            );
+            
+            if (result.profitAfterFee > 0) profitable++;
+            if (result.profitAfterFee > maxProfit) maxProfit = result.profitAfterFee;
+        }
+        
+        const endTime = performance.now();
+        times.push(endTime - startTime);
+        
+        progressDiv.textContent = `Iteration ${iter + 1}/${iterations}: ${(endTime - startTime).toFixed(1)}ms`;
+        await new Promise(r => setTimeout(r, 1));
+    }
+    
+    // Results
+    const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+    const minTime = Math.min(...times);
+    const maxTime = Math.max(...times);
+    const perItem = avgTime / items.length;
+    
+    let verdict, verdictClass;
+    if (avgTime < 300) {
+        verdict = '✅ EXCELLENT - Fast enough for real-time calculation';
+        verdictClass = 'good';
+    } else if (avgTime < 500) {
+        verdict = '✅ GOOD - Acceptable for initial load';
+        verdictClass = 'good';
+    } else if (avgTime < 1000) {
+        verdict = '⚠️ OKAY - May need lazy loading or web worker';
+        verdictClass = 'warn';
+    } else {
+        verdict = '❌ SLOW - Need optimization or web worker';
+        verdictClass = 'bad';
+    }
+    
+    resultDiv.innerHTML = `
+        <h3>Results (${iterations} iteration${iterations > 1 ? 's' : ''})</h3>
+        <p><strong>Items calculated:</strong> ${items.length.toLocaleString()}</p>
+        <p><strong>Average time:</strong> <span class="${verdictClass}">${avgTime.toFixed(1)}ms</span></p>
+        <p><strong>Min/Max:</strong> ${minTime.toFixed(1)}ms / ${maxTime.toFixed(1)}ms</p>
+        <p><strong>Per item:</strong> ${perItem.toFixed(3)}ms</p>
+        <p><strong>Verdict:</strong> <span class="${verdictClass}">${verdict}</span></p>
+        
+        <h4>Breakdown</h4>
+        <ul>
+            <li>Matrix inversions: ${items.length.toLocaleString()}</li>
+            <li>Protection iterations: ~${(items.length * 10).toLocaleString()}</li>
+            <li>Material lookups: ~${(items.length * 5).toLocaleString()}</li>
+        </ul>
+        
+        <h4>Browser Info</h4>
+        <p>${navigator.userAgent}</p>
+    `;
+    resultDiv.style.display = 'block';
+    progressDiv.textContent = '';
+}
+</script>
+</body>
+</html>
