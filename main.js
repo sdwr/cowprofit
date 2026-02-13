@@ -92,19 +92,21 @@ function renderHistoryPanel() {
     `;
 }
 
+// Inventory data (set via event from userscript)
+let inventoryData = null;
+
 // Inventory helpers (for userscript integration)
 function getInventoryCount(hrid) {
-    const inv = window.cowprofitInventory?.inventory || {};
+    const inv = inventoryData?.inventory || {};
     return inv[hrid] || 0;
 }
 
 function hasInventory() {
-    const has = window.cowprofitInventory && Object.keys(window.cowprofitInventory.inventory || {}).length > 0;
-    return has;
+    return inventoryData && Object.keys(inventoryData.inventory || {}).length > 0;
 }
 
 function getCoins() {
-    return window.cowprofitInventory?.gameCoins || 0;
+    return inventoryData?.gameCoins || 0;
 }
 
 function calculateMatPercent(r) {
@@ -140,18 +142,10 @@ function calculateMatPercent(r) {
 // Listen for inventory data from userscript
 window.addEventListener('cowprofit-inventory-loaded', function(e) {
     console.log('[CowProfit] Inventory event received:', e.detail);
-    console.log('[CowProfit] window.cowprofitInventory:', window.cowprofitInventory);
+    inventoryData = e.detail;
     console.log('[CowProfit] hasInventory():', hasInventory());
     renderTable();
 });
-
-// Also check on page load in case userscript already ran
-setTimeout(() => {
-    if (window.cowprofitInventory) {
-        console.log('[CowProfit] Found inventory on delayed check, re-rendering');
-        renderTable();
-    }
-}, 500);
 
 // Gear dropdown
 function toggleGear() {
@@ -295,36 +289,49 @@ function toggleRow(rowId) {
 function renderShoppingList(r) {
     let rows = '';
     const invLoaded = hasInventory();
+    let totalCost = 0;
     
     // Materials
     if (r.materials) {
         for (const m of r.materials) {
-            const needed = Math.ceil(m.count * r.actions);
+            const needed = m.count * r.actions; // Keep decimals
             const owned = invLoaded ? getInventoryCount(m.hrid) : 0;
             const toBuy = Math.max(0, needed - owned);
+            const lineCost = toBuy * (m.price || 0);
+            totalCost += lineCost;
             rows += `<div class="shop-row">
                 <span class="shop-name">${m.name}</span>
                 <span class="shop-owned ${owned >= needed ? 'complete' : ''}">${invLoaded ? owned.toLocaleString() : '-'}</span>
-                <span class="shop-need">${needed.toLocaleString()}</span>
-                <span class="shop-buy ${toBuy > 0 || !invLoaded ? 'missing' : 'complete'}">${invLoaded ? (toBuy > 0 ? toBuy.toLocaleString() : '✓') : needed.toLocaleString()}</span>
+                <span class="shop-need">${needed.toFixed(1)}</span>
+                <span class="shop-cost">${formatCoins(lineCost)}</span>
             </div>`;
         }
     }
     
     // Protection item
     if (r.protect_hrid && r.protect_count > 0) {
-        const needed = Math.ceil(r.protect_count);
+        const needed = r.protect_count; // Keep decimals
         const owned = invLoaded ? getInventoryCount(r.protect_hrid) : 0;
         const toBuy = Math.max(0, needed - owned);
+        const lineCost = toBuy * (r.protect_price || 0);
+        totalCost += lineCost;
         rows += `<div class="shop-row prot-row">
             <span class="shop-name">${r.protect_name} @ +${r.protect_at}</span>
             <span class="shop-owned ${owned >= needed ? 'complete' : ''}">${invLoaded ? owned.toLocaleString() : '-'}</span>
-            <span class="shop-need">${needed.toLocaleString()}</span>
-            <span class="shop-buy ${toBuy > 0 || !invLoaded ? 'missing' : 'complete'}">${invLoaded ? (toBuy > 0 ? toBuy.toLocaleString() : '✓') : needed.toLocaleString()}</span>
+            <span class="shop-need">${needed.toFixed(1)}</span>
+            <span class="shop-cost">${formatCoins(lineCost)}</span>
         </div>`;
     }
     
     if (!rows) return ''; // No materials or protection
+    
+    // Total row
+    rows += `<div class="shop-row total-row">
+        <span class="shop-name">Total</span>
+        <span class="shop-owned"></span>
+        <span class="shop-need"></span>
+        <span class="shop-cost">${formatCoins(totalCost)}</span>
+    </div>`;
     
     return `<div class="detail-section shopping-list">
         <h4>&#x1F6D2; Shopping List${invLoaded ? '' : ' <span class="price-note">(no inventory synced)</span>'}</h4>
@@ -332,7 +339,7 @@ function renderShoppingList(r) {
             <span class="shop-col">Material</span>
             <span class="shop-col">Owned</span>
             <span class="shop-col">Need</span>
-            <span class="shop-col">Buy</span>
+            <span class="shop-col">Cost</span>
         </div>
         ${rows}
     </div>`;
