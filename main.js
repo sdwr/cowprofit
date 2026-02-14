@@ -634,34 +634,33 @@ function calculateEnhanceSessionProfit(session) {
         if (level > highestLevel) highestLevel = level;
     }
     
-    // Calculate revenue - only count as sellable if:
-    // 1. Highest level is a target (+8/+10/+12/+14)
-    // 2. There is exactly 1 item at that level (multiple = still working on it)
+    // Calculate revenue - check drops for completion:
+    // Success = exactly 1 item at level 10+ (sellable result)
+    // Multiple items at highest level = still working on it
     let revenue = 0;
     let revenueBreakdown = {};
     let revenuePriceMissing = false;
     
-    // Find highest target level with any drops
-    let highestTargetLevel = 0;
-    for (const targetLevel of [8, 10, 12, 14]) {
-        if ((levelDrops[targetLevel] || 0) > 0) {
-            highestTargetLevel = targetLevel;
+    // Find highest level in drops that is 10+
+    let resultLevel = 0;
+    for (const [lvl, count] of Object.entries(levelDrops)) {
+        const level = parseInt(lvl) || 0;
+        if (level >= 10 && level > resultLevel) {
+            resultLevel = level;
         }
     }
     
-    // Only count as revenue if currentLevel (from primaryItemHash) is a sellable level
-    // +8 is not sellable (intermediate), only +10/+12/+14 are final products
+    // Only count as successful if exactly 1 item at that level
     let isSuccessful = false;
     let baseItemCost = 0;
-    const sellableLevels = [10, 12, 14];
     
-    if (currentLevel > 0 && sellableLevels.includes(currentLevel)) {
-        // Current item is at a target level - this is a successful session
+    if (resultLevel >= 10 && (levelDrops[resultLevel] || 0) === 1) {
+        // Single item at 10+ = completed enhancement, use for revenue
         isSuccessful = true;
-        const sellPrice = prices.market?.[itemHrid]?.[String(currentLevel)]?.b || 0;
+        const sellPrice = prices.market?.[itemHrid]?.[String(resultLevel)]?.b || 0;
         if (sellPrice === 0) revenuePriceMissing = true;
-        revenue = sellPrice; // Single item
-        revenueBreakdown[currentLevel] = { count: 1, sellPrice, value: sellPrice };
+        revenue = sellPrice;
+        revenueBreakdown[resultLevel] = { count: 1, sellPrice, value: sellPrice };
         
         // Add base item cost (market ask or craft cost, whichever is cheaper)
         const marketAsk = prices.market?.[itemHrid]?.['0']?.a || 0;
