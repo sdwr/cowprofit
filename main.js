@@ -518,7 +518,7 @@ function renderLootHistoryPanel() {
         const netSale = salePrice - fee;
         const failureCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost;
         const profit = isSuccess ? netSale - enhanceProfit.totalCost : -failureCost;
-        const profitPerHour = hours > 0.01 ? profit / hours : 0;
+        const profitPerDay = hours > 0.01 ? (profit / hours) * 24 : 0;
         
         // Check for price errors
         // Success: needs mat + prot + sale prices
@@ -593,7 +593,7 @@ function renderLootHistoryPanel() {
         
         // Profit display
         const profitStr = hasPriceErrors ? '⚠️' : formatCoins(profit);
-        const rateStr = hasPriceErrors ? '-' : `${formatCoins(profitPerHour)}/hr`;
+        const rateStr = hasPriceErrors ? '-' : `${formatCoins(profitPerDay)}/day`;
         
         // Prot info with per-unit price and starting level (from calculator)
         const protAtLevel = enhanceProfit.protLevel || 8;
@@ -643,7 +643,7 @@ function renderLootHistoryPanel() {
     }
     
     // Summary
-    const avgPerHour = totalHours > 0 ? totalProfit / totalHours : 0;
+    const avgPerDay = totalHours > 0 ? (totalProfit / totalHours) * 24 : 0;
     const summaryProfitClass = totalProfit >= 0 ? 'positive' : 'negative';
     
     panel.innerHTML = `
@@ -651,7 +651,7 @@ function renderLootHistoryPanel() {
         <div class="loot-summary">
             <span>${validCount} sessions</span>
             <span class="loot-summary-value ${summaryProfitClass}">Total: ${formatCoins(totalProfit)}</span>
-            <span class="loot-summary-value">Avg: ${formatCoins(avgPerHour)}/hr</span>
+            <span class="loot-summary-value">Avg: ${formatCoins(avgPerDay)}/day</span>
         </div>
         <div class="loot-entries">
             ${entriesHtml}
