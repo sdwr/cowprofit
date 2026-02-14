@@ -419,13 +419,11 @@ function renderLootHistoryPanel() {
         const profitStr = hasPriceErrors ? '⚠️' : (enhanceProfit.profit !== 0 ? formatCoins(enhanceProfit.profit) : '-');
         const rateStr = hasPriceErrors ? '-' : (enhanceProfit.profitPerHour !== 0 ? `${formatCoins(enhanceProfit.profitPerHour)}/hr` : '-');
         
-        // Build title with level - prefer currentLevel (primaryItem), fallback to highestLevel from drops
-        const level = enhanceProfit.currentLevel || enhanceProfit.highestLevel || 0;
-        const levelStr = level > 0 ? ` +${level}` : '';
-        const itemTitle = `${enhanceProfit.itemName || 'Unknown'}${levelStr}`;
+        // Build title without level (primaryItemHash is starting level, not useful)
+        const itemTitle = enhanceProfit.itemName || 'Unknown';
         
-        // Result only shows on successful sessions (currentLevel is a target level)
-        const resultStr = enhanceProfit.isSuccessful ? `+${enhanceProfit.currentLevel}` : '-';
+        // Result shows actual final level from drops (resultLevel = highest 10+ with exactly 1 item)
+        const resultStr = enhanceProfit.isSuccessful ? `+${enhanceProfit.resultLevel}` : '-';
         
         entriesHtml += `
             <div class="loot-entry enhance-entry">
@@ -707,6 +705,7 @@ function calculateEnhanceSessionProfit(session) {
         currentLevel,
         highestLevel,
         highestTargetLevel,
+        resultLevel,  // actual final level from drops (10+ with 1 item)
         isSuccessful,
         protsUsed,
         matCostPerAction,
