@@ -528,25 +528,14 @@ function calculateEnhanceSessionProfit(session) {
     let itemHrid = null;
     let currentLevel = 0;
     
-    // Debug: log raw session data to see what fields are available
-    console.log('[Session Raw]', session.actionHrid, {
-        primaryItem: session.primaryItem,
-        primaryItemHash: session.primaryItemHash,
-        allKeys: Object.keys(session)
-    });
-    
-    // primaryItem format: "/items/enhancers_top::10" (item::level)
-    if (session.primaryItem) {
-        const parts = session.primaryItem.split('::');
-        itemHrid = parts[0];
-        currentLevel = parseInt(parts[1]) || 0;
-    }
-    
-    // Fallback to primaryItemHash
-    if (!itemHrid && session.primaryItemHash) {
-        // Format: "charId::/item_locations/inventory::/items/{item_hrid}::{level}"
-        const match = session.primaryItemHash.match(/\/items\/([^:]+)/);
-        if (match) itemHrid = '/items/' + match[1];
+    // Parse primaryItemHash to get item and current level
+    // Format: "charId::/item_locations/inventory::/items/{item_hrid}::{level}"
+    if (session.primaryItemHash) {
+        const match = session.primaryItemHash.match(/\/items\/([^:]+)::(\d+)/);
+        if (match) {
+            itemHrid = '/items/' + match[1];
+            currentLevel = parseInt(match[2]) || 0;
+        }
     }
     
     if (!itemHrid) {
