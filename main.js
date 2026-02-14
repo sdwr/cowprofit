@@ -649,19 +649,27 @@ function calculateEnhanceSessionProfit(session) {
         }
     }
     
-    // Only count as revenue if currentLevel (from primaryItemHash) is a sellable level
-    // +8 is not sellable (intermediate), only +10/+12/+14 are final products
+    // Only count as revenue if at a sellable level (+10/+12/+14)
+    // Check BOTH primaryItemHash (currentLevel) AND actual drops (highestTargetLevel)
+    // primaryItemHash doesn't always update mid-session, so drops are more reliable
     let isSuccessful = false;
     let baseItemCost = 0;
     const sellableLevels = [10, 12, 14];
     
-    if (currentLevel > 0 && sellableLevels.includes(currentLevel)) {
+    // Use the actual highest from drops if it's a target level with exactly 1 item
+    // This catches cases where primaryItemHash is stale but drops show completion
+    let actualLevel = currentLevel;
+    if (sellableLevels.includes(highestTargetLevel) && (levelDrops[highestTargetLevel] || 0) === 1) {
+        actualLevel = highestTargetLevel;
+    }
+    
+    if (actualLevel > 0 && sellableLevels.includes(actualLevel)) {
         // Current item is at a target level - this is a successful session
         isSuccessful = true;
-        const sellPrice = prices.market?.[itemHrid]?.[String(currentLevel)]?.b || 0;
+        const sellPrice = prices.market?.[itemHrid]?.[String(actualLevel)]?.b || 0;
         if (sellPrice === 0) revenuePriceMissing = true;
         revenue = sellPrice; // Single item
-        revenueBreakdown[currentLevel] = { count: 1, sellPrice, value: sellPrice };
+        revenueBreakdown[actualLevel] = { count: 1, sellPrice, value: sellPrice };
         
         // Add base item cost (market ask or craft cost, whichever is cheaper)
         const marketAsk = prices.market?.[itemHrid]?.['0']?.a || 0;
