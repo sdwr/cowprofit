@@ -568,14 +568,12 @@ function renderLootHistoryPanel() {
             }
         }
         
-        // Build header with result badge as clickable toggle
+        // Build header with result + toggle on the LEFT
         const itemTitle = enhanceProfit.itemName || 'Unknown';
         const displayResultLevel = isSuccess ? (enhanceProfit.resultLevel || '?') : null;
+        const resultBadge = displayResultLevel ? `<span class="result-badge">+${displayResultLevel}</span>` : '<span class="result-badge fail">✗</span>';
+        const toggleIcon = isSuccess ? '✓' : '✗';
         const toggleClass = isSuccess ? 'toggle-success' : 'toggle-failure';
-        // Result badge is now the toggle button
-        const resultBadge = displayResultLevel 
-            ? `<span class="result-badge toggle-btn ${toggleClass}" data-session="${sessionKey}" title="Toggle success/failure">+${displayResultLevel}</span>` 
-            : `<span class="result-badge fail toggle-btn ${toggleClass}" data-session="${sessionKey}" title="Toggle success/failure">✗</span>`;
         const hashWarning = hashMismatch ? '<span class="hash-warning" title="Session data changed since override">⚠️</span>' : '';
         
         // Level info: starting level (prot@) and highest reached
@@ -631,6 +629,7 @@ function renderLootHistoryPanel() {
                 <div class="loot-header">
                     <span class="loot-action">
                         ${resultBadge}
+                        <button class="toggle-btn ${toggleClass}" data-session="${sessionKey}" title="Toggle success/failure">${toggleIcon}</button>
                         ${hashWarning}
                         <span class="item-name">${itemTitle}</span>
                         <span class="level-info">${levelInfo}</span>
@@ -705,8 +704,15 @@ function attachLootHistoryHandlers() {
                 newValue = undefined; // Back to auto-detect
             }
             
+            // Preserve customSale when toggling - only update forceSuccess
+            const existingOverride = getSessionOverrides()[sessionKey] || {};
             if (newValue === undefined) {
-                clearSessionOverride(sessionKey);
+                // Keep customSale if it exists, only remove forceSuccess
+                if (existingOverride.customSale !== undefined) {
+                    saveSessionOverride(sessionKey, { forceSuccess: undefined, dataHash: hash });
+                } else {
+                    clearSessionOverride(sessionKey);
+                }
             } else {
                 saveSessionOverride(sessionKey, { forceSuccess: newValue, dataHash: hash });
             }
