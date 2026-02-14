@@ -1318,11 +1318,15 @@ function estimatePrice(itemHrid, level, lootTs, mode = 'pessimistic') {
     }
     
     // 2. Fall back to cost to create (NO market bid fallback)
-    // - Level 0: crafting cost with artisan tea
-    // - Level N: base item + enhancement mats/prots (no artisan tea on enhance)
-    const craftCost = calculateCostToCreate(itemHrid, level, mode);
+    // - Level 0: crafting cost with artisan tea (🔨)
+    // - Level N: base item (history or craft) + enhancement mats/prots (🪄)
+    const craftCost = calculateCostToCreate(itemHrid, level, lootTs, mode);
     if (craftCost > 0) {
-        return { price: craftCost, source: level > 0 ? 'enhance cost' : 'craft cost', sourceIcon: '🔨' };
+        return { 
+            price: craftCost, 
+            source: level > 0 ? 'enhance cost' : 'craft cost', 
+            sourceIcon: level > 0 ? '🪄' : '🔨' 
+        };
     }
     
     return { price: 0, source: 'unknown', sourceIcon: '❓' };
@@ -1330,24 +1334,25 @@ function estimatePrice(itemHrid, level, lootTs, mode = 'pessimistic') {
 
 /**
  * Calculate cost to create an item at a given level.
- * - Level 0: crafting recipe cost (materials)
- * - Level N: base item cost + enhancement materials + protection
+ * - Level 0: crafting recipe cost (materials with artisan tea)
+ * - Level N: base item cost (from history or craft) + enhancement mats/prots (no artisan tea)
  * 
  * @param {string} itemHrid - Item path
  * @param {number} level - Enhancement level
+ * @param {number} lootTs - Unix timestamp for historical price lookup
  * @param {string} mode - Price mode
  * @returns {number} Total cost to create
  */
-function calculateCostToCreate(itemHrid, level, mode = 'pessimistic') {
+function calculateCostToCreate(itemHrid, level, lootTs, mode = 'pessimistic') {
     if (level === 0) {
-        // Crafting cost from recipe
+        // Crafting cost from recipe (with artisan tea)
         const craftMats = getCraftingMaterials(itemHrid, mode);
         return craftMats?.total || 0;
     }
     
     // Enhanced item: base item + enhancement costs from +0 to +level
-    // Get base item cost (recursive - will get craft cost if no market price)
-    const baseEstimate = estimatePrice(itemHrid, 0, Date.now() / 1000, mode);
+    // Get base item cost - checks history first, falls back to craft cost
+    const baseEstimate = estimatePrice(itemHrid, 0, lootTs, mode);
     const baseCost = baseEstimate.price;
     
     // Use calculator if available
