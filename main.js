@@ -548,13 +548,18 @@ function renderLootHistoryPanel() {
             }
         }
         
-        // Build header with result + toggle
+        // Build header with result + toggle on the LEFT
         const itemTitle = enhanceProfit.itemName || 'Unknown';
-        const resultLevel = isSuccess ? (enhanceProfit.resultLevel || '?') : null;
-        const resultBadge = resultLevel ? `<span class="result-badge">+${resultLevel}</span>` : '';
+        const displayResultLevel = isSuccess ? (enhanceProfit.resultLevel || '?') : null;
+        const resultBadge = displayResultLevel ? `<span class="result-badge">+${displayResultLevel}</span>` : '<span class="result-badge fail">✗</span>';
         const toggleIcon = isSuccess ? '✓' : '✗';
         const toggleClass = isSuccess ? 'toggle-success' : 'toggle-failure';
         const hashWarning = hashMismatch ? '<span class="hash-warning" title="Session data changed since override">⚠️</span>' : '';
+        
+        // Level info: starting level (prot@) and highest reached
+        const startLevel = enhanceProfit.currentLevel || 0;
+        const highLevel = enhanceProfit.highestLevel || 0;
+        const levelInfo = `+${startLevel}→+${highLevel}`;
         
         // Estimated sale display
         let estSaleStr = '-';
@@ -584,13 +589,26 @@ function renderLootHistoryPanel() {
         const profitStr = hasPriceErrors ? '⚠️' : formatCoins(profit);
         const rateStr = hasPriceErrors ? '-' : `${formatCoins(profitPerHour)}/hr`;
         
+        // Prot info with starting level (prot kicks in at 8+)
+        const protAtLevel = startLevel >= 8 ? startLevel : 8;
+        let protStr = '-';
+        if (enhanceProfit.protsUsed > 0) {
+            if (enhanceProfit.protPriceMissing) {
+                protStr = `⚠️ (${enhanceProfit.protsUsed}× @${protAtLevel})`;
+            } else {
+                protStr = `${formatCoins(enhanceProfit.totalProtCost)} (${enhanceProfit.protsUsed}× @${protAtLevel})`;
+            }
+        }
+        
         entriesHtml += `
             <div class="loot-entry enhance-entry ${bgClass}" data-session="${sessionKey}">
                 <div class="loot-header">
                     <span class="loot-action">
-                        ⚔️ ${itemTitle} ${resultBadge}
+                        ${resultBadge}
                         <button class="toggle-btn ${toggleClass}" data-session="${sessionKey}" title="Toggle success/failure">${toggleIcon}</button>
                         ${hashWarning}
+                        <span class="item-name">${itemTitle}</span>
+                        <span class="level-info">${levelInfo}</span>
                     </span>
                     <span class="loot-time">${formatLootTime(session.startTime)}</span>
                 </div>
@@ -601,7 +619,7 @@ function renderLootHistoryPanel() {
                 </div>
                 <div class="loot-costs">
                     <span>Mats: ${matCostStr}</span>
-                    <span>Prot: ${protCostStr}</span>
+                    <span>Prot: ${protStr}</span>
                     ${isSuccess ? `<span>Base: ${formatCoins(enhanceProfit.baseItemCost)}</span>` : ''}
                 </div>
                 <div class="loot-sale">
@@ -864,8 +882,8 @@ function calculateEnhanceSessionProfit(session) {
     if (mirrorPrice > 0) protPrice = Math.min(protPrice, mirrorPrice);
     if (baseItemPrice > 0) protPrice = Math.min(protPrice, baseItemPrice);
     
-    // Check protection item hrids from item data
-    const protItemHrids = itemData?.protectionItemHrids || [];
+    // Check protection item hrids from item data (key is "protectionItems" not "protectionItemHrids")
+    const protItemHrids = itemData?.protectionItems || [];
     for (const protHrid of protItemHrids) {
         const price = prices.market?.[protHrid]?.['0']?.a || 0;
         if (price > 0) protPrice = Math.min(protPrice, price);
@@ -930,7 +948,7 @@ function calculateEnhanceSessionProfit(session) {
     
     // Calculate estimated sale price and source
     // Primary: bid price for result level
-    // Fallback: total cost (what it would cost to make)
+    // Fallback: expected total cost from 0 (using calculator) or actual cost
     let estimatedSale = 0;
     let estimatedSaleSource = null;
     
@@ -940,9 +958,21 @@ function calculateEnhanceSessionProfit(session) {
             estimatedSale = bidPrice;
             estimatedSaleSource = 'bid';
         } else {
-            // Fallback to total cost
-            estimatedSale = totalCost;
-            estimatedSaleSource = 'cost';
+            // Try to get expected cost from calculator
+            let expectedCost = 0;
+            if (calculator && typeof calculator.calculateEnhancementCost === 'function') {
+                try {
+                    const calcResult = calculator.calculateEnhancementCost(itemHrid, resultLevel, prices, 'pessimistic');
+                    if (calcResult && calcResult.totalCost > 0) {
+                        expectedCost = calcResult.totalCost;
+                    }
+                } catch (e) {
+                    console.warn('Failed to calculate expected cost:', e);
+                }
+            }
+            // Use expected cost if available, otherwise actual cost incurred
+            estimatedSale = expectedCost > 0 ? expectedCost : totalCost;
+            estimatedSaleSource = expectedCost > 0 ? 'exp' : 'actual';
         }
     }
     
