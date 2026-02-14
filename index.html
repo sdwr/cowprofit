@@ -813,7 +813,7 @@
             border-left-color: #f87171 !important;
         }
         
-        /* Result badge */
+        /* Result badge (clickable toggle) */
         .result-badge {
             background: #4ade80;
             color: #000;
@@ -822,6 +822,12 @@
             font-size: 0.65rem;
             font-weight: bold;
             margin-right: 4px;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+        .result-badge:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
         }
         .result-badge.fail {
             background: #f87171;

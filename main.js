@@ -568,12 +568,14 @@ function renderLootHistoryPanel() {
             }
         }
         
-        // Build header with result + toggle on the LEFT
+        // Build header with result badge as clickable toggle
         const itemTitle = enhanceProfit.itemName || 'Unknown';
         const displayResultLevel = isSuccess ? (enhanceProfit.resultLevel || '?') : null;
-        const resultBadge = displayResultLevel ? `<span class="result-badge">+${displayResultLevel}</span>` : '<span class="result-badge fail">✗</span>';
-        const toggleIcon = isSuccess ? '✓' : '✗';
         const toggleClass = isSuccess ? 'toggle-success' : 'toggle-failure';
+        // Result badge is now the toggle button
+        const resultBadge = displayResultLevel 
+            ? `<span class="result-badge toggle-btn ${toggleClass}" data-session="${sessionKey}" title="Toggle success/failure">+${displayResultLevel}</span>` 
+            : `<span class="result-badge fail toggle-btn ${toggleClass}" data-session="${sessionKey}" title="Toggle success/failure">✗</span>`;
         const hashWarning = hashMismatch ? '<span class="hash-warning" title="Session data changed since override">⚠️</span>' : '';
         
         // Level info: starting level (prot@) and highest reached
@@ -629,7 +631,6 @@ function renderLootHistoryPanel() {
                 <div class="loot-header">
                     <span class="loot-action">
                         ${resultBadge}
-                        <button class="toggle-btn ${toggleClass}" data-session="${sessionKey}" title="Toggle success/failure">${toggleIcon}</button>
                         ${hashWarning}
                         <span class="item-name">${itemTitle}</span>
                         <span class="level-info">${levelInfo}</span>
@@ -647,11 +648,11 @@ function renderLootHistoryPanel() {
                     <span>Teas: ${teaStr}</span>
                     ${isSuccess ? `<span>Base: ${enhanceProfit.baseItemSourceIcon || ''} ${formatCoins(enhanceProfit.baseItemCost)}</span>` : ''}
                 </div>
-                <div class="loot-sale">
+                ${isSuccess ? `<div class="loot-sale">
                     <span>Est: ${estSaleStr}</span>
                     <span>Sale: ${saleHtml}</span>
                     <span class="fee">Fee: ${feeStr}</span>
-                </div>
+                </div>` : ''}
                 <div class="loot-values">
                     <span class="loot-value ${profitClass}">Profit: ${profitStr}</span>
                     <span class="loot-rate">${rateStr}</span>
