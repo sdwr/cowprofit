@@ -816,14 +816,44 @@
             color: #f87171;
         }
         
-        /* Session success/failure backgrounds */
+        /* Session success/failure/unsold backgrounds */
         .session-success {
             background: rgba(74, 222, 128, 0.12) !important;
             border-left-color: #4ade80 !important;
         }
+        .session-unsold {
+            background: rgba(250, 204, 21, 0.12) !important;
+            border-left-color: #facc15 !important;
+        }
         .session-failure {
             background: rgba(248, 113, 113, 0.12) !important;
             border-left-color: #f87171 !important;
+        }
+        
+        /* Sold toggle button */
+        .sold-toggle {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #888;
+            width: 22px;
+            height: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            margin-left: 4px;
+            padding: 0;
+            line-height: 1;
+        }
+        .sold-toggle:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .sold-toggle.is-sold {
+            color: #4ade80;
+            border-color: #4ade80;
+        }
+        .sold-toggle.is-unsold {
+            color: #facc15;
+            border-color: #facc15;
         }
         
         /* Result badge */

@@ -473,6 +473,9 @@ function renderLootHistoryPanel() {
     
     let entriesHtml = '';
     let totalProfit = 0;
+    let soldProfit = 0;
+    let unsoldProfit = 0;
+    let unsoldCount = 0;
     let totalHours = 0;
     let validCount = 0;
     
@@ -540,14 +543,23 @@ function renderLootHistoryPanel() {
         const hasPriceErrors = enhanceProfit.matPriceMissing || enhanceProfit.protPriceMissing || 
             (isSuccess && salePrice === 0);
         
+        // Determine sold status (only for successful sessions, default true)
+        const isSold = !isSuccess ? true : (override.isSold !== undefined ? override.isSold : true);
+        
         // Add to totals if we have all required prices (include failures for true P&L)
         if (!hasPriceErrors) {
             totalProfit += profit;
             totalHours += hours;
+            if (isSuccess && !isSold) {
+                unsoldProfit += profit;
+                unsoldCount++;
+            } else {
+                soldProfit += profit;
+            }
         }
         
-        // Background class based on success/failure
-        const bgClass = isSuccess ? 'session-success' : 'session-failure';
+        // Background class based on success/failure/unsold
+        const bgClass = !isSuccess ? 'session-failure' : (isSold ? 'session-success' : 'session-unsold');
         const profitClass = hasPriceErrors ? 'warning' : (profit > 0 ? 'positive' : (profit < 0 ? 'negative' : 'neutral'));
         
         // Format costs
@@ -574,6 +586,11 @@ function renderLootHistoryPanel() {
         const toggleIcon = isSuccess ? '✓' : '✗';
         const toggleClass = isSuccess ? 'toggle-success' : 'toggle-failure';
         const hashWarning = hashMismatch ? '<span class="hash-warning" title="Session data changed since override">⚠️</span>' : '';
+        
+        // Sold toggle (only for successful sessions)
+        const soldToggleIcon = isSold ? '💰' : '📦';
+        const soldToggleClass = isSold ? 'is-sold' : 'is-unsold';
+        const soldToggleHtml = isSuccess ? `<button class="sold-toggle ${soldToggleClass}" data-session="${sessionKey}" title="${isSold ? 'Sold - click to mark unsold' : 'Unsold - click to mark sold'}">${soldToggleIcon}</button>` : '';
         
         // Level info: starting level (prot@) and highest reached
         const startLevel = enhanceProfit.currentLevel || 0;
@@ -629,6 +646,7 @@ function renderLootHistoryPanel() {
                     <span class="loot-action">
                         ${resultBadge}
                         <button class="toggle-btn ${toggleClass}" data-session="${sessionKey}" title="Toggle success/failure">${toggleIcon}</button>
+                        ${soldToggleHtml}
                         ${hashWarning}
                         <span class="item-name">${itemTitle}</span>
                         <span class="level-info">${levelInfo}</span>
@@ -661,13 +679,17 @@ function renderLootHistoryPanel() {
     
     // Summary
     const avgPerDay = totalHours > 0 ? (totalProfit / totalHours) * 24 : 0;
-    const summaryProfitClass = totalProfit >= 0 ? 'positive' : 'negative';
+    const soldClass = soldProfit >= 0 ? 'positive' : 'negative';
+    const unsoldClass = unsoldProfit >= 0 ? 'positive' : 'negative';
+    
+    // Format: "X sessions | Sold: xx + Unsold: xx | Avg: xx/day"
+    const unsoldStr = unsoldCount > 0 ? ` <span class="loot-summary-value ${unsoldClass}">+ Unsold: ${formatCoins(unsoldProfit)}</span>` : '';
     
     panel.innerHTML = `
         <h5>📜 Enhance History</h5>
         <div class="loot-summary">
             <span>${validCount} sessions</span>
-            <span class="loot-summary-value ${summaryProfitClass}">Total: ${formatCoins(totalProfit)}</span>
+            <span class="loot-summary-value ${soldClass}">Sold: ${formatCoins(soldProfit)}</span>${unsoldStr}
             <span class="loot-summary-value">Avg: ${formatCoins(avgPerDay)}/day</span>
         </div>
         <div class="loot-entries">
@@ -681,7 +703,7 @@ function renderLootHistoryPanel() {
 
 // Event handlers for loot history interactions
 function attachLootHistoryHandlers() {
-    // Toggle buttons
+    // Toggle buttons (success/failure)
     document.querySelectorAll('.toggle-btn').forEach(btn => {
         btn.onclick = (e) => {
             e.stopPropagation();
@@ -703,11 +725,11 @@ function attachLootHistoryHandlers() {
                 newValue = undefined; // Back to auto-detect
             }
             
-            // Preserve customSale when toggling - only update forceSuccess
+            // Preserve customSale AND isSold when toggling
             const existingOverride = getSessionOverrides()[sessionKey] || {};
             if (newValue === undefined) {
-                // Keep customSale if it exists, only remove forceSuccess
-                if (existingOverride.customSale !== undefined) {
+                // Keep customSale and isSold if they exist, only remove forceSuccess
+                if (existingOverride.customSale !== undefined || existingOverride.isSold !== undefined) {
                     saveSessionOverride(sessionKey, { forceSuccess: undefined, dataHash: hash });
                 } else {
                     clearSessionOverride(sessionKey);
@@ -715,6 +737,26 @@ function attachLootHistoryHandlers() {
             } else {
                 saveSessionOverride(sessionKey, { forceSuccess: newValue, dataHash: hash });
             }
+            renderLootHistoryPanel();
+        };
+    });
+    
+    // Sold toggle buttons
+    document.querySelectorAll('.sold-toggle').forEach(btn => {
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            const sessionKey = btn.dataset.session;
+            const overrides = getSessionOverrides();
+            const currentSold = overrides[sessionKey]?.isSold;
+            
+            // Find the session to get current hash
+            const session = lootHistoryData.find(s => s.startTime === sessionKey);
+            const hash = session ? getSessionHash(session) : null;
+            
+            // Toggle: undefined/true -> false, false -> true
+            const newValue = (currentSold === undefined || currentSold === true) ? false : true;
+            
+            saveSessionOverride(sessionKey, { isSold: newValue, dataHash: hash });
             renderLootHistoryPanel();
         };
     });
