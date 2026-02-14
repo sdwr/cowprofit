@@ -98,6 +98,111 @@ window.addEventListener('cowprofit-loot-loaded', function(e) {
     }
 });
 
+// ============================================
+// SESSION OVERRIDES (localStorage)
+// ============================================
+
+const SESSION_OVERRIDES_KEY = 'cowprofit_session_overrides';
+
+function getSessionOverrides() {
+    try {
+        return JSON.parse(localStorage.getItem(SESSION_OVERRIDES_KEY) || '{}');
+    } catch (e) {
+        return {};
+    }
+}
+
+function saveSessionOverride(startTime, override) {
+    const overrides = getSessionOverrides();
+    overrides[startTime] = { ...overrides[startTime], ...override };
+    localStorage.setItem(SESSION_OVERRIDES_KEY, JSON.stringify(overrides));
+}
+
+function clearSessionOverride(startTime) {
+    const overrides = getSessionOverrides();
+    delete overrides[startTime];
+    localStorage.setItem(SESSION_OVERRIDES_KEY, JSON.stringify(overrides));
+}
+
+function getSessionHash(session) {
+    const dropCount = Object.values(session.drops || {}).reduce((a, b) => a + b, 0);
+    return `${session.actionHrid || ''}:${session.actionCount || 0}:${dropCount}`;
+}
+
+// ============================================
+// MWI PRICE INCREMENT LOGIC
+// ============================================
+
+// MWI marketplace price tiers: [maxPrice, stepSize]
+const PRICE_TIERS = [
+    [50, 1],
+    [100, 2],
+    [300, 5],
+    [500, 10],
+    [1000, 20],
+    [3000, 50],
+    [5000, 100],
+    [10000, 200],
+    [30000, 500],
+    [50000, 1000],
+    [100000, 2000],
+    [300000, 5000],
+    [500000, 10000],
+    [1000000, 20000],
+    [3000000, 50000],
+    [5000000, 100000],
+    [10000000, 200000],
+    [30000000, 500000],
+    [50000000, 1000000],
+    [100000000, 2000000],
+    [300000000, 5000000],
+    [500000000, 10000000],
+    [1000000000, 20000000],
+    [3000000000, 50000000],
+    [5000000000, 100000000],
+    [10000000000, 200000000],
+];
+
+function getPriceStep(price) {
+    for (const [max, step] of PRICE_TIERS) {
+        if (price <= max) return step;
+    }
+    return 500000000; // fallback for very high prices
+}
+
+function getValidPrice(price) {
+    if (price <= 0) return 0;
+    const step = getPriceStep(price);
+    return Math.round(price / step) * step;
+}
+
+function getNextPrice(price) {
+    if (price <= 0) return 1;
+    const step = getPriceStep(price);
+    const next = price + step;
+    // Check if we crossed into a new tier
+    const nextStep = getPriceStep(next);
+    if (nextStep !== step) {
+        // Snap to first valid price in new tier
+        return Math.ceil(next / nextStep) * nextStep;
+    }
+    return next;
+}
+
+function getPrevPrice(price) {
+    if (price <= 1) return 0;
+    const step = getPriceStep(price);
+    const prev = price - step;
+    if (prev <= 0) return 0;
+    // Check if we crossed into a lower tier
+    const prevStep = getPriceStep(prev);
+    if (prevStep !== step) {
+        // Snap to last valid price in lower tier
+        return Math.floor(prev / prevStep) * prevStep;
+    }
+    return prev;
+}
+
 const TARGET_LEVELS = [8, 10, 12, 14];
 const MIN_PROFIT = 1_000_000;
 const MAX_ROI = 1000;
@@ -364,6 +469,9 @@ function renderLootHistoryPanel() {
         return;
     }
     
+    // Load session overrides
+    const overrides = getSessionOverrides();
+    
     let entriesHtml = '';
     let totalProfit = 0;
     let totalHours = 0;
@@ -373,25 +481,57 @@ function renderLootHistoryPanel() {
         const enhanceProfit = calculateEnhanceSessionProfit(session);
         if (!enhanceProfit) continue;
         
+        const sessionKey = session.startTime;
+        const override = overrides[sessionKey] || {};
+        const currentHash = getSessionHash(session);
+        const hashMismatch = override.dataHash && override.dataHash !== currentHash;
+        
         const duration = calculateDuration(session.startTime, session.endTime);
         const durationMs = new Date(session.endTime) - new Date(session.startTime);
         const hours = durationMs / 3600000;
         
-        // Skip very short sessions (< 1 min) with no targets
-        if (hours < 0.02 && enhanceProfit.revenue === 0) continue;
+        // Skip very short sessions (< 1 min) with no results and no override
+        if (hours < 0.02 && !enhanceProfit.isSuccessful && override.forceSuccess !== true) continue;
         
         validCount++;
         
+        // Determine success status (override takes precedence)
+        const isSuccess = override.forceSuccess !== undefined ? override.forceSuccess : enhanceProfit.isSuccessful;
+        
+        // Determine sale price (custom > estimated > 0)
+        let salePrice = 0;
+        let estimatedSale = enhanceProfit.estimatedSale || 0;
+        let estimatedSource = enhanceProfit.estimatedSaleSource || null;
+        
+        if (isSuccess) {
+            if (override.customSale !== undefined && override.customSale !== null) {
+                salePrice = override.customSale;
+            } else {
+                salePrice = getValidPrice(estimatedSale);
+            }
+        }
+        
+        // Calculate fee (2%) and profit
+        const fee = Math.floor(salePrice * 0.02);
+        const netSale = salePrice - fee;
+        const profit = isSuccess ? netSale - enhanceProfit.totalCost : -enhanceProfit.totalCost;
+        const profitPerHour = hours > 0.01 ? profit / hours : 0;
+        
+        // Check for price errors
+        const hasPriceErrors = enhanceProfit.matPriceMissing || enhanceProfit.protPriceMissing || 
+            (isSuccess && salePrice === 0);
+        
         // Only add to totals if we have all prices
-        const hasPriceErrors = enhanceProfit.matPriceMissing || enhanceProfit.protPriceMissing || enhanceProfit.revenuePriceMissing;
-        if (!hasPriceErrors) {
-            totalProfit += enhanceProfit.profit;
+        if (!hasPriceErrors && isSuccess) {
+            totalProfit += profit;
             totalHours += hours;
         }
         
-        const profitClass = hasPriceErrors ? 'warning' : (enhanceProfit.profit > 0 ? 'positive' : (enhanceProfit.profit < 0 ? 'negative' : 'neutral'));
+        // Background class based on success/failure
+        const bgClass = isSuccess ? 'session-success' : 'session-failure';
+        const profitClass = hasPriceErrors ? 'warning' : (profit > 0 ? 'positive' : (profit < 0 ? 'negative' : 'neutral'));
         
-        // Format costs - show error if price missing
+        // Format costs
         let matCostStr = '-';
         if (enhanceProfit.matPriceMissing) {
             matCostStr = '⚠️ no price';
@@ -408,27 +548,50 @@ function renderLootHistoryPanel() {
             }
         }
         
-        let revenueStr = '-';
-        if (enhanceProfit.revenuePriceMissing) {
-            revenueStr = '⚠️ no price';
-        } else if (enhanceProfit.revenue > 0) {
-            revenueStr = formatCoins(enhanceProfit.revenue);
+        // Build header with result + toggle
+        const itemTitle = enhanceProfit.itemName || 'Unknown';
+        const resultLevel = isSuccess ? (enhanceProfit.resultLevel || '?') : null;
+        const resultBadge = resultLevel ? `<span class="result-badge">+${resultLevel}</span>` : '';
+        const toggleIcon = isSuccess ? '✓' : '✗';
+        const toggleClass = isSuccess ? 'toggle-success' : 'toggle-failure';
+        const hashWarning = hashMismatch ? '<span class="hash-warning" title="Session data changed since override">⚠️</span>' : '';
+        
+        // Estimated sale display
+        let estSaleStr = '-';
+        if (estimatedSale > 0 && estimatedSource) {
+            estSaleStr = `${formatCoins(estimatedSale)} (${estimatedSource})`;
+        } else if (isSuccess) {
+            estSaleStr = '⚠️ no price';
         }
         
-        // Only show profit/rate if we have all prices (hasPriceErrors already defined above)
-        const profitStr = hasPriceErrors ? '⚠️' : (enhanceProfit.profit !== 0 ? formatCoins(enhanceProfit.profit) : '-');
-        const rateStr = hasPriceErrors ? '-' : (enhanceProfit.profitPerHour !== 0 ? `${formatCoins(enhanceProfit.profitPerHour)}/hr` : '-');
+        // Sale input (only for successful sessions)
+        let saleHtml = '-';
+        if (isSuccess) {
+            const saleFormatted = salePrice > 0 ? formatCoins(salePrice) : '0';
+            saleHtml = `
+                <span class="sale-input-group">
+                    <button class="sale-btn sale-down" data-session="${sessionKey}" data-dir="down">◀</button>
+                    <input type="text" class="sale-input" data-session="${sessionKey}" value="${saleFormatted}" data-raw="${salePrice}">
+                    <button class="sale-btn sale-up" data-session="${sessionKey}" data-dir="up">▶</button>
+                </span>
+            `;
+        }
         
-        // Build title without level (primaryItemHash is starting level, not useful)
-        const itemTitle = enhanceProfit.itemName || 'Unknown';
+        // Fee display
+        const feeStr = isSuccess && fee > 0 ? `-${formatCoins(fee)}` : '-';
         
-        // Result shows actual final level from drops (resultLevel = highest 10+ with exactly 1 item)
-        const resultStr = enhanceProfit.isSuccessful ? `+${enhanceProfit.resultLevel}` : '-';
+        // Profit display
+        const profitStr = hasPriceErrors ? '⚠️' : formatCoins(profit);
+        const rateStr = hasPriceErrors ? '-' : `${formatCoins(profitPerHour)}/hr`;
         
         entriesHtml += `
-            <div class="loot-entry enhance-entry">
+            <div class="loot-entry enhance-entry ${bgClass}" data-session="${sessionKey}">
                 <div class="loot-header">
-                    <span class="loot-action">⚔️ ${itemTitle}</span>
+                    <span class="loot-action">
+                        ⚔️ ${itemTitle} ${resultBadge}
+                        <button class="toggle-btn ${toggleClass}" data-session="${sessionKey}" title="Toggle success/failure">${toggleIcon}</button>
+                        ${hashWarning}
+                    </span>
                     <span class="loot-time">${formatLootTime(session.startTime)}</span>
                 </div>
                 <div class="loot-details">
@@ -439,11 +602,12 @@ function renderLootHistoryPanel() {
                 <div class="loot-costs">
                     <span>Mats: ${matCostStr}</span>
                     <span>Prot: ${protCostStr}</span>
-                    ${enhanceProfit.isSuccessful ? `<span>Base: ${formatCoins(enhanceProfit.baseItemCost)}</span>` : ''}
+                    ${isSuccess ? `<span>Base: ${formatCoins(enhanceProfit.baseItemCost)}</span>` : ''}
                 </div>
-                <div class="loot-revenue">
-                    <span>Result: ${resultStr}</span>
-                    <span>Revenue: ${revenueStr}</span>
+                <div class="loot-sale">
+                    <span>Est: ${estSaleStr}</span>
+                    <span>Sale: ${saleHtml}</span>
+                    <span class="fee">Fee: ${feeStr}</span>
                 </div>
                 <div class="loot-values">
                     <span class="loot-value ${profitClass}">Profit: ${profitStr}</span>
@@ -455,19 +619,107 @@ function renderLootHistoryPanel() {
     
     // Summary
     const avgPerHour = totalHours > 0 ? totalProfit / totalHours : 0;
-    const profitClass = totalProfit >= 0 ? 'positive' : 'negative';
+    const summaryProfitClass = totalProfit >= 0 ? 'positive' : 'negative';
     
     panel.innerHTML = `
         <h5>📜 Enhance History</h5>
         <div class="loot-summary">
             <span>${validCount} sessions</span>
-            <span class="loot-summary-value ${profitClass}">Total: ${formatCoins(totalProfit)}</span>
+            <span class="loot-summary-value ${summaryProfitClass}">Total: ${formatCoins(totalProfit)}</span>
             <span class="loot-summary-value">Avg: ${formatCoins(avgPerHour)}/hr</span>
         </div>
         <div class="loot-entries">
             ${entriesHtml}
         </div>
     `;
+    
+    // Attach event handlers
+    attachLootHistoryHandlers();
+}
+
+// Event handlers for loot history interactions
+function attachLootHistoryHandlers() {
+    // Toggle buttons
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            const sessionKey = btn.dataset.session;
+            const overrides = getSessionOverrides();
+            const current = overrides[sessionKey]?.forceSuccess;
+            
+            // Find the session to get current hash
+            const session = lootHistoryData.find(s => s.startTime === sessionKey);
+            const hash = session ? getSessionHash(session) : null;
+            
+            // Toggle: undefined -> true -> false -> undefined (auto)
+            let newValue;
+            if (current === undefined || current === null) {
+                newValue = true;
+            } else if (current === true) {
+                newValue = false;
+            } else {
+                newValue = undefined; // Back to auto-detect
+            }
+            
+            if (newValue === undefined) {
+                clearSessionOverride(sessionKey);
+            } else {
+                saveSessionOverride(sessionKey, { forceSuccess: newValue, dataHash: hash });
+            }
+            renderLootHistoryPanel();
+        };
+    });
+    
+    // Sale up/down buttons
+    document.querySelectorAll('.sale-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            const sessionKey = btn.dataset.session;
+            const dir = btn.dataset.dir;
+            const input = document.querySelector(`.sale-input[data-session="${sessionKey}"]`);
+            if (!input) return;
+            
+            let rawValue = parseInt(input.dataset.raw) || 0;
+            const newValue = dir === 'up' ? getNextPrice(rawValue) : getPrevPrice(rawValue);
+            
+            // Find session for hash
+            const session = lootHistoryData.find(s => s.startTime === sessionKey);
+            const hash = session ? getSessionHash(session) : null;
+            
+            saveSessionOverride(sessionKey, { customSale: newValue, dataHash: hash });
+            renderLootHistoryPanel();
+        };
+    });
+    
+    // Sale input direct edit
+    document.querySelectorAll('.sale-input').forEach(input => {
+        input.onchange = (e) => {
+            const sessionKey = input.dataset.session;
+            const rawText = input.value.replace(/[^0-9.]/g, '');
+            
+            // Parse value (support M/B suffixes)
+            let value = parseFloat(rawText) || 0;
+            if (input.value.toLowerCase().includes('b')) {
+                value *= 1_000_000_000;
+            } else if (input.value.toLowerCase().includes('m')) {
+                value *= 1_000_000;
+            } else if (input.value.toLowerCase().includes('k')) {
+                value *= 1_000;
+            }
+            
+            const validValue = getValidPrice(Math.round(value));
+            
+            // Find session for hash
+            const session = lootHistoryData.find(s => s.startTime === sessionKey);
+            const hash = session ? getSessionHash(session) : null;
+            
+            saveSessionOverride(sessionKey, { customSale: validValue, dataHash: hash });
+            renderLootHistoryPanel();
+        };
+        
+        // Select all on focus
+        input.onfocus = () => input.select();
+    });
 }
 
 function calculateLootSessionValue(session) {
@@ -675,7 +927,29 @@ function calculateEnhanceSessionProfit(session) {
     }
     
     const totalCost = totalMatCost + totalProtCost + baseItemCost;
-    const profit = revenue - totalCost;
+    
+    // Calculate estimated sale price and source
+    // Primary: bid price for result level
+    // Fallback: total cost (what it would cost to make)
+    let estimatedSale = 0;
+    let estimatedSaleSource = null;
+    
+    if (isSuccessful && resultLevel >= 10) {
+        const bidPrice = prices.market?.[itemHrid]?.[String(resultLevel)]?.b || 0;
+        if (bidPrice > 0) {
+            estimatedSale = bidPrice;
+            estimatedSaleSource = 'bid';
+        } else {
+            // Fallback to total cost
+            estimatedSale = totalCost;
+            estimatedSaleSource = 'cost';
+        }
+    }
+    
+    // Fee is 2% of sale price (will be recalculated with actual sale in render)
+    const fee = Math.floor(revenue * 0.02);
+    const netSale = revenue - fee;
+    const profit = netSale - totalCost;
     
     // Calculate per hour
     const durationMs = new Date(session.endTime) - new Date(session.startTime);
@@ -691,8 +965,13 @@ function calculateEnhanceSessionProfit(session) {
         protsUsed,
         protCalc: protResult,
         isSuccessful,
+        resultLevel,
         costs: { mats: totalMatCost, prots: totalProtCost, baseItem: baseItemCost, total: totalCost },
+        estimatedSale,
+        estimatedSaleSource,
         revenue,
+        fee,
+        netSale,
         profit
     });
     
@@ -716,6 +995,10 @@ function calculateEnhanceSessionProfit(session) {
         totalCost,
         revenue,
         revenueBreakdown,
+        estimatedSale,
+        estimatedSaleSource,
+        fee,
+        netSale,
         profit,
         profitPerHour,
         hours,

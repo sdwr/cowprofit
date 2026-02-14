@@ -782,24 +782,116 @@
             border-left: 3px solid #60a5fa;
             background: rgba(96, 165, 250, 0.05);
         }
-        .loot-costs, .loot-revenue {
+        .loot-costs, .loot-sale {
             display: flex;
             gap: 12px;
             margin-bottom: 4px;
             font-size: 0.7rem;
             color: #888;
+            flex-wrap: wrap;
         }
         .loot-costs span:first-child {
             color: #f87171;
         }
-        .loot-revenue span:last-child {
-            color: #4ade80;
+        .loot-sale .fee {
+            color: #f87171;
         }
         .loot-summary-value.positive {
             color: #4ade80;
         }
         .loot-summary-value.negative {
             color: #f87171;
+        }
+        
+        /* Session success/failure backgrounds */
+        .session-success {
+            background: rgba(74, 222, 128, 0.12) !important;
+            border-left-color: #4ade80 !important;
+        }
+        .session-failure {
+            background: rgba(248, 113, 113, 0.12) !important;
+            border-left-color: #f87171 !important;
+        }
+        
+        /* Result badge */
+        .result-badge {
+            background: #4ade80;
+            color: #000;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+        
+        /* Toggle button */
+        .toggle-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #888;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            margin-left: 6px;
+            padding: 0;
+            line-height: 1;
+        }
+        .toggle-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .toggle-btn.toggle-success {
+            color: #4ade80;
+            border-color: #4ade80;
+        }
+        .toggle-btn.toggle-failure {
+            color: #f87171;
+            border-color: #f87171;
+        }
+        
+        /* Hash warning */
+        .hash-warning {
+            margin-left: 4px;
+            cursor: help;
+        }
+        
+        /* Sale input group */
+        .sale-input-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .sale-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #eeb357;
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.55rem;
+            padding: 0;
+            line-height: 1;
+        }
+        .sale-btn:hover {
+            background: rgba(238, 179, 87, 0.3);
+        }
+        .sale-input {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #4ade80;
+            width: 70px;
+            height: 18px;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            text-align: center;
+            padding: 0 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        .sale-input:focus {
+            outline: none;
+            border-color: #eeb357;
         }
 
         @media (max-width: 1000px) {
