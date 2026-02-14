@@ -595,8 +595,8 @@ function renderLootHistoryPanel() {
         const profitStr = hasPriceErrors ? '⚠️' : formatCoins(profit);
         const rateStr = hasPriceErrors ? '-' : `${formatCoins(profitPerHour)}/hr`;
         
-        // Prot info with per-unit price and starting level (prot kicks in at 8+)
-        const protAtLevel = startLevel >= 8 ? startLevel : 8;
+        // Prot info with per-unit price and starting level (from calculator)
+        const protAtLevel = enhanceProfit.protLevel || 8;
         let protStr = '-';
         if (enhanceProfit.protsUsed > 0) {
             if (enhanceProfit.protPriceMissing) {
@@ -854,8 +854,23 @@ function calculateEnhanceSessionProfit(session) {
     
     if (totalItems === 0) return null;
     
+    // Get optimal protection level from calculator (instead of hardcoding 8)
+    // The calculator finds the most cost-effective prot level for this item
+    let protLevel = 8; // fallback
+    if (calculator && typeof calculator.calculateEnhancementCost === 'function') {
+        try {
+            // Use highest level reached as target for prot calculation
+            const targetForProt = Math.max(...Object.keys(levelDrops).map(Number), 10);
+            const calcResult = calculator.calculateEnhancementCost(itemHrid, targetForProt, prices, 'pessimistic');
+            if (calcResult && calcResult.protectAt) {
+                protLevel = calcResult.protectAt;
+            }
+        } catch (e) {
+            console.warn('[Loot] Failed to get optimal prot level, using 8:', e);
+        }
+    }
+    
     // Calculate protection used via cascade method
-    const protLevel = 8;
     const protResult = calculateProtectionFromDrops(levelDrops, protLevel);
     const protsUsed = protResult.protCount;
     
@@ -1009,6 +1024,7 @@ function calculateEnhanceSessionProfit(session) {
         resultLevel,  // actual final level from drops (10+ with 1 item)
         isSuccessful,
         protsUsed,
+        protLevel,  // optimal protection level from calculator
         matCostPerAction,
         totalMatCost,
         protPrice,
