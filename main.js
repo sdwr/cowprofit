@@ -955,8 +955,8 @@ function calculateEnhanceSessionProfit(session) {
         }
     }
     
-    // Calculate protection used via cascade method
-    const protResult = calculateProtectionFromDrops(levelDrops, protLevel);
+    // Calculate protection used via cascade method (pass startLevel for accurate counting)
+    const protResult = calculateProtectionFromDrops(levelDrops, protLevel, currentLevel);
     const protsUsed = protResult.protCount;
     
     // Calculate material cost from game data (ask prices only - we're buying)
@@ -1142,35 +1142,47 @@ function calculateEnhanceSessionProfit(session) {
  * At L >= prot: fail -> L-1 (uses protection)
  * At L < prot: fail -> 0 (no protection)
  */
-function calculateProtectionFromDrops(levelDrops, protLevel) {
+function calculateProtectionFromDrops(levelDrops, protLevel, startLevel = 0) {
     const levels = Object.keys(levelDrops).map(Number).sort((a, b) => b - a);
     if (levels.length === 0) return { protCount: 0 };
     
     const maxLevel = Math.max(...levels);
+    const finalLevel = maxLevel; // item rests at highest level reached
+    
     const successes = {};
     const failures = {};
+    const attempts = {};
     
-    // Work from target down to prot level
-    for (let L = maxLevel - 1; L >= protLevel - 1; L--) {
-        const failuresFromAbove = failures[L + 2] || 0;
-        successes[L] = (levelDrops[L + 1] || 0) - failuresFromAbove;
-        failures[L] = (levelDrops[L] || 0) - successes[L];
+    // Calculate attempts at each level
+    // attempts[L] = drops landing at L + (started here?) - (ended here?)
+    for (let L = 0; L <= maxLevel; L++) {
+        attempts[L] = (levelDrops[L] || 0);
+        if (L === startLevel) attempts[L] += 1;
+        if (L === finalLevel) attempts[L] -= 1;
     }
     
-    // Handle levels below prot (prot-1 receives failures from prot)
-    if (protLevel - 1 >= 0) {
-        successes[protLevel - 1] = (levelDrops[protLevel] || 0) - (failures[protLevel + 1] || 0);
-        failures[protLevel - 1] = (levelDrops[protLevel - 1] || 0) - successes[protLevel - 1];
-    }
-    if (protLevel - 2 >= 0) {
-        successes[protLevel - 2] = (levelDrops[protLevel - 1] || 0) - (failures[protLevel] || 0);
-        failures[protLevel - 2] = (levelDrops[protLevel - 2] || 0) - successes[protLevel - 2];
+    // Work top-down from maxLevel
+    // At maxLevel: no levels above, so all attempts are failures
+    successes[maxLevel] = 0;
+    failures[maxLevel] = Math.max(0, attempts[maxLevel]);
+    
+    for (let L = maxLevel - 1; L >= 0; L--) {
+        // successes[L] = drops at L+1 minus failures landing at L+1 from above
+        let failuresLandingAtLPlus1 = 0;
+        if (L + 2 <= maxLevel && L + 2 >= protLevel) {
+            failuresLandingAtLPlus1 = failures[L + 2] || 0;
+        }
+        successes[L] = (levelDrops[L + 1] || 0) - failuresLandingAtLPlus1;
+        if (successes[L] < 0) successes[L] = 0; // clamp (data anomaly, e.g. blessed tea)
+        
+        failures[L] = attempts[L] - successes[L];
+        if (failures[L] < 0) failures[L] = 0;
     }
     
-    // Sum failures at levels >= prot = protection used
+    // Sum failures at levels >= prot = protections used
     let protCount = 0;
-    for (let L = protLevel; L < maxLevel; L++) {
-        protCount += Math.max(0, failures[L] || 0);
+    for (let L = protLevel; L <= maxLevel; L++) {
+        protCount += failures[L];
     }
     
     return { protCount: Math.round(protCount), successes, failures };
