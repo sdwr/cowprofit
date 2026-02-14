@@ -641,12 +641,16 @@ function calculateEnhanceSessionProfit(session) {
     let revenueBreakdown = {};
     let revenuePriceMissing = false;
     
-    // Find highest level in drops that is 10+
+    // Find highest level in drops that is 10+ AND highest target level (for debug)
     let resultLevel = 0;
+    let highestTargetLevel = 0;
     for (const [lvl, count] of Object.entries(levelDrops)) {
         const level = parseInt(lvl) || 0;
         if (level >= 10 && level > resultLevel) {
             resultLevel = level;
+        }
+        if ([8, 10, 12, 14].includes(level) && level > highestTargetLevel) {
+            highestTargetLevel = level;
         }
     }
     
