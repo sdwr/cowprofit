@@ -511,13 +511,28 @@ function renderLootHistoryPanel() {
             }
         }
         
+        // Tea cost calculation (needed before profit)
+        // Teas used: Ultra Enhancing, Blessed, Wisdom
+        // Duration = 300s / guzzling bonus (guzzling increases effect, reduces duration)
+        const guzzlingBonus = calculator?.getGuzzlingBonus() || 1.1216;
+        const teaDurationSec = 300 / guzzlingBonus;
+        const sessionDurationSec = hours * 3600;
+        const teaUses = sessionDurationSec / teaDurationSec;
+        
+        const ultraEnhancingPrice = prices.market?.['/items/ultra_enhancing_tea']?.['0']?.a || 0;
+        const blessedPrice = prices.market?.['/items/blessed_tea']?.['0']?.a || 0;
+        const wisdomPrice = prices.market?.['/items/wisdom_tea']?.['0']?.a || 0;
+        const teaCostPerUse = ultraEnhancingPrice + blessedPrice + wisdomPrice;
+        const totalTeaCost = teaUses * teaCostPerUse;
+        
         // Calculate fee (2%) and profit
-        // For failures: only lost mats + prots (still have base item)
-        // For success: sale - fee - all costs (mats + prots + base item)
+        // For failures: only lost mats + prots + teas (still have base item)
+        // For success: sale - fee - all costs (mats + prots + teas + base item)
         const fee = Math.floor(salePrice * 0.02);
         const netSale = salePrice - fee;
-        const failureCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost;
-        const profit = isSuccess ? netSale - enhanceProfit.totalCost : -failureCost;
+        const failureCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + totalTeaCost;
+        const successCost = enhanceProfit.totalCost + totalTeaCost;
+        const profit = isSuccess ? netSale - successCost : -failureCost;
         const profitPerDay = hours > 0.01 ? (profit / hours) * 24 : 0;
         
         // Check for price errors
@@ -566,10 +581,10 @@ function renderLootHistoryPanel() {
         const highLevel = enhanceProfit.highestLevel || 0;
         const levelInfo = `+${startLevel}→+${highLevel}`;
         
-        // Estimated sale display with source icon
+        // Estimated sale display with source icon (only for successful sessions)
         let estSaleStr = '-';
         const estIcon = enhanceProfit.estimatedSaleSourceIcon || '';
-        if (estimatedSale > 0 && estimatedSource) {
+        if (isSuccess && estimatedSale > 0 && estimatedSource) {
             estSaleStr = `${estIcon} ${formatCoins(estimatedSale)}`;
         } else if (isSuccess) {
             estSaleStr = '⚠️ no price';
@@ -595,17 +610,19 @@ function renderLootHistoryPanel() {
         const profitStr = hasPriceErrors ? '⚠️' : formatCoins(profit);
         const rateStr = hasPriceErrors ? '-' : `${formatCoins(profitPerDay)}/day`;
         
-        // Prot info with per-unit price and starting level (from calculator)
+        // Prot info - simplified display (prot @level moved to header)
         const protAtLevel = enhanceProfit.protLevel || 8;
         let protStr = '-';
         if (enhanceProfit.protsUsed > 0) {
             if (enhanceProfit.protPriceMissing) {
-                protStr = `⚠️ (${enhanceProfit.protsUsed}× @+${protAtLevel})`;
+                protStr = `⚠️ (${enhanceProfit.protsUsed}×)`;
             } else {
-                // Show: total (count × price @level)
-                protStr = `${formatCoins(enhanceProfit.totalProtCost)} (${enhanceProfit.protsUsed} × ${formatCoins(enhanceProfit.protPrice)} @+${protAtLevel})`;
+                // Show: total (count × price)
+                protStr = `${formatCoins(enhanceProfit.totalProtCost)} (${enhanceProfit.protsUsed} × ${formatCoins(enhanceProfit.protPrice)})`;
             }
         }
+        
+        const teaStr = totalTeaCost > 0 ? formatCoins(totalTeaCost) : '-';
         
         entriesHtml += `
             <div class="loot-entry enhance-entry ${bgClass}" data-session="${sessionKey}">
@@ -622,11 +639,12 @@ function renderLootHistoryPanel() {
                 <div class="loot-details">
                     <span class="loot-duration">${duration}</span>
                     <span class="loot-actions">${enhanceProfit.actionCount} actions</span>
-                    <span class="loot-prots">${enhanceProfit.protsUsed} prots</span>
+                    <span class="loot-prots">${enhanceProfit.protsUsed} prots @${protAtLevel}</span>
                 </div>
                 <div class="loot-costs">
                     <span>Mats: ${matCostStr}</span>
                     <span>Prot: ${protStr}</span>
+                    <span>Teas: ${teaStr}</span>
                     ${isSuccess ? `<span>Base: ${enhanceProfit.baseItemSourceIcon || ''} ${formatCoins(enhanceProfit.baseItemCost)}</span>` : ''}
                 </div>
                 <div class="loot-sale">
