@@ -561,10 +561,11 @@ function renderLootHistoryPanel() {
         const highLevel = enhanceProfit.highestLevel || 0;
         const levelInfo = `+${startLevel}→+${highLevel}`;
         
-        // Estimated sale display
+        // Estimated sale display with source icon
         let estSaleStr = '-';
+        const estIcon = enhanceProfit.estimatedSaleSourceIcon || '';
         if (estimatedSale > 0 && estimatedSource) {
-            estSaleStr = `${formatCoins(estimatedSale)} (${estimatedSource})`;
+            estSaleStr = `${estIcon} ${formatCoins(estimatedSale)}`;
         } else if (isSuccess) {
             estSaleStr = '⚠️ no price';
         }
@@ -620,7 +621,7 @@ function renderLootHistoryPanel() {
                 <div class="loot-costs">
                     <span>Mats: ${matCostStr}</span>
                     <span>Prot: ${protStr}</span>
-                    ${isSuccess ? `<span>Base: ${formatCoins(enhanceProfit.baseItemCost)}</span>` : ''}
+                    ${isSuccess ? `<span>Base: ${enhanceProfit.baseItemSourceIcon || ''} ${formatCoins(enhanceProfit.baseItemCost)}</span>` : ''}
                 </div>
                 <div class="loot-sale">
                     <span>Est: ${estSaleStr}</span>
@@ -925,6 +926,11 @@ function calculateEnhanceSessionProfit(session) {
     // Only count as successful if exactly 1 item at that level
     let isSuccessful = false;
     let baseItemCost = 0;
+    let baseItemSource = null;
+    let baseItemSourceIcon = null;
+    
+    // Get loot timestamp for historical price lookup
+    const lootTs = session.startTime ? Math.floor(new Date(session.startTime).getTime() / 1000) : Math.floor(Date.now() / 1000);
     
     if (resultLevel >= 10 && (levelDrops[resultLevel] || 0) === 1) {
         // Single item at 10+ = completed enhancement, use for revenue
@@ -934,46 +940,26 @@ function calculateEnhanceSessionProfit(session) {
         revenue = sellPrice;
         revenueBreakdown[resultLevel] = { count: 1, sellPrice, value: sellPrice };
         
-        // Add base item cost (market ask or craft cost, whichever is cheaper)
-        const marketAsk = prices.market?.[itemHrid]?.['0']?.a || 0;
-        const craftCost = prices.craft?.[itemHrid] || 0;
-        if (marketAsk > 0 && craftCost > 0) {
-            baseItemCost = Math.min(marketAsk, craftCost);
-        } else {
-            baseItemCost = marketAsk || craftCost || 0;
-        }
+        // Get base item cost using historical price estimation
+        const baseEstimate = estimatePrice(itemHrid, 0, lootTs, 'pessimistic');
+        baseItemCost = baseEstimate.price;
+        baseItemSource = baseEstimate.source;
+        baseItemSourceIcon = baseEstimate.sourceIcon;
     }
     
     const totalCost = totalMatCost + totalProtCost + baseItemCost;
     
-    // Calculate estimated sale price and source
-    // Primary: bid price for result level
-    // Fallback: expected total cost from 0 (using calculator) or actual cost
+    // Calculate estimated sale price using historical price estimation
+    // Priority: history (closest to loot time) > oldest history > market bid > craft cost
     let estimatedSale = 0;
     let estimatedSaleSource = null;
+    let estimatedSaleSourceIcon = null;
     
     if (isSuccessful && resultLevel >= 10) {
-        const bidPrice = prices.market?.[itemHrid]?.[String(resultLevel)]?.b || 0;
-        if (bidPrice > 0) {
-            estimatedSale = bidPrice;
-            estimatedSaleSource = 'bid';
-        } else {
-            // Try to get expected cost from calculator
-            let expectedCost = 0;
-            if (calculator && typeof calculator.calculateEnhancementCost === 'function') {
-                try {
-                    const calcResult = calculator.calculateEnhancementCost(itemHrid, resultLevel, prices, 'pessimistic');
-                    if (calcResult && calcResult.totalCost > 0) {
-                        expectedCost = calcResult.totalCost;
-                    }
-                } catch (e) {
-                    console.warn('Failed to calculate expected cost:', e);
-                }
-            }
-            // Use expected cost if available, otherwise actual cost incurred
-            estimatedSale = expectedCost > 0 ? expectedCost : totalCost;
-            estimatedSaleSource = expectedCost > 0 ? 'exp' : 'actual';
-        }
+        const saleEstimate = estimatePrice(itemHrid, resultLevel, lootTs, 'pessimistic');
+        estimatedSale = saleEstimate.price;
+        estimatedSaleSource = saleEstimate.source;
+        estimatedSaleSourceIcon = saleEstimate.sourceIcon;
     }
     
     // Fee is 2% of sale price (will be recalculated with actual sale in render)
@@ -1022,16 +1008,20 @@ function calculateEnhanceSessionProfit(session) {
         protPrice,
         totalProtCost,
         baseItemCost,
+        baseItemSource,
+        baseItemSourceIcon,
         totalCost,
         revenue,
         revenueBreakdown,
         estimatedSale,
         estimatedSaleSource,
+        estimatedSaleSourceIcon,
         fee,
         netSale,
         profit,
         profitPerHour,
         hours,
+        lootTs,
         // Price error flags
         matPriceMissing,
         protPriceMissing,
@@ -1268,6 +1258,115 @@ function getPriceAge(itemHrid, level) {
     }
     
     return { age, direction, price: currentEntry.p, lastPrice, since: currentEntry.t };
+}
+
+/**
+ * Estimate price for an item using historical data with fallbacks.
+ * Priority:
+ *   1. 📈 History closest to loot timestamp (or newest if loot is more recent)
+ *   2. 📜 Oldest available history entry
+ *   3. 💰 Current market bid
+ *   4. 🔨 Cost to create (craft for +0, base+enhance for +N)
+ * 
+ * @param {string} itemHrid - Item path
+ * @param {number} level - Enhancement level (0 for base)
+ * @param {number} lootTs - Unix timestamp of when loot was obtained
+ * @param {string} mode - Price mode ('pessimistic'|'midpoint'|'optimistic')
+ * @returns {{ price: number, source: string, sourceIcon: string }}
+ */
+function estimatePrice(itemHrid, level, lootTs, mode = 'pessimistic') {
+    const key = `${itemHrid}:${level}`;
+    const history = prices.history?.[key];
+    
+    // 1. Check history - find entry closest to loot timestamp
+    if (history && history.length > 0) {
+        // History is sorted newest-first
+        const newestTs = history[0].t;
+        const oldestTs = history[history.length - 1].t;
+        
+        // If loot is newer than all history, use newest price
+        if (lootTs >= newestTs) {
+            return { price: history[0].p, source: 'history (newest)', sourceIcon: '📈' };
+        }
+        
+        // If loot is older than all history, use oldest price
+        if (lootTs <= oldestTs) {
+            return { price: history[history.length - 1].p, source: 'history (oldest)', sourceIcon: '📜' };
+        }
+        
+        // Find closest entry to loot timestamp
+        let closest = history[0];
+        let minDiff = Math.abs(history[0].t - lootTs);
+        
+        for (const entry of history) {
+            const diff = Math.abs(entry.t - lootTs);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closest = entry;
+            }
+        }
+        
+        // Format time diff for source label
+        const diffHours = Math.abs(closest.t - lootTs) / 3600;
+        const diffLabel = diffHours < 1 ? `${Math.round(diffHours * 60)}m` : 
+                          diffHours < 24 ? `${diffHours.toFixed(1)}h` : 
+                          `${(diffHours / 24).toFixed(1)}d`;
+        
+        return { price: closest.p, source: `history (±${diffLabel})`, sourceIcon: '📈' };
+    }
+    
+    // 2. Fall back to current market bid
+    const currentBid = prices.market?.[itemHrid]?.[String(level)]?.b || 0;
+    if (currentBid > 0) {
+        return { price: currentBid, source: 'market bid', sourceIcon: '💰' };
+    }
+    
+    // 3. Fall back to cost to create
+    const craftCost = calculateCostToCreate(itemHrid, level, mode);
+    if (craftCost > 0) {
+        return { price: craftCost, source: level > 0 ? 'enhance cost' : 'craft cost', sourceIcon: '🔨' };
+    }
+    
+    return { price: 0, source: 'unknown', sourceIcon: '❓' };
+}
+
+/**
+ * Calculate cost to create an item at a given level.
+ * - Level 0: crafting recipe cost (materials)
+ * - Level N: base item cost + enhancement materials + protection
+ * 
+ * @param {string} itemHrid - Item path
+ * @param {number} level - Enhancement level
+ * @param {string} mode - Price mode
+ * @returns {number} Total cost to create
+ */
+function calculateCostToCreate(itemHrid, level, mode = 'pessimistic') {
+    if (level === 0) {
+        // Crafting cost from recipe
+        const craftMats = getCraftingMaterials(itemHrid, mode);
+        return craftMats?.total || 0;
+    }
+    
+    // Enhanced item: base item + enhancement costs from +0 to +level
+    // Get base item cost (recursive - will get craft cost if no market price)
+    const baseEstimate = estimatePrice(itemHrid, 0, Date.now() / 1000, mode);
+    const baseCost = baseEstimate.price;
+    
+    // Use calculator if available
+    if (calculator && typeof calculator.calculateEnhancementCost === 'function') {
+        try {
+            const calcResult = calculator.calculateEnhancementCost(itemHrid, level, prices, mode);
+            if (calcResult && calcResult.totalCost > 0) {
+                // calcResult.totalCost includes base item, return as-is
+                return calcResult.totalCost;
+            }
+        } catch (e) {
+            console.warn('Failed to calculate enhancement cost:', e);
+        }
+    }
+    
+    // Fallback: rough estimate (base item only)
+    return baseCost;
 }
 
 // Get crafting materials for an item (WITH artisan tea - these are crafting inputs)
