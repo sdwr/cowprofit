@@ -528,6 +528,13 @@ function calculateEnhanceSessionProfit(session) {
     let itemHrid = null;
     let currentLevel = 0;
     
+    // Debug: log raw session data to see what fields are available
+    console.log('[Session Raw]', session.actionHrid, {
+        primaryItem: session.primaryItem,
+        primaryItemHash: session.primaryItemHash,
+        allKeys: Object.keys(session)
+    });
+    
     // primaryItem format: "/items/enhancers_top::10" (item::level)
     if (session.primaryItem) {
         const parts = session.primaryItem.split('::');

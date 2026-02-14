@@ -117,6 +117,12 @@
             log('Empty loot log, skipping');
             return;
         }
+        
+        // Debug: log first entry to see available fields
+        if (lootLog.length > 0) {
+            log('Loot entry sample:', JSON.stringify(lootLog[0], null, 2));
+            log('Loot entry keys:', Object.keys(lootLog[0]));
+        }
 
         // Get stored loot history
         const storedRaw = GM_getValue(LOOT_STORAGE_KEY, '{}');
