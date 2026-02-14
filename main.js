@@ -1263,10 +1263,12 @@ function getPriceAge(itemHrid, level) {
 /**
  * Estimate price for an item using historical data with fallbacks.
  * Priority:
- *   1. 📈 History closest to loot timestamp (or newest if loot is more recent)
- *   2. 📜 Oldest available history entry
- *   3. 💰 Current market bid
- *   4. 🔨 Cost to create (craft for +0, base+enhance for +N)
+ *   1. 📈 Most recent history entry BEFORE loot timestamp
+ *   2. 📈 Newest history entry (if loot is more recent than all history)
+ *   3. 📜 Oldest available history entry (if loot predates all history)
+ *   4. 🔨 Cost to create (craft for +0 w/ artisan tea, base+enhance for +N)
+ * 
+ * Note: Market bid is NOT used as fallback - only historical or calculated prices.
  * 
  * @param {string} itemHrid - Item path
  * @param {number} level - Enhancement level (0 for base)
@@ -1278,7 +1280,7 @@ function estimatePrice(itemHrid, level, lootTs, mode = 'pessimistic') {
     const key = `${itemHrid}:${level}`;
     const history = prices.history?.[key];
     
-    // 1. Check history - find entry closest to loot timestamp
+    // 1. Check history - find most recent entry BEFORE loot timestamp
     if (history && history.length > 0) {
         // History is sorted newest-first
         const newestTs = history[0].t;
@@ -1294,34 +1296,30 @@ function estimatePrice(itemHrid, level, lootTs, mode = 'pessimistic') {
             return { price: history[history.length - 1].p, source: 'history (oldest)', sourceIcon: '📜' };
         }
         
-        // Find closest entry to loot timestamp
-        let closest = history[0];
-        let minDiff = Math.abs(history[0].t - lootTs);
-        
+        // Find most recent entry BEFORE loot timestamp
+        // History is newest-first, so find first entry where t <= lootTs
+        let bestEntry = null;
         for (const entry of history) {
-            const diff = Math.abs(entry.t - lootTs);
-            if (diff < minDiff) {
-                minDiff = diff;
-                closest = entry;
+            if (entry.t <= lootTs) {
+                bestEntry = entry;
+                break; // First match is most recent before loot
             }
         }
         
-        // Format time diff for source label
-        const diffHours = Math.abs(closest.t - lootTs) / 3600;
-        const diffLabel = diffHours < 1 ? `${Math.round(diffHours * 60)}m` : 
-                          diffHours < 24 ? `${diffHours.toFixed(1)}h` : 
-                          `${(diffHours / 24).toFixed(1)}d`;
-        
-        return { price: closest.p, source: `history (±${diffLabel})`, sourceIcon: '📈' };
+        if (bestEntry) {
+            // Format time diff for source label (how long before loot this price was)
+            const diffHours = (lootTs - bestEntry.t) / 3600;
+            const diffLabel = diffHours < 1 ? `${Math.round(diffHours * 60)}m` : 
+                              diffHours < 24 ? `${diffHours.toFixed(1)}h` : 
+                              `${(diffHours / 24).toFixed(1)}d`;
+            
+            return { price: bestEntry.p, source: `history (-${diffLabel})`, sourceIcon: '📈' };
+        }
     }
     
-    // 2. Fall back to current market bid
-    const currentBid = prices.market?.[itemHrid]?.[String(level)]?.b || 0;
-    if (currentBid > 0) {
-        return { price: currentBid, source: 'market bid', sourceIcon: '💰' };
-    }
-    
-    // 3. Fall back to cost to create
+    // 2. Fall back to cost to create (NO market bid fallback)
+    // - Level 0: crafting cost with artisan tea
+    // - Level N: base item + enhancement mats/prots (no artisan tea on enhance)
     const craftCost = calculateCostToCreate(itemHrid, level, mode);
     if (craftCost > 0) {
         return { price: craftCost, source: level > 0 ? 'enhance cost' : 'craft cost', sourceIcon: '🔨' };
