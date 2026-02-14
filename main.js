@@ -512,9 +512,12 @@ function renderLootHistoryPanel() {
         }
         
         // Calculate fee (2%) and profit
+        // For failures: only lost mats + prots (still have base item)
+        // For success: sale - fee - all costs (mats + prots + base item)
         const fee = Math.floor(salePrice * 0.02);
         const netSale = salePrice - fee;
-        const profit = isSuccess ? netSale - enhanceProfit.totalCost : -enhanceProfit.totalCost;
+        const failureCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost;
+        const profit = isSuccess ? netSale - enhanceProfit.totalCost : -failureCost;
         const profitPerHour = hours > 0.01 ? profit / hours : 0;
         
         // Check for price errors
@@ -590,14 +593,15 @@ function renderLootHistoryPanel() {
         const profitStr = hasPriceErrors ? '⚠️' : formatCoins(profit);
         const rateStr = hasPriceErrors ? '-' : `${formatCoins(profitPerHour)}/hr`;
         
-        // Prot info with starting level (prot kicks in at 8+)
+        // Prot info with per-unit price and starting level (prot kicks in at 8+)
         const protAtLevel = startLevel >= 8 ? startLevel : 8;
         let protStr = '-';
         if (enhanceProfit.protsUsed > 0) {
             if (enhanceProfit.protPriceMissing) {
-                protStr = `⚠️ (${enhanceProfit.protsUsed}× @${protAtLevel})`;
+                protStr = `⚠️ (${enhanceProfit.protsUsed}× @+${protAtLevel})`;
             } else {
-                protStr = `${formatCoins(enhanceProfit.totalProtCost)} (${enhanceProfit.protsUsed}× @${protAtLevel})`;
+                // Show: total (count × price @level)
+                protStr = `${formatCoins(enhanceProfit.totalProtCost)} (${enhanceProfit.protsUsed} × ${formatCoins(enhanceProfit.protPrice)} @+${protAtLevel})`;
             }
         }
         
