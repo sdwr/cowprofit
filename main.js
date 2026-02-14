@@ -424,8 +424,8 @@ function renderLootHistoryPanel() {
         const levelStr = level > 0 ? ` +${level}` : '';
         const itemTitle = `${enhanceProfit.itemName || 'Unknown'}${levelStr}`;
         
-        // Result is just the level
-        const resultStr = level > 0 ? `+${level}` : '-';
+        // Result only shows on successful sessions (with revenue)
+        const resultStr = enhanceProfit.isSuccessful ? `+${enhanceProfit.highestTargetLevel}` : '-';
         
         entriesHtml += `
             <div class="loot-entry enhance-entry">
@@ -441,6 +441,7 @@ function renderLootHistoryPanel() {
                 <div class="loot-costs">
                     <span>Mats: ${matCostStr}</span>
                     <span>Prot: ${protCostStr}</span>
+                    ${enhanceProfit.isSuccessful ? `<span>Base: ${formatCoins(enhanceProfit.baseItemCost)}</span>` : ''}
                 </div>
                 <div class="loot-revenue">
                     <span>Result: ${resultStr}</span>
@@ -654,21 +655,45 @@ function calculateEnhanceSessionProfit(session) {
     
     // Only count as revenue if exactly 1 item at highest level (finished product)
     // Multiple items at same level = still working, not sellable yet
+    let isSuccessful = false;
+    let baseItemCost = 0;
+    
     if (highestTargetLevel > 0) {
         const count = levelDrops[highestTargetLevel] || 0;
         if (count === 1) {
+            isSuccessful = true;
             // Single item at target level = finished, count as revenue
             const sellPrice = prices.market?.[itemHrid]?.[String(highestTargetLevel)]?.b || 0;
             if (sellPrice === 0) revenuePriceMissing = true;
             const value = count * sellPrice;
             revenue = value;
             revenueBreakdown[highestTargetLevel] = { count, sellPrice, value };
+            
+            // Add base item cost (market ask or craft cost, whichever is cheaper)
+            const marketAsk = prices.market?.[itemHrid]?.['0']?.a || 0;
+            const craftCost = prices.craft?.[itemHrid] || 0;
+            if (marketAsk > 0 && craftCost > 0) {
+                baseItemCost = Math.min(marketAsk, craftCost);
+            } else {
+                baseItemCost = marketAsk || craftCost || 0;
+            }
         }
         // If count > 1, don't count as revenue (work in progress)
     }
     
-    const totalCost = totalMatCost + totalProtCost;
+    const totalCost = totalMatCost + totalProtCost + baseItemCost;
     const profit = revenue - totalCost;
+    
+    // Debug logging for protection calculation
+    console.log(`[Enhance] ${itemName || itemHrid}:`, {
+        levelDrops,
+        protsUsed,
+        protCalc: protResult,
+        isSuccessful,
+        costs: { mats: totalMatCost, prots: totalProtCost, baseItem: baseItemCost, total: totalCost },
+        revenue,
+        profit
+    });
     
     // Calculate per hour
     const durationMs = new Date(session.endTime) - new Date(session.startTime);
@@ -687,11 +712,13 @@ function calculateEnhanceSessionProfit(session) {
         currentLevel,
         highestLevel,
         highestTargetLevel,
+        isSuccessful,
         protsUsed,
         matCostPerAction,
         totalMatCost,
         protPrice,
         totalProtCost,
+        baseItemCost,
         totalCost,
         revenue,
         revenueBreakdown,
