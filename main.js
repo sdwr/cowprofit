@@ -521,11 +521,13 @@ function renderLootHistoryPanel() {
         const profitPerHour = hours > 0.01 ? profit / hours : 0;
         
         // Check for price errors
+        // Success: needs mat + prot + sale prices
+        // Failure: needs mat + prot prices only
         const hasPriceErrors = enhanceProfit.matPriceMissing || enhanceProfit.protPriceMissing || 
             (isSuccess && salePrice === 0);
         
-        // Only add to totals if we have all prices
-        if (!hasPriceErrors && isSuccess) {
+        // Add to totals if we have all required prices (include failures for true P&L)
+        if (!hasPriceErrors) {
             totalProfit += profit;
             totalHours += hours;
         }
