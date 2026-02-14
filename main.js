@@ -684,8 +684,16 @@ function calculateEnhanceSessionProfit(session) {
     const totalCost = totalMatCost + totalProtCost + baseItemCost;
     const profit = revenue - totalCost;
     
+    // Calculate per hour
+    const durationMs = new Date(session.endTime) - new Date(session.startTime);
+    const hours = durationMs / 3600000;
+    const profitPerHour = hours > 0.01 ? profit / hours : 0;
+    
+    // Get item name
+    const itemName = itemData?.name || itemHrid.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    
     // Debug logging for protection calculation
-    console.log(`[Enhance] ${itemName || itemHrid}:`, {
+    console.log(`[Enhance] ${itemName}:`, {
         levelDrops,
         protsUsed,
         protCalc: protResult,
@@ -694,14 +702,6 @@ function calculateEnhanceSessionProfit(session) {
         revenue,
         profit
     });
-    
-    // Calculate per hour
-    const durationMs = new Date(session.endTime) - new Date(session.startTime);
-    const hours = durationMs / 3600000;
-    const profitPerHour = hours > 0.01 ? profit / hours : 0;
-    
-    // Get item name
-    const itemName = itemData?.name || itemHrid.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     
     return {
         itemHrid,
