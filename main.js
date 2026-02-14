@@ -649,13 +649,13 @@ function calculateEnhanceSessionProfit(session) {
         }
     }
     
-    // Only count as revenue if currentLevel (from primaryItemHash) is a target level
-    // This is the actual current state of the item - drops are historical
+    // Only count as revenue if currentLevel (from primaryItemHash) is a sellable level
+    // +8 is not sellable (intermediate), only +10/+12/+14 are final products
     let isSuccessful = false;
     let baseItemCost = 0;
-    const targetLevels = [8, 10, 12, 14];
+    const sellableLevels = [10, 12, 14];
     
-    if (currentLevel > 0 && targetLevels.includes(currentLevel)) {
+    if (currentLevel > 0 && sellableLevels.includes(currentLevel)) {
         // Current item is at a target level - this is a successful session
         isSuccessful = true;
         const sellPrice = prices.market?.[itemHrid]?.[String(currentLevel)]?.b || 0;
