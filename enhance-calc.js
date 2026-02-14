@@ -565,8 +565,10 @@ class EnhanceCalculator {
         const marketFee = sellPrice * 0.02;
         const profit = sellPrice - result.totalCost;
         const profitAfterFee = profit - marketFee;
-        const roi = result.totalCost > 0 ? (profit / result.totalCost) * 100 : 0;
-        const roiAfterFee = result.totalCost > 0 ? (profitAfterFee / result.totalCost) * 100 : 0;
+        // ROI based on enhance cost only (mats + prots), not including base item
+        const enhanceCost = result.matCost;
+        const roi = enhanceCost > 0 ? (profit / enhanceCost) * 100 : 0;
+        const roiAfterFee = enhanceCost > 0 ? (profitAfterFee / enhanceCost) * 100 : 0;
         
         const totalTimeHours = result.actions * result.attemptTime / 3600;
         const totalTimeDays = totalTimeHours / 24;

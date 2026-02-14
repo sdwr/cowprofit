@@ -14,7 +14,6 @@ let currentLevel = 'all';
 let sortCol = 9;
 let sortAsc = false;
 let showFee = true;
-let showSuperPessimistic = false;
 let expandedRows = new Set();
 let costFilters = { '100m': true, '500m': true, '1b': true, '2b': true, 'over2b': true };
 let allResults = { pessimistic: [], midpoint: [], optimistic: [] };
@@ -1206,12 +1205,6 @@ function toggleFee() {
     renderTable();
 }
 
-function toggleSuperPessimistic() {
-    showSuperPessimistic = !showSuperPessimistic;
-    document.getElementById('btn-super').classList.toggle('active', showSuperPessimistic);
-    renderTable();
-}
-
 function toggleCostFilter(cost) {
     costFilters[cost] = !costFilters[cost];
     document.querySelector(`.cost-filter[data-cost="${cost}"]`).classList.toggle('active', costFilters[cost]);
@@ -1743,13 +1736,6 @@ function renderTable() {
         let profit = r[profitKey];
         let profitDay = r[profitDayKey];
         const roi = r[roiKey] || r.roi;
-        
-        if (showSuperPessimistic) {
-            const matLoss = r.matCost * 0.33 * (1 - 0.882);
-            const protLoss = (r.protectPrice * r.protectCount) * 0.33 * (1 - 0.882);
-            profit -= matLoss + protLoss;
-            profitDay = r.timeDays > 0 ? profit / r.timeDays : 0;
-        }
         
         // Get price age for sorting
         const priceInfo = getPriceAge(r.item_hrid, r.target_level);

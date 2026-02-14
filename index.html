@@ -269,6 +269,19 @@
         th.sorted .sort-arrow {
             opacity: 1;
         }
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            color: #888;
+            font-size: 0.6rem;
+            margin-left: 3px;
+            cursor: help;
+        }
         td {
             padding: 7px 5px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -947,8 +960,7 @@
                 <button class="mode-btn" onclick="setMode('optimistic')" id="btn-optimistic">Optimistic</button>
             </div>
             <div class="control-group">
-                <button class="toggle-btn active" onclick="toggleFee()" id="btn-fee">-2% Fee</button>
-                <button class="toggle-btn" onclick="toggleSuperPessimistic()" id="btn-super" title="Include loss from selling 33% leftover materials at market buy price">-Mat Loss</button>
+                <button class="mode-btn active" onclick="toggleFee()" id="btn-fee">-2% Fee</button>
             </div>
         </div>
         <p class="mode-info" id="mode-info">Buy at Ask, Sell at Bid (safest estimate)</p>
@@ -1005,12 +1017,12 @@
                     <th onclick="sortTable(0, 'str')">Item<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(1, 'num')">Lvl<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(2, 'num')" class="number" title="Time since sell price changed">Age<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(3, 'num')" class="number">Buy<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(4, 'num')" class="number hide-mobile">Enhance<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(5, 'num')" class="number hide-mobile">Total<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(6, 'num')" class="number" style="text-align:center">Sell<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(3, 'num')" class="number">Base Cost<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(4, 'num')" class="number hide-mobile">Enhance Cost<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(5, 'num')" class="number hide-mobile">Total Cost<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(6, 'num')" class="number" style="text-align:center">Sell Price<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(7, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(8, 'num')" class="number">ROI<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(8, 'num')" class="number" title="Return on Investment based on enhance cost only (mats + prots)">ROI <span class="tooltip-icon">?</span><span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(9, 'num')" class="number" style="text-align:center">$/day<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(10, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(11, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
