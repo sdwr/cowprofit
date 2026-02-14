@@ -500,10 +500,22 @@ function renderLootHistoryPanel() {
         // Determine success status (override takes precedence)
         const isSuccess = override.forceSuccess !== undefined ? override.forceSuccess : enhanceProfit.isSuccessful;
         
+        // Determine the actual result level (for manual toggles, use highestTargetLevel)
+        const effectiveResultLevel = enhanceProfit.resultLevel || enhanceProfit.highestTargetLevel || 0;
+        
         // Determine sale price (custom > estimated > 0)
         let salePrice = 0;
         let estimatedSale = enhanceProfit.estimatedSale || 0;
         let estimatedSource = enhanceProfit.estimatedSaleSource || null;
+        let estimatedSourceIcon = enhanceProfit.estimatedSaleSourceIcon || null;
+        
+        // If manually toggled to success but no auto-calculated estimate, calculate it now
+        if (isSuccess && estimatedSale === 0 && effectiveResultLevel > 0) {
+            const saleEstimate = estimatePrice(enhanceProfit.itemHrid, effectiveResultLevel, enhanceProfit.lootTs, 'pessimistic');
+            estimatedSale = saleEstimate.price;
+            estimatedSource = saleEstimate.source;
+            estimatedSourceIcon = saleEstimate.sourceIcon;
+        }
         
         if (isSuccess) {
             if (override.customSale !== undefined && override.customSale !== null) {
@@ -533,7 +545,14 @@ function renderLootHistoryPanel() {
         const fee = Math.floor(salePrice * 0.02);
         const netSale = salePrice - fee;
         const failureCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + totalTeaCost;
-        const successCost = enhanceProfit.totalCost + totalTeaCost;
+        
+        // For manual success toggles, baseItemCost may be 0 - calculate it if needed
+        let baseItemCost = enhanceProfit.baseItemCost || 0;
+        if (isSuccess && baseItemCost === 0 && effectiveResultLevel > 0) {
+            const baseEstimate = estimatePrice(enhanceProfit.itemHrid, 0, enhanceProfit.lootTs, 'pessimistic');
+            baseItemCost = baseEstimate.price;
+        }
+        const successCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + baseItemCost + totalTeaCost;
         const profit = isSuccess ? netSale - successCost : -failureCost;
         const profitPerDay = hours > 0.01 ? (profit / hours) * 24 : 0;
         
@@ -581,7 +600,7 @@ function renderLootHistoryPanel() {
         
         // Build header with result + toggle on the LEFT
         const itemTitle = enhanceProfit.itemName || 'Unknown';
-        const displayResultLevel = isSuccess ? (enhanceProfit.resultLevel || '?') : null;
+        const displayResultLevel = isSuccess ? (effectiveResultLevel || '?') : null;
         const resultBadge = displayResultLevel ? `<span class="result-badge">+${displayResultLevel}</span>` : '<span class="result-badge fail">✗</span>';
         const toggleIcon = isSuccess ? '✓' : '✗';
         const toggleClass = isSuccess ? 'toggle-success' : 'toggle-failure';
@@ -599,7 +618,7 @@ function renderLootHistoryPanel() {
         
         // Estimated sale display with source icon (only for successful sessions)
         let estSaleStr = '-';
-        const estIcon = enhanceProfit.estimatedSaleSourceIcon || '';
+        const estIcon = estimatedSourceIcon || enhanceProfit.estimatedSaleSourceIcon || '';
         if (isSuccess && estimatedSale > 0 && estimatedSource) {
             estSaleStr = `${estIcon} ${formatCoins(estimatedSale)}`;
         } else if (isSuccess) {
