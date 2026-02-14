@@ -424,8 +424,8 @@ function renderLootHistoryPanel() {
         const levelStr = level > 0 ? ` +${level}` : '';
         const itemTitle = `${enhanceProfit.itemName || 'Unknown'}${levelStr}`;
         
-        // Result only shows on successful sessions (with revenue)
-        const resultStr = enhanceProfit.isSuccessful ? `+${enhanceProfit.highestTargetLevel}` : '-';
+        // Result only shows on successful sessions (currentLevel is a target level)
+        const resultStr = enhanceProfit.isSuccessful ? `+${enhanceProfit.currentLevel}` : '-';
         
         entriesHtml += `
             <div class="loot-entry enhance-entry">
@@ -649,32 +649,28 @@ function calculateEnhanceSessionProfit(session) {
         }
     }
     
-    // Only count as revenue if exactly 1 item at highest level (finished product)
-    // Multiple items at same level = still working, not sellable yet
+    // Only count as revenue if currentLevel (from primaryItemHash) is a target level
+    // This is the actual current state of the item - drops are historical
     let isSuccessful = false;
     let baseItemCost = 0;
+    const targetLevels = [8, 10, 12, 14];
     
-    if (highestTargetLevel > 0) {
-        const count = levelDrops[highestTargetLevel] || 0;
-        if (count === 1) {
-            isSuccessful = true;
-            // Single item at target level = finished, count as revenue
-            const sellPrice = prices.market?.[itemHrid]?.[String(highestTargetLevel)]?.b || 0;
-            if (sellPrice === 0) revenuePriceMissing = true;
-            const value = count * sellPrice;
-            revenue = value;
-            revenueBreakdown[highestTargetLevel] = { count, sellPrice, value };
-            
-            // Add base item cost (market ask or craft cost, whichever is cheaper)
-            const marketAsk = prices.market?.[itemHrid]?.['0']?.a || 0;
-            const craftCost = prices.craft?.[itemHrid] || 0;
-            if (marketAsk > 0 && craftCost > 0) {
-                baseItemCost = Math.min(marketAsk, craftCost);
-            } else {
-                baseItemCost = marketAsk || craftCost || 0;
-            }
+    if (currentLevel > 0 && targetLevels.includes(currentLevel)) {
+        // Current item is at a target level - this is a successful session
+        isSuccessful = true;
+        const sellPrice = prices.market?.[itemHrid]?.[String(currentLevel)]?.b || 0;
+        if (sellPrice === 0) revenuePriceMissing = true;
+        revenue = sellPrice; // Single item
+        revenueBreakdown[currentLevel] = { count: 1, sellPrice, value: sellPrice };
+        
+        // Add base item cost (market ask or craft cost, whichever is cheaper)
+        const marketAsk = prices.market?.[itemHrid]?.['0']?.a || 0;
+        const craftCost = prices.craft?.[itemHrid] || 0;
+        if (marketAsk > 0 && craftCost > 0) {
+            baseItemCost = Math.min(marketAsk, craftCost);
+        } else {
+            baseItemCost = marketAsk || craftCost || 0;
         }
-        // If count > 1, don't count as revenue (work in progress)
     }
     
     const totalCost = totalMatCost + totalProtCost + baseItemCost;
