@@ -519,6 +519,20 @@ function ungroupSession(sessionKey, event) {
     if (event) { event.stopPropagation(); event.preventDefault(); }
     const state = getGroupState();
     if (!state.manualUngroups) state.manualUngroups = {};
+
+    // Find which group this session belongs to and mark ALL members as ungrouped
+    // so they don't get re-absorbed into other groups
+    const groups = state.groups || {};
+    for (const [groupId, memberKeys] of Object.entries(groups)) {
+        if (memberKeys.includes(sessionKey)) {
+            for (const k of memberKeys) {
+                state.manualUngroups[k] = true;
+            }
+            break;
+        }
+    }
+
+    // Also mark the session itself (in case it wasn't in a stored group)
     state.manualUngroups[sessionKey] = true;
     saveGroupState(state);
     renderLootHistoryPanel();
