@@ -1515,16 +1515,27 @@ function calculateEnhanceSessionProfit(session) {
     const saleLevelForEstimate = isSuccessful ? resultLevel : (highestTargetLevel || 10);
     
     if (saleLevelForEstimate >= 8) {
-        if (useCached) {
+        // Bug fix: always recalculate if cached level doesn't match current level
+        const cachedLevelMatches = useCached && (cachedPrices.estimatedSaleLevel === saleLevelForEstimate);
+        if (cachedLevelMatches) {
             estimatedSale = cachedPrices.estimatedSale;
             estimatedSaleSource = cachedPrices.estimatedSaleSource;
             estimatedSaleSourceIcon = cachedPrices.estimatedSaleSourceIcon;
-            estimatedSaleLevel = cachedPrices.estimatedSaleLevel || saleLevelForEstimate;
+            estimatedSaleLevel = cachedPrices.estimatedSaleLevel;
         } else {
-            const saleEstimate = estimatePrice(itemHrid, saleLevelForEstimate, lootTs, 'pessimistic');
-            estimatedSale = saleEstimate.price;
-            estimatedSaleSource = saleEstimate.source;
-            estimatedSaleSourceIcon = saleEstimate.sourceIcon;
+            // Prefer enhancement cost (what it costs to create) over market history for sale estimates
+            const costToCreate = calculateCostToCreate(itemHrid, saleLevelForEstimate, lootTs, 'pessimistic');
+            if (costToCreate > 0) {
+                estimatedSale = costToCreate;
+                estimatedSaleSource = 'enhance cost';
+                estimatedSaleSourceIcon = '🪄';
+            } else {
+                // Fall back to estimatePrice (history) if cost calc fails
+                const saleEstimate = estimatePrice(itemHrid, saleLevelForEstimate, lootTs, 'pessimistic');
+                estimatedSale = saleEstimate.price;
+                estimatedSaleSource = saleEstimate.source;
+                estimatedSaleSourceIcon = saleEstimate.sourceIcon;
+            }
             estimatedSaleLevel = saleLevelForEstimate;
         }
     }
