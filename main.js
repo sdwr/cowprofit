@@ -1567,6 +1567,7 @@ function calculateEnhanceSessionProfit(session) {
     // Always write to update dataHash; prices are only computed fresh when !useCached
     const cacheEntry = {
         matPrices,
+        itemName,
         protPrice,
         protHrid,
         baseItemCost,
