@@ -796,7 +796,7 @@ function renderSessionCard(d, options) {
     const dateStr = formatSessionDate(d.session.startTime);
     const profitDisplay = d.hasPriceErrors ? '⚠️' : formatCoins(d.profit);
 
-    const moneyIcon = (d.isSuccess && !d.isSold) ? '📦' : '💰';
+    const moneyIcon = !d.isSuccess ? '' : (d.isSold ? '💰' : '📦');
     let titleContent;
     if (isSubCard) {
         titleContent = `<span class="result-badge fail">✗</span> <span class="card-title-text">${itemTitle}</span> <span class="card-title-sep">|</span> ${dateStr} <span class="card-title-sep">|</span> ${moneyIcon} <span class="${profitClass}">${profitDisplay}</span>`;
