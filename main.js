@@ -1540,6 +1540,23 @@ function calculateEnhanceSessionProfit(session) {
         profit
     });
     
+    // Cache resolved prices for this session (preserves correct prices after history rolls off)
+    if (!useCached) {
+        cacheSessionPrices(session.startTime, {
+            matCostPerAction,
+            protPrice,
+            baseItemCost,
+            baseItemSource,
+            baseItemSourceIcon,
+            estimatedSale,
+            estimatedSaleSource,
+            estimatedSaleSourceIcon,
+            matPriceMissing,
+            protPriceMissing,
+            dataHash: getSessionHash(session)
+        });
+    }
+    
     return {
         itemHrid,
         itemName,
@@ -1549,10 +1566,10 @@ function calculateEnhanceSessionProfit(session) {
         currentLevel,
         highestLevel,
         highestTargetLevel,
-        resultLevel,  // actual final level from drops (10+ with 1 item)
+        resultLevel,
         isSuccessful,
         protsUsed,
-        protLevel,  // optimal protection level from calculator
+        protLevel,
         matCostPerAction,
         totalMatCost,
         protPrice,
@@ -1572,28 +1589,10 @@ function calculateEnhanceSessionProfit(session) {
         profitPerHour,
         hours,
         lootTs,
-        // Price error flags
         matPriceMissing,
         protPriceMissing,
         revenuePriceMissing
     };
-    
-    // Cache resolved prices for this session (preserves correct prices after history rolls off)
-    cacheSessionPrices(session.startTime, {
-        matCostPerAction,
-        protPrice,
-        baseItemCost,
-        baseItemSource,
-        baseItemSourceIcon,
-        estimatedSale,
-        estimatedSaleSource,
-        estimatedSaleSourceIcon,
-        matPriceMissing,
-        protPriceMissing,
-        dataHash: getSessionHash(session)
-    });
-    
-    return result;
 }
 
 /**
