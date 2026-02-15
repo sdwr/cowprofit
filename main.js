@@ -1398,33 +1398,6 @@ function renderLootHistoryPanel() {
 
     renderItems.sort((a, b) => b.sortDate - a.sortDate);
 
-    // Build item→sessions map for handle visibility (from filteredItems, not renderItems)
-    const itemSessionMap = {}; // itemName → [{key, ri, isSuccess, groupId}]
-    for (let ri = 0; ri < filteredItems.length; ri++) {
-        const item = filteredItems[ri];
-        let keys;
-        if (item.type === 'group') {
-            keys = [item.memberKeys[0], item.memberKeys[item.memberKeys.length - 1]]; // bottom edge, top edge
-        } else {
-            keys = [item.sessionKey];
-        }
-        for (const key of keys) {
-            const d = displayData[key];
-            if (!d) continue;
-            const itemName = d.enhanceProfit?.itemName || 'Unknown';
-            if (!itemSessionMap[itemName]) itemSessionMap[itemName] = [];
-            itemSessionMap[itemName].push({
-                key,
-                ri,
-                isSuccess: d.isSuccess,
-                groupId: item.type === 'group' ? item.groupId : null
-            });
-        }
-    }
-    // Sort each item's array by time
-    for (const arr of Object.values(itemSessionMap)) {
-        arr.sort((a, b) => new Date(a.key) - new Date(b.key));
-    }
 
     // Helper: check if a filteredItems entry contains a given session key
     function filteredItemContainsKey(fi, key) {
@@ -1548,6 +1521,34 @@ function renderLootHistoryPanel() {
         if (cat === 'failed' && !showFailed) return false;
         return true;
     });
+
+    // Build item→sessions map for handle visibility (from filteredItems, not renderItems)
+    const itemSessionMap = {}; // itemName → [{key, ri, isSuccess, groupId}]
+    for (let ri = 0; ri < filteredItems.length; ri++) {
+        const item = filteredItems[ri];
+        let keys;
+        if (item.type === 'group') {
+            keys = [item.memberKeys[0], item.memberKeys[item.memberKeys.length - 1]]; // bottom edge, top edge
+        } else {
+            keys = [item.sessionKey];
+        }
+        for (const key of keys) {
+            const d = displayData[key];
+            if (!d) continue;
+            const itemName = d.enhanceProfit?.itemName || 'Unknown';
+            if (!itemSessionMap[itemName]) itemSessionMap[itemName] = [];
+            itemSessionMap[itemName].push({
+                key,
+                ri,
+                isSuccess: d.isSuccess,
+                groupId: item.type === 'group' ? item.groupId : null
+            });
+        }
+    }
+    // Sort each item's array by time
+    for (const arr of Object.values(itemSessionMap)) {
+        arr.sort((a, b) => new Date(a.key) - new Date(b.key));
+    }
 
     // Helper to render a group/manual handle
     function renderHandle(sourceKey, targetKey, placement, direction) {
