@@ -646,13 +646,13 @@ function computeSessionDisplay(session, finalLevelOverride) {
     const teaCostPerUse = ultraEnhancingPrice + blessedPrice + wisdomPrice;
     const totalTeaCost = teaUses * teaCostPerUse;
 
-    // Recalculate prot cost with correct final level
-    // When chained (finalLevelOverride provided), use it instead of guessing
-    // Default: failures end at 0, successes end at maxLevel (from calculateEnhanceSessionProfit)
+    // Recalculate prot cost for failures with correct final level
+    // When chained (finalLevelOverride provided), use it instead of guessing 0
+    // Success sessions keep original prot cost (finalLevel=maxLevel is correct)
     let adjustedProtCost = enhanceProfit.totalProtCost;
     let adjustedProtsUsed = enhanceProfit.protsUsed;
-    const effectiveFinalLevel = finalLevelOverride !== undefined ? finalLevelOverride : (isSuccess ? undefined : 0);
-    if (enhanceProfit.levelDrops && effectiveFinalLevel !== undefined) {
+    if (!isSuccess && enhanceProfit.levelDrops) {
+        const effectiveFinalLevel = finalLevelOverride !== undefined ? finalLevelOverride : 0;
         const protResult = calculateProtectionFromDrops(
             enhanceProfit.levelDrops, enhanceProfit.protLevel || 8,
             enhanceProfit.currentLevel || 0, effectiveFinalLevel
@@ -672,7 +672,7 @@ function computeSessionDisplay(session, finalLevelOverride) {
         const baseEstimate = estimatePrice(enhanceProfit.itemHrid, 0, enhanceProfit.lootTs, 'pessimistic');
         baseItemCost = baseEstimate.price;
     }
-    const successCost = enhanceProfit.totalMatCost + adjustedProtCost + baseItemCost + totalTeaCost;
+    const successCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + baseItemCost + totalTeaCost; // success uses original prot (finalLevel=max)
     const profit = isSuccess ? netSale - successCost : -failureCost;
     const profitPerDay = hours > 0.01 ? (profit / hours) * 24 : 0;
 
