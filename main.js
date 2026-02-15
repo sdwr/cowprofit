@@ -121,6 +121,34 @@ function updateSyncStatus() {
 // ============================================
 
 const SESSION_OVERRIDES_KEY = 'cowprofit_session_overrides';
+const SESSION_PRICES_KEY = 'cowprofit_session_prices';
+
+function getSessionPricesCache() {
+    try {
+        return JSON.parse(localStorage.getItem(SESSION_PRICES_KEY) || '{}');
+    } catch (e) {
+        return {};
+    }
+}
+
+function saveSessionPricesCache(cache) {
+    try {
+        localStorage.setItem(SESSION_PRICES_KEY, JSON.stringify(cache));
+    } catch (e) {
+        console.warn('[CowProfit] Failed to save session prices cache:', e);
+    }
+}
+
+function cacheSessionPrices(sessionKey, priceData) {
+    const cache = getSessionPricesCache();
+    cache[sessionKey] = priceData;
+    saveSessionPricesCache(cache);
+}
+
+function getCachedSessionPrices(sessionKey) {
+    const cache = getSessionPricesCache();
+    return cache[sessionKey] || null;
+}
 
 function getSessionOverrides() {
     try {
@@ -640,9 +668,10 @@ function computeSessionDisplay(session, finalLevelOverride) {
     const sessionDurationSec = hours * 3600;
     const teaUses = sessionDurationSec / teaDurationSec;
 
-    const ultraEnhancingPrice = prices.market?.['/items/ultra_enhancing_tea']?.['0']?.a || 0;
-    const blessedPrice = prices.market?.['/items/blessed_tea']?.['0']?.a || 0;
-    const wisdomPrice = prices.market?.['/items/wisdom_tea']?.['0']?.a || 0;
+    const lootTs = enhanceProfit.lootTs;
+    const ultraEnhancingPrice = getBuyPriceAtTime('/items/ultra_enhancing_tea', 0, lootTs, 'pessimistic');
+    const blessedPrice = getBuyPriceAtTime('/items/blessed_tea', 0, lootTs, 'pessimistic');
+    const wisdomPrice = getBuyPriceAtTime('/items/wisdom_tea', 0, lootTs, 'pessimistic');
     const teaCostPerUse = ultraEnhancingPrice + blessedPrice + wisdomPrice;
     const totalTeaCost = teaUses * teaCostPerUse;
 
@@ -1324,6 +1353,9 @@ function calculateEnhanceSessionProfit(session) {
     
     if (totalItems === 0) return null;
     
+    // Get loot timestamp for historical price lookup (moved up for use in mat/prot pricing)
+    const lootTs = session.startTime ? Math.floor(new Date(session.startTime).getTime() / 1000) : Math.floor(Date.now() / 1000);
+    
     // Get optimal protection level from calculator (instead of hardcoding 8)
     // The calculator finds the most cost-effective prot level for this item
     let protLevel = 8; // fallback
@@ -1331,7 +1363,12 @@ function calculateEnhanceSessionProfit(session) {
         try {
             // Use highest level reached as target for prot calculation
             const targetForProt = Math.max(...Object.keys(levelDrops).map(Number), 10);
-            const calcResult = calculator.calculateEnhancementCost(itemHrid, targetForProt, prices, 'pessimistic');
+            // Build historical prices for the calculator
+            const matHrids = (itemData?.enhancementCosts || []).map(c => c.item || c.itemHrid || c.hrid).filter(h => h !== '/items/coin');
+            const protItemHridsForCalc = itemData?.protectionItems || [];
+            const allHridsForCalc = [itemHrid, '/items/mirror_of_protection', ...matHrids, ...protItemHridsForCalc];
+            const pricesAtTime = buildPricesAtTime(lootTs, allHridsForCalc);
+            const calcResult = calculator.calculateEnhancementCost(itemHrid, targetForProt, pricesAtTime, 'pessimistic');
             if (calcResult && calcResult.protectAt) {
                 protLevel = calcResult.protectAt;
             }
@@ -1344,47 +1381,60 @@ function calculateEnhanceSessionProfit(session) {
     const protResult = calculateProtectionFromDrops(levelDrops, protLevel, currentLevel);
     const protsUsed = protResult.protCount;
     
-    // Calculate material cost from game data (ask prices only - we're buying)
-    let matCostPerAction = 0;
-    let matPriceMissing = false;
-    const enhanceCosts = itemData?.enhancementCosts || [];
+    // Check session price cache (preserves prices after history rolls off 7-day window)
+    const cachedPrices = getCachedSessionPrices(session.startTime);
+    const useCached = cachedPrices && cachedPrices.dataHash === getSessionHash(session);
     
-    for (const cost of enhanceCosts) {
-        const costHrid = cost.item || cost.itemHrid || cost.hrid;
-        const costCount = cost.count || 1;
+    // Calculate material cost and protection cost
+    let matCostPerAction, matPriceMissing, protPrice, protPriceMissing;
+    
+    if (useCached) {
+        // Use cached prices (history may have rolled off)
+        matCostPerAction = cachedPrices.matCostPerAction;
+        matPriceMissing = cachedPrices.matPriceMissing;
+        protPrice = cachedPrices.protPrice;
+        protPriceMissing = cachedPrices.protPriceMissing;
+    } else {
+        // Calculate from historical data
+        matCostPerAction = 0;
+        matPriceMissing = false;
+        const enhanceCosts = itemData?.enhancementCosts || [];
         
-        if (costHrid === '/items/coin') {
-            matCostPerAction += costCount;
-        } else {
-            // Get material price - ask only (we're buying)
-            const matPrice = prices.market?.[costHrid]?.['0']?.a || 0;
-            if (matPrice === 0) matPriceMissing = true;
-            matCostPerAction += costCount * matPrice;
+        for (const cost of enhanceCosts) {
+            const costHrid = cost.item || cost.itemHrid || cost.hrid;
+            const costCount = cost.count || 1;
+            
+            if (costHrid === '/items/coin') {
+                matCostPerAction += costCount;
+            } else {
+                const matPrice = getBuyPriceAtTime(costHrid, 0, lootTs, 'pessimistic');
+                if (matPrice === 0) matPriceMissing = true;
+                matCostPerAction += costCount * matPrice;
+            }
+        }
+        
+        // Protection cost - use cheapest option (historical ask prices)
+        const mirrorPrice = getBuyPriceAtTime('/items/mirror_of_protection', 0, lootTs, 'pessimistic');
+        const baseItemPrice = getBuyPriceAtTime(itemHrid, 0, lootTs, 'pessimistic');
+        
+        protPrice = Infinity;
+        protPriceMissing = false;
+        if (mirrorPrice > 0) protPrice = Math.min(protPrice, mirrorPrice);
+        if (baseItemPrice > 0) protPrice = Math.min(protPrice, baseItemPrice);
+        
+        const protItemHrids = itemData?.protectionItems || [];
+        for (const protHrid of protItemHrids) {
+            const price = getBuyPriceAtTime(protHrid, 0, lootTs, 'pessimistic');
+            if (price > 0) protPrice = Math.min(protPrice, price);
+        }
+        
+        if (protPrice === Infinity) {
+            protPrice = 0;
+            if (protsUsed > 0) protPriceMissing = true;
         }
     }
+    
     const totalMatCost = actionCount * matCostPerAction;
-    
-    // Calculate protection cost - use cheapest option (ask prices only - we're buying)
-    const mirrorPrice = prices.market?.['/items/mirror_of_protection']?.['0']?.a || 0;
-    const baseItemPrice = prices.market?.[itemHrid]?.['0']?.a || 0;
-    
-    // Also check item-specific protection items
-    let protPrice = Infinity;
-    let protPriceMissing = false;
-    if (mirrorPrice > 0) protPrice = Math.min(protPrice, mirrorPrice);
-    if (baseItemPrice > 0) protPrice = Math.min(protPrice, baseItemPrice);
-    
-    // Check protection item hrids from item data (key is "protectionItems" not "protectionItemHrids")
-    const protItemHrids = itemData?.protectionItems || [];
-    for (const protHrid of protItemHrids) {
-        const price = prices.market?.[protHrid]?.['0']?.a || 0;
-        if (price > 0) protPrice = Math.min(protPrice, price);
-    }
-    
-    if (protPrice === Infinity) {
-        protPrice = 0;
-        if (protsUsed > 0) protPriceMissing = true;
-    }
     const totalProtCost = protsUsed * protPrice;
     
     // Find highest level from any drops (for display)
@@ -1420,9 +1470,6 @@ function calculateEnhanceSessionProfit(session) {
     let baseItemSource = null;
     let baseItemSourceIcon = null;
     
-    // Get loot timestamp for historical price lookup
-    const lootTs = session.startTime ? Math.floor(new Date(session.startTime).getTime() / 1000) : Math.floor(Date.now() / 1000);
-    
     if (resultLevel >= 10 && (levelDrops[resultLevel] || 0) === 1) {
         // Single item at 10+ = completed enhancement, use for revenue
         isSuccessful = true;
@@ -1431,26 +1478,37 @@ function calculateEnhanceSessionProfit(session) {
         revenue = sellPrice;
         revenueBreakdown[resultLevel] = { count: 1, sellPrice, value: sellPrice };
         
-        // Get base item cost using historical price estimation
-        const baseEstimate = estimatePrice(itemHrid, 0, lootTs, 'pessimistic');
-        baseItemCost = baseEstimate.price;
-        baseItemSource = baseEstimate.source;
-        baseItemSourceIcon = baseEstimate.sourceIcon;
+        // Get base item cost using cache or historical price estimation
+        if (useCached) {
+            baseItemCost = cachedPrices.baseItemCost;
+            baseItemSource = cachedPrices.baseItemSource;
+            baseItemSourceIcon = cachedPrices.baseItemSourceIcon;
+        } else {
+            const baseEstimate = estimatePrice(itemHrid, 0, lootTs, 'pessimistic');
+            baseItemCost = baseEstimate.price;
+            baseItemSource = baseEstimate.source;
+            baseItemSourceIcon = baseEstimate.sourceIcon;
+        }
     }
     
     const totalCost = totalMatCost + totalProtCost + baseItemCost;
     
-    // Calculate estimated sale price using historical price estimation
-    // Priority: history (closest to loot time) > oldest history > market bid > craft cost
+    // Calculate estimated sale price using cache or historical price estimation
     let estimatedSale = 0;
     let estimatedSaleSource = null;
     let estimatedSaleSourceIcon = null;
     
     if (isSuccessful && resultLevel >= 10) {
-        const saleEstimate = estimatePrice(itemHrid, resultLevel, lootTs, 'pessimistic');
-        estimatedSale = saleEstimate.price;
-        estimatedSaleSource = saleEstimate.source;
-        estimatedSaleSourceIcon = saleEstimate.sourceIcon;
+        if (useCached) {
+            estimatedSale = cachedPrices.estimatedSale;
+            estimatedSaleSource = cachedPrices.estimatedSaleSource;
+            estimatedSaleSourceIcon = cachedPrices.estimatedSaleSourceIcon;
+        } else {
+            const saleEstimate = estimatePrice(itemHrid, resultLevel, lootTs, 'pessimistic');
+            estimatedSale = saleEstimate.price;
+            estimatedSaleSource = saleEstimate.source;
+            estimatedSaleSourceIcon = saleEstimate.sourceIcon;
+        }
     }
     
     // Fee is 2% of sale price (will be recalculated with actual sale in render)
@@ -1519,6 +1577,23 @@ function calculateEnhanceSessionProfit(session) {
         protPriceMissing,
         revenuePriceMissing
     };
+    
+    // Cache resolved prices for this session (preserves correct prices after history rolls off)
+    cacheSessionPrices(session.startTime, {
+        matCostPerAction,
+        protPrice,
+        baseItemCost,
+        baseItemSource,
+        baseItemSourceIcon,
+        estimatedSale,
+        estimatedSaleSource,
+        estimatedSaleSourceIcon,
+        matPriceMissing,
+        protPriceMissing,
+        dataHash: getSessionHash(session)
+    });
+    
+    return result;
 }
 
 /**
@@ -1704,8 +1779,44 @@ function getBuyPrice(hrid, level, mode) {
     }
 }
 
+// Get buy price at a specific timestamp using history, falling back to current market
+// No craft fallback (avoids circular recursion with estimatePrice)
+function getBuyPriceAtTime(hrid, level, lootTs, mode) {
+    if (!lootTs) return getBuyPrice(hrid, level, mode);
+    
+    const key = `${hrid}:${level}`;
+    const history = prices.history?.[key];
+    
+    if (history && history.length > 0) {
+        const newestTs = history[0].t;
+        const oldestTs = history[history.length - 1].t;
+        
+        if (lootTs >= newestTs) return history[0].p;
+        if (lootTs <= oldestTs) return history[history.length - 1].p;
+        
+        for (const entry of history) {
+            if (entry.t <= lootTs) return entry.p;
+        }
+    }
+    
+    // Fall back to current market price
+    return getBuyPrice(hrid, level, mode);
+}
+
+// Build a prices-shaped object at a specific timestamp for enhance-calc.js
+function buildPricesAtTime(lootTs, itemHrids) {
+    const market = {};
+    for (const hrid of itemHrids) {
+        const price = getBuyPriceAtTime(hrid, 0, lootTs, 'pessimistic');
+        if (!market[hrid]) market[hrid] = {};
+        market[hrid]['0'] = { a: price, b: price };
+    }
+    return { market, history: prices.history };
+}
+
 // Get enhancement material details for an item (NO artisan tea - these are enhancement mats, not crafting)
-function getMaterialDetails(itemHrid, actions, mode) {
+// lootTs is optional - when provided, uses historical prices instead of current market
+function getMaterialDetails(itemHrid, actions, mode, lootTs) {
     const item = gameData.items[itemHrid];
     if (!item || !item.enhancementCosts) return [];
     
@@ -1722,7 +1833,7 @@ function getMaterialDetails(itemHrid, actions, mode) {
         } else {
             const matItem = gameData.items[cost.item];
             const matName = matItem?.name || cost.item.split('/').pop().replace(/_/g, ' ');
-            const price = getBuyPrice(cost.item, 0, mode);
+            const price = lootTs ? getBuyPriceAtTime(cost.item, 0, lootTs, mode) : getBuyPrice(cost.item, 0, mode);
             materials.push({
                 hrid: cost.item,
                 name: matName,
@@ -1844,7 +1955,7 @@ function estimatePrice(itemHrid, level, lootTs, mode = 'pessimistic') {
 function calculateCostToCreate(itemHrid, level, lootTs, mode = 'pessimistic') {
     if (level === 0) {
         // Crafting cost from recipe (with artisan tea)
-        const craftMats = getCraftingMaterials(itemHrid, mode);
+        const craftMats = getCraftingMaterials(itemHrid, mode, lootTs);
         return craftMats?.total || 0;
     }
     
@@ -1856,7 +1967,13 @@ function calculateCostToCreate(itemHrid, level, lootTs, mode = 'pessimistic') {
     // Use calculator if available
     if (calculator && typeof calculator.calculateEnhancementCost === 'function') {
         try {
-            const calcResult = calculator.calculateEnhancementCost(itemHrid, level, prices, mode);
+            // Build historical prices object for enhance-calc.js
+            const item = gameData.items[itemHrid];
+            const matHrids = (item?.enhancementCosts || []).map(c => c.item).filter(h => h !== '/items/coin');
+            const protHrids = item?.protectionItems || [];
+            const allHrids = [itemHrid, '/items/mirror_of_protection', ...matHrids, ...protHrids];
+            const pricesAtTime = buildPricesAtTime(lootTs, allHrids);
+            const calcResult = calculator.calculateEnhancementCost(itemHrid, level, pricesAtTime, mode);
             if (calcResult && calcResult.totalCost > 0) {
                 // calcResult.totalCost includes base item, return as-is
                 return calcResult.totalCost;
@@ -1871,7 +1988,8 @@ function calculateCostToCreate(itemHrid, level, lootTs, mode = 'pessimistic') {
 }
 
 // Get crafting materials for an item (WITH artisan tea - these are crafting inputs)
-function getCraftingMaterials(itemHrid, mode) {
+// lootTs is optional - when provided, uses historical prices instead of current market
+function getCraftingMaterials(itemHrid, mode, lootTs) {
     const recipe = gameData.recipes[itemHrid];
     if (!recipe || !recipe.inputs) return null;
     
@@ -1886,7 +2004,7 @@ function getCraftingMaterials(itemHrid, mode) {
     for (const input of recipe.inputs) {
         const matItem = gameData.items[input.item];
         const matName = matItem?.name || input.item.split('/').pop().replace(/_/g, ' ');
-        const price = getBuyPrice(input.item, 0, mode);
+        const price = lootTs ? getBuyPriceAtTime(input.item, 0, lootTs, mode) : getBuyPrice(input.item, 0, mode);
         // Apply artisan tea to crafting inputs
         const adjustedCount = input.count * artisanMult;
         const lineTotal = adjustedCount * price;
@@ -1907,7 +2025,7 @@ function getCraftingMaterials(itemHrid, mode) {
         baseItemHrid = recipe.upgrade;
         const baseItem = gameData.items[baseItemHrid];
         baseItemName = baseItem?.name || baseItemHrid.split('/').pop().replace(/_/g, ' ');
-        const basePrice = getBuyPrice(baseItemHrid, 0, mode);
+        const basePrice = lootTs ? getBuyPriceAtTime(baseItemHrid, 0, lootTs, mode) : getBuyPrice(baseItemHrid, 0, mode);
         total += basePrice;
         materials.push({
             hrid: baseItemHrid,
