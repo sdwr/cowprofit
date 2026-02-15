@@ -327,8 +327,11 @@ function toggleHistory(e) {
     if (e) e.stopPropagation();
     historyOpen = !historyOpen;
     gearOpen = false;
+    lootHistoryOpen = false;
     document.getElementById('gear-panel').classList.remove('visible');
     document.getElementById('gear-arrow').innerHTML = '&#9660;';
+    document.getElementById('loot-history-panel').classList.remove('visible');
+    document.getElementById('loot-history-arrow').innerHTML = '&#9660;';
     const panel = document.getElementById('history-panel');
     panel.classList.toggle('visible', historyOpen);
     document.getElementById('history-arrow').innerHTML = historyOpen ? '&#9650;' : '&#9660;';
@@ -369,8 +372,11 @@ function toggleGear(e) {
     if (e) e.stopPropagation();
     gearOpen = !gearOpen;
     historyOpen = false;
+    lootHistoryOpen = false;
     document.getElementById('history-panel').classList.remove('visible');
     document.getElementById('history-arrow').innerHTML = '&#9660;';
+    document.getElementById('loot-history-panel').classList.remove('visible');
+    document.getElementById('loot-history-arrow').innerHTML = '&#9660;';
     document.getElementById('gear-panel').classList.toggle('visible', gearOpen);
     document.getElementById('gear-arrow').innerHTML = gearOpen ? '&#9650;' : '&#9660;';
     if (gearOpen) renderGearPanel();
@@ -1031,6 +1037,10 @@ function renderLootHistoryPanel() {
             ${entriesHtml}
         </div>
     `;
+
+    // Update session count in button
+    const countEl = document.getElementById('loot-session-count');
+    if (countEl) countEl.textContent = `(${validCount}) `;
 
     attachLootHistoryHandlers();
 }

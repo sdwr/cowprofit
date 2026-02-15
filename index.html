@@ -38,13 +38,13 @@
         }
         .gear-dropdown, .loot-history-dropdown {
             position: absolute;
-            right: 120px; /* Moved further left to avoid bridge icon */
+            right: 195px; /* Moved further left to avoid sync popup */
             top: 50%;
             transform: translateY(-50%);
-            z-index: 2000; /* Elevate entire stacking context above table */
+            z-index: 3000; /* Above market update row */
         }
         .loot-history-dropdown {
-            right: 240px; /* Left of gear dropdown */
+            right: 315px; /* Left of gear dropdown */
         }
         .gear-btn {
             background: rgba(255,255,255,0.1);
@@ -108,7 +108,7 @@
         .history-dropdown {
             position: relative;
             display: inline-block;
-            z-index: 2000; /* Elevate entire stacking context above table */
+            z-index: 1000; /* Below loot/gear dropdowns */
         }
         .history-btn {
             background: rgba(255,255,255,0.1);
@@ -1149,7 +1149,7 @@
             <span class="version-tag" id="version-tag"></span>
             <h1>&#x1F404; CowProfit</h1>
             <div class="loot-history-dropdown">
-                <button class="gear-btn" onclick="toggleLootHistory()">&#x1F4DC; Loot <span id="loot-history-arrow">&#9660;</span></button>
+                <button class="gear-btn" onclick="toggleLootHistory()">&#x1F4DC; Enhance <span id="loot-session-count"></span><span id="loot-history-arrow">&#9660;</span></button>
                 <div class="loot-history-panel" id="loot-history-panel"></div>
             </div>
             <div class="gear-dropdown">
