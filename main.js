@@ -641,18 +641,11 @@ function computeSessionDisplay(session, finalLevelOverride) {
     const effectiveResultLevel = enhanceProfit.resultLevel || enhanceProfit.highestTargetLevel || 0;
 
     // Determine sale price (custom > estimated > 0)
+    // estimatedSale is now pre-calculated for ALL sessions (success and failure)
     let salePrice = 0;
     let estimatedSale = enhanceProfit.estimatedSale || 0;
     let estimatedSource = enhanceProfit.estimatedSaleSource || null;
     let estimatedSourceIcon = enhanceProfit.estimatedSaleSourceIcon || null;
-
-    // If manually toggled to success but no auto-calculated estimate, calculate it now
-    if (isSuccess && estimatedSale === 0 && effectiveResultLevel > 0) {
-        const saleEstimate = estimatePrice(enhanceProfit.itemHrid, effectiveResultLevel, enhanceProfit.lootTs, 'pessimistic');
-        estimatedSale = saleEstimate.price;
-        estimatedSource = saleEstimate.source;
-        estimatedSourceIcon = saleEstimate.sourceIcon;
-    }
 
     if (isSuccess) {
         if (override.customSale !== undefined && override.customSale !== null) {
@@ -662,16 +655,16 @@ function computeSessionDisplay(session, finalLevelOverride) {
         }
     }
 
-    // Tea cost calculation
+    // Tea cost calculation — use cached/historical tea prices from enhanceProfit
     const guzzlingBonus = calculator?.getGuzzlingBonus() || 1.1216;
     const teaDurationSec = 300 / guzzlingBonus;
     const sessionDurationSec = hours * 3600;
     const teaUses = sessionDurationSec / teaDurationSec;
 
-    const lootTs = enhanceProfit.lootTs;
-    const ultraEnhancingPrice = getBuyPriceAtTime('/items/ultra_enhancing_tea', 0, lootTs, 'pessimistic');
-    const blessedPrice = getBuyPriceAtTime('/items/blessed_tea', 0, lootTs, 'pessimistic');
-    const wisdomPrice = getBuyPriceAtTime('/items/wisdom_tea', 0, lootTs, 'pessimistic');
+    const sessionTeaPrices = enhanceProfit.teaPrices || {};
+    const ultraEnhancingPrice = sessionTeaPrices.ultraEnhancing || 0;
+    const blessedPrice = sessionTeaPrices.blessed || 0;
+    const wisdomPrice = sessionTeaPrices.wisdom || 0;
     const teaCostPerUse = ultraEnhancingPrice + blessedPrice + wisdomPrice;
     const totalTeaCost = teaUses * teaCostPerUse;
 
@@ -695,12 +688,8 @@ function computeSessionDisplay(session, finalLevelOverride) {
     const netSale = salePrice - fee;
     const failureCost = enhanceProfit.totalMatCost + adjustedProtCost + totalTeaCost;
 
-    // For manual success toggles, baseItemCost may be 0 - calculate it if needed
+    // baseItemCost is now pre-calculated for ALL sessions
     let baseItemCost = enhanceProfit.baseItemCost || 0;
-    if (isSuccess && baseItemCost === 0 && effectiveResultLevel > 0) {
-        const baseEstimate = estimatePrice(enhanceProfit.itemHrid, 0, enhanceProfit.lootTs, 'pessimistic');
-        baseItemCost = baseEstimate.price;
-    }
     const successCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + baseItemCost + totalTeaCost; // success uses original prot (finalLevel=max)
     const profit = isSuccess ? netSale - successCost : -failureCost;
     const profitPerDay = hours > 0.01 ? (profit / hours) * 24 : 0;
@@ -1382,34 +1371,35 @@ function calculateEnhanceSessionProfit(session) {
     const protsUsed = protResult.protCount;
     
     // Check session price cache (preserves prices after history rolls off 7-day window)
+    // New format has matPrices key; old format has matCostPerAction — treat old as cache miss (soft migration)
     const cachedPrices = getCachedSessionPrices(session.startTime);
-    const useCached = cachedPrices && cachedPrices.dataHash === getSessionHash(session);
+    const useCached = cachedPrices && cachedPrices.matPrices; // prices don't change when session data updates
     
-    // Calculate material cost and protection cost
-    let matCostPerAction, matPriceMissing, protPrice, protPriceMissing;
+    // Calculate individual material prices and protection price
+    let matPrices, matPriceMissing, protPrice, protPriceMissing, protHrid;
     
     if (useCached) {
-        // Use cached prices (history may have rolled off)
-        matCostPerAction = cachedPrices.matCostPerAction;
+        // Use cached individual prices (history may have rolled off)
+        matPrices = cachedPrices.matPrices;
         matPriceMissing = cachedPrices.matPriceMissing;
         protPrice = cachedPrices.protPrice;
+        protHrid = cachedPrices.protHrid;
         protPriceMissing = cachedPrices.protPriceMissing;
     } else {
-        // Calculate from historical data
-        matCostPerAction = 0;
+        // Calculate from historical data — store individual mat prices
+        matPrices = {};
         matPriceMissing = false;
         const enhanceCosts = itemData?.enhancementCosts || [];
         
         for (const cost of enhanceCosts) {
             const costHrid = cost.item || cost.itemHrid || cost.hrid;
-            const costCount = cost.count || 1;
             
             if (costHrid === '/items/coin') {
-                matCostPerAction += costCount;
+                matPrices[costHrid] = 1; // coins are always 1
             } else {
                 const matPrice = getBuyPriceAtTime(costHrid, 0, lootTs, 'pessimistic');
                 if (matPrice === 0) matPriceMissing = true;
-                matCostPerAction += costCount * matPrice;
+                matPrices[costHrid] = matPrice;
             }
         }
         
@@ -1418,20 +1408,41 @@ function calculateEnhanceSessionProfit(session) {
         const baseItemPrice = getBuyPriceAtTime(itemHrid, 0, lootTs, 'pessimistic');
         
         protPrice = Infinity;
+        protHrid = null;
         protPriceMissing = false;
-        if (mirrorPrice > 0) protPrice = Math.min(protPrice, mirrorPrice);
-        if (baseItemPrice > 0) protPrice = Math.min(protPrice, baseItemPrice);
+        if (mirrorPrice > 0 && mirrorPrice < protPrice) {
+            protPrice = mirrorPrice;
+            protHrid = '/items/mirror_of_protection';
+        }
+        if (baseItemPrice > 0 && baseItemPrice < protPrice) {
+            protPrice = baseItemPrice;
+            protHrid = itemHrid;
+        }
         
         const protItemHrids = itemData?.protectionItems || [];
-        for (const protHrid of protItemHrids) {
-            const price = getBuyPriceAtTime(protHrid, 0, lootTs, 'pessimistic');
-            if (price > 0) protPrice = Math.min(protPrice, price);
+        for (const pH of protItemHrids) {
+            const price = getBuyPriceAtTime(pH, 0, lootTs, 'pessimistic');
+            if (price > 0 && price < protPrice) {
+                protPrice = price;
+                protHrid = pH;
+            }
         }
         
         if (protPrice === Infinity) {
             protPrice = 0;
+            protHrid = null;
             if (protsUsed > 0) protPriceMissing = true;
         }
+    }
+    
+    // Compute matCostPerAction from individual prices
+    let matCostPerAction = 0;
+    const enhanceCostsForCalc = itemData?.enhancementCosts || [];
+    for (const cost of enhanceCostsForCalc) {
+        const costHrid = cost.item || cost.itemHrid || cost.hrid;
+        const costCount = cost.count || 1;
+        const price = matPrices[costHrid] || 0;
+        matCostPerAction += costCount * price;
     }
     
     const totalMatCost = actionCount * matCostPerAction;
@@ -1477,37 +1488,44 @@ function calculateEnhanceSessionProfit(session) {
         if (sellPrice === 0) revenuePriceMissing = true;
         revenue = sellPrice;
         revenueBreakdown[resultLevel] = { count: 1, sellPrice, value: sellPrice };
-        
-        // Get base item cost using cache or historical price estimation
-        if (useCached) {
-            baseItemCost = cachedPrices.baseItemCost;
-            baseItemSource = cachedPrices.baseItemSource;
-            baseItemSourceIcon = cachedPrices.baseItemSourceIcon;
-        } else {
-            const baseEstimate = estimatePrice(itemHrid, 0, lootTs, 'pessimistic');
-            baseItemCost = baseEstimate.price;
-            baseItemSource = baseEstimate.source;
-            baseItemSourceIcon = baseEstimate.sourceIcon;
-        }
     }
     
-    const totalCost = totalMatCost + totalProtCost + baseItemCost;
+    // Calculate baseItemCost for ALL sessions (not just success — session might become successful later)
+    if (useCached) {
+        baseItemCost = cachedPrices.baseItemCost;
+        baseItemSource = cachedPrices.baseItemSource;
+        baseItemSourceIcon = cachedPrices.baseItemSourceIcon;
+    } else {
+        const baseEstimate = estimatePrice(itemHrid, 0, lootTs, 'pessimistic');
+        baseItemCost = baseEstimate.price;
+        baseItemSource = baseEstimate.source;
+        baseItemSourceIcon = baseEstimate.sourceIcon;
+    }
     
-    // Calculate estimated sale price using cache or historical price estimation
+    const totalCost = totalMatCost + totalProtCost + (isSuccessful ? baseItemCost : 0);
+    
+    // Calculate estimated sale price for ALL sessions (at highest target level)
+    // This way if session is toggled to success, we already have the estimate
     let estimatedSale = 0;
     let estimatedSaleSource = null;
     let estimatedSaleSourceIcon = null;
+    let estimatedSaleLevel = 0;
     
-    if (isSuccessful && resultLevel >= 10) {
+    // Use resultLevel for success, highestTargetLevel for failures
+    const saleLevelForEstimate = isSuccessful ? resultLevel : (highestTargetLevel || 10);
+    
+    if (saleLevelForEstimate >= 8) {
         if (useCached) {
             estimatedSale = cachedPrices.estimatedSale;
             estimatedSaleSource = cachedPrices.estimatedSaleSource;
             estimatedSaleSourceIcon = cachedPrices.estimatedSaleSourceIcon;
+            estimatedSaleLevel = cachedPrices.estimatedSaleLevel || saleLevelForEstimate;
         } else {
-            const saleEstimate = estimatePrice(itemHrid, resultLevel, lootTs, 'pessimistic');
+            const saleEstimate = estimatePrice(itemHrid, saleLevelForEstimate, lootTs, 'pessimistic');
             estimatedSale = saleEstimate.price;
             estimatedSaleSource = saleEstimate.source;
             estimatedSaleSourceIcon = saleEstimate.sourceIcon;
+            estimatedSaleLevel = saleLevelForEstimate;
         }
     }
     
@@ -1540,22 +1558,37 @@ function calculateEnhanceSessionProfit(session) {
         profit
     });
     
+    // Calculate tea prices for caching (so they persist after history rolls off)
+    const teaPrices_ultra = getBuyPriceAtTime('/items/ultra_enhancing_tea', 0, lootTs, 'pessimistic');
+    const teaPrices_blessed = getBuyPriceAtTime('/items/blessed_tea', 0, lootTs, 'pessimistic');
+    const teaPrices_wisdom = getBuyPriceAtTime('/items/wisdom_tea', 0, lootTs, 'pessimistic');
+    
     // Cache resolved prices for this session (preserves correct prices after history rolls off)
-    if (!useCached) {
-        cacheSessionPrices(session.startTime, {
-            matCostPerAction,
-            protPrice,
-            baseItemCost,
-            baseItemSource,
-            baseItemSourceIcon,
-            estimatedSale,
-            estimatedSaleSource,
-            estimatedSaleSourceIcon,
-            matPriceMissing,
-            protPriceMissing,
-            dataHash: getSessionHash(session)
-        });
-    }
+    // Always write to update dataHash; prices are only computed fresh when !useCached
+    const cacheEntry = {
+        matPrices,
+        protPrice,
+        protHrid,
+        baseItemCost,
+        baseItemSource,
+        baseItemSourceIcon,
+        estimatedSale,
+        estimatedSaleLevel,
+        estimatedSaleSource,
+        estimatedSaleSourceIcon,
+        teaPrices: useCached && cachedPrices.teaPrices
+            ? cachedPrices.teaPrices
+            : { ultraEnhancing: teaPrices_ultra, blessed: teaPrices_blessed, wisdom: teaPrices_wisdom },
+        matPriceMissing,
+        protPriceMissing,
+        dataHash: getSessionHash(session)
+    };
+    cacheSessionPrices(session.startTime, cacheEntry);
+    
+    // Use cached tea prices if available, otherwise freshly computed
+    const sessionTeaPrices = useCached && cachedPrices.teaPrices
+        ? cachedPrices.teaPrices
+        : { ultraEnhancing: teaPrices_ultra, blessed: teaPrices_blessed, wisdom: teaPrices_wisdom };
     
     return {
         itemHrid,
@@ -1570,9 +1603,11 @@ function calculateEnhanceSessionProfit(session) {
         isSuccessful,
         protsUsed,
         protLevel,
+        matPrices,
         matCostPerAction,
         totalMatCost,
         protPrice,
+        protHrid,
         totalProtCost,
         baseItemCost,
         baseItemSource,
@@ -1581,8 +1616,10 @@ function calculateEnhanceSessionProfit(session) {
         revenue,
         revenueBreakdown,
         estimatedSale,
+        estimatedSaleLevel,
         estimatedSaleSource,
         estimatedSaleSourceIcon,
+        teaPrices: sessionTeaPrices,
         fee,
         netSale,
         profit,
