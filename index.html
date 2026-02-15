@@ -949,6 +949,106 @@
             border-color: #eeb357;
         }
 
+        /* Session Grouping & Collapsing */
+        .session-group {
+            border: 1px solid rgba(238,179,87,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        .session-card {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .session-card:last-child {
+            border-bottom: none;
+        }
+        .card-title {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+        .card-title:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .card-expand-icon {
+            font-size: 0.6rem;
+            color: #666;
+            width: 12px;
+            flex-shrink: 0;
+        }
+        .card-expanded .card-expand-icon {
+            color: #eeb357;
+        }
+        .card-body {
+            padding: 4px 12px 10px 12px;
+        }
+        .card-title-sep {
+            color: #555;
+            margin: 0 2px;
+        }
+        .card-title-text {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+        .group-handle {
+            text-align: center;
+            padding: 2px 0;
+            cursor: pointer;
+            font-size: 0.55rem;
+            color: #555;
+            background: rgba(255,255,255,0.02);
+            border-top: 1px dashed rgba(255,255,255,0.08);
+            border-bottom: 1px dashed rgba(255,255,255,0.08);
+            line-height: 1;
+        }
+        .group-handle:hover {
+            background: rgba(238,179,87,0.15);
+            color: #eeb357;
+        }
+        .regroup-handle {
+            border-radius: 6px;
+            margin-bottom: 2px;
+            border: 1px dashed rgba(255,255,255,0.15);
+        }
+        .group-summary {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            border-top: 1px solid rgba(238,179,87,0.25);
+            display: flex;
+            justify-content: space-between;
+            color: #888;
+            background: rgba(238,179,87,0.05);
+        }
+        /* Override loot-entry styles for cards inside session-card */
+        .session-card .loot-entry {
+            border: none;
+            border-radius: 0;
+            margin: 0;
+        }
+        .session-card.session-success {
+            background: rgba(74, 222, 128, 0.08);
+        }
+        .session-card.session-failure {
+            background: rgba(248, 113, 113, 0.08);
+        }
+        .session-card.session-unsold {
+            background: rgba(250, 204, 21, 0.08);
+        }
+        /* Standalone cards (not in group) get rounded corners */
+        .loot-entries > .session-card {
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 4px;
+        }
+
         @media (max-width: 1000px) {
             table { font-size: 0.65rem; }
             th, td { padding: 5px 3px; }

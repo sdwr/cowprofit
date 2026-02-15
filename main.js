@@ -440,9 +440,134 @@ function toggleLootHistory(e) {
     if (lootHistoryOpen) renderLootHistoryPanel();
 }
 
+function renderCardBody(d, isSubCard) {
+    const ep = d.enhanceProfit;
+    const profitClass = d.hasPriceErrors ? 'warning' : (d.profit > 0 ? 'positive' : (d.profit < 0 ? 'negative' : 'neutral'));
+    const protAtLevel = ep.protLevel || 8;
+
+    const startLevel = ep.currentLevel || 0;
+    const highLevel = ep.highestLevel || 0;
+    const levelInfo = `+${startLevel}→+${highLevel}`;
+
+    let headerHtml;
+    if (isSubCard) {
+        headerHtml = `<div class="loot-header">
+            <span class="loot-action">
+                <span class="result-badge fail">✗</span>
+                <span class="item-name">${ep.itemName || 'Unknown'}</span>
+                <span class="level-info">${levelInfo}</span>
+            </span>
+            <span class="loot-time">${formatLootTime(d.session.startTime)}</span>
+        </div>`;
+    } else {
+        const resultBadge = d.isSuccess
+            ? `<span class="result-badge">+${d.effectiveResultLevel || '?'}</span>`
+            : '<span class="result-badge fail">✗</span>';
+        const toggleIcon = d.isSuccess ? '✓' : '✗';
+        const toggleClass = d.isSuccess ? 'toggle-success' : 'toggle-failure';
+        const hashWarning = d.hashMismatch ? '<span class="hash-warning" title="Session data changed">⚠️</span>' : '';
+        const soldToggleHtml = d.isSuccess
+            ? `<button class="sold-toggle ${d.isSold ? 'is-sold' : 'is-unsold'}" data-session="${d.sessionKey}" title="${d.isSold ? 'Sold' : 'Unsold'}">${d.isSold ? '💰' : '📦'}</button>`
+            : '';
+
+        headerHtml = `<div class="loot-header">
+            <span class="loot-action">
+                ${resultBadge}
+                <button class="toggle-btn ${toggleClass}" data-session="${d.sessionKey}" title="Toggle success/failure">${toggleIcon}</button>
+                ${soldToggleHtml}
+                ${hashWarning}
+                <span class="item-name">${ep.itemName || 'Unknown'}</span>
+                <span class="level-info">${levelInfo}</span>
+            </span>
+            <span class="loot-time">${formatLootTime(d.session.startTime)}</span>
+        </div>`;
+    }
+
+    const detailsHtml = `<div class="loot-details">
+        <span class="loot-duration">${d.duration}</span>
+        <span class="loot-actions">${ep.actionCount} actions</span>
+        <span class="loot-prots">${ep.protsUsed} prots @${protAtLevel}</span>
+    </div>`;
+
+    let matCostStr = ep.matPriceMissing ? '⚠️ no price' : (ep.totalMatCost > 0 ? formatCoins(ep.totalMatCost) : '-');
+    let protStr = '-';
+    if (ep.protsUsed > 0) {
+        protStr = ep.protPriceMissing
+            ? `⚠️ (${ep.protsUsed}×)`
+            : `${formatCoins(ep.totalProtCost)} (${ep.protsUsed} × ${formatCoins(ep.protPrice)})`;
+    }
+    const teaStr = d.totalTeaCost > 0 ? formatCoins(d.totalTeaCost) : '-';
+
+    let costsHtml = `<div class="loot-costs">
+        <span>Mats: ${matCostStr}</span>
+        <span>Prot: ${protStr}</span>
+        <span>Teas: ${teaStr}</span>
+        ${d.isSuccess && !isSubCard ? `<span>Base: ${ep.baseItemSourceIcon || ''} ${formatCoins(d.baseItemCost)}</span>` : ''}
+    </div>`;
+
+    let saleHtml = '';
+    if (d.isSuccess && !isSubCard) {
+        const estIcon = d.estimatedSourceIcon || '';
+        const estSaleStr = (d.estimatedSale > 0 && d.estimatedSource)
+            ? `${estIcon} ${formatCoins(d.estimatedSale)}` : '⚠️ no price';
+        const saleFormatted = d.salePrice > 0 ? formatCoins(d.salePrice) : '0';
+        const feeStr = d.fee > 0 ? `-${formatCoins(d.fee)}` : '-';
+
+        saleHtml = `<div class="loot-sale">
+            <span>Est: ${estSaleStr}</span>
+            <span>Sale: <span class="sale-input-group">
+                <button class="sale-btn sale-down" data-session="${d.sessionKey}" data-dir="down">◀</button>
+                <input type="text" class="sale-input" data-session="${d.sessionKey}" value="${saleFormatted}" data-raw="${d.salePrice}">
+                <button class="sale-btn sale-up" data-session="${d.sessionKey}" data-dir="up">▶</button>
+            </span></span>
+            <span class="fee">Fee: ${feeStr}</span>
+        </div>`;
+    }
+
+    const profitStr = d.hasPriceErrors ? '⚠️' : formatCoins(d.profit);
+    const rateStr = d.hasPriceErrors ? '-' : `${formatCoins(d.profitPerDay)}/day`;
+    const valuesHtml = `<div class="loot-values">
+        <span class="loot-value ${profitClass}">Profit: ${profitStr}</span>
+        <span class="loot-rate">${rateStr}</span>
+    </div>`;
+
+    return headerHtml + detailsHtml + costsHtml + saleHtml + valuesHtml;
+}
+
+function renderSessionCard(d, options) {
+    const isSubCard = options?.isSubCard || false;
+    const isGrouped = options?.isGrouped || false;
+    const isExpanded = expandedCardId === d.sessionKey;
+    const bgClass = !d.isSuccess ? 'session-failure' : (d.isSold ? 'session-success' : 'session-unsold');
+    const profitClass = d.hasPriceErrors ? 'warning' : (d.profit > 0 ? 'positive' : (d.profit < 0 ? 'negative' : 'neutral'));
+
+    const itemTitle = d.enhanceProfit.itemName || 'Unknown';
+    const dateStr = formatSessionDate(d.session.startTime);
+    const profitDisplay = d.hasPriceErrors ? '⚠️' : formatCoins(d.profit);
+
+    let titleContent;
+    if (isSubCard) {
+        titleContent = `<span class="result-badge fail">✗</span> <span class="card-title-text">${itemTitle}</span> <span class="card-title-sep">|</span> ${dateStr} <span class="card-title-sep">|</span> 💰 <span class="${profitClass}">${profitDisplay}</span>`;
+    } else if (d.isSuccess) {
+        titleContent = `<span class="result-badge">+${d.effectiveResultLevel || '?'}</span> <span class="card-title-text">${itemTitle}</span> <span class="card-title-sep">|</span> ${dateStr} <span class="card-title-sep">|</span> 💰 <span class="${profitClass}">${profitDisplay}</span>`;
+    } else {
+        titleContent = `<span class="result-badge fail">✗</span> <span class="card-title-text">${itemTitle}</span> <span class="card-title-sep">|</span> ${dateStr} <span class="card-title-sep">|</span> 💰 <span class="${profitClass}">${profitDisplay}</span>`;
+    }
+
+    const expandIcon = isExpanded ? '▼' : '▶';
+
+    return `<div class="session-card ${bgClass} ${isExpanded ? 'card-expanded' : 'card-collapsed'}" data-card-id="${d.sessionKey}">
+        <div class="card-title" onclick="toggleCardExpand('${d.sessionKey}')">
+            <span class="card-expand-icon">${expandIcon}</span>
+            ${titleContent}
+        </div>
+        ${isExpanded ? `<div class="card-body">${renderCardBody(d, isSubCard)}</div>` : ''}
+    </div>`;
+}
+
 function renderLootHistoryPanel() {
     const panel = document.getElementById('loot-history-panel');
-    
+
     if (!lootHistoryData.length) {
         panel.innerHTML = `
             <h5>📜 Enhance History</h5>
@@ -452,12 +577,11 @@ function renderLootHistoryPanel() {
         `;
         return;
     }
-    
-    // Filter to only enhance sessions with meaningful data
+
     const enhanceSessions = lootHistoryData
         .filter(s => s.actionHrid?.includes('enhance'))
         .slice(0, 30);
-    
+
     if (!enhanceSessions.length) {
         panel.innerHTML = `
             <h5>📜 Enhance History</h5>
@@ -467,243 +591,128 @@ function renderLootHistoryPanel() {
         `;
         return;
     }
-    
-    // Load session overrides
-    const overrides = getSessionOverrides();
-    
-    let entriesHtml = '';
-    let totalProfit = 0;
-    let soldProfit = 0;
-    let unsoldProfit = 0;
-    let unsoldCount = 0;
-    let totalHours = 0;
-    let validCount = 0;
-    
-    for (const session of enhanceSessions) {
-        const enhanceProfit = calculateEnhanceSessionProfit(session);
-        if (!enhanceProfit) continue;
-        
-        const sessionKey = session.startTime;
-        const override = overrides[sessionKey] || {};
-        const currentHash = getSessionHash(session);
-        const hashMismatch = override.dataHash && override.dataHash !== currentHash;
-        
-        const duration = calculateDuration(session.startTime, session.endTime);
-        const durationMs = new Date(session.endTime) - new Date(session.startTime);
-        const hours = durationMs / 3600000;
-        
-        // Skip very short sessions (< 1 min) with no results and no override
-        if (hours < 0.02 && !enhanceProfit.isSuccessful && override.forceSuccess !== true) continue;
-        
+
+    // Compute display data for all sessions
+    const displayData = {};
+    for (const s of enhanceSessions) {
+        const d = computeSessionDisplay(s);
+        if (d) displayData[s.startTime] = d;
+    }
+
+    // Auto-group sessions
+    const validSessions = enhanceSessions.filter(s => displayData[s.startTime]);
+    const groups = autoGroupSessions(validSessions);
+    const groupState = getGroupState();
+    const manualUngroups = groupState.manualUngroups || {};
+
+    // Build render items
+    const groupedKeys = new Set();
+    const renderItems = [];
+
+    for (const [groupId, memberKeys] of Object.entries(groups)) {
+        const validKeys = memberKeys.filter(k => displayData[k]);
+        if (validKeys.length < 2) continue;
+
+        for (const k of validKeys) groupedKeys.add(k);
+        const topKey = validKeys[validKeys.length - 1]; // success (last)
+        const subKeys = validKeys.slice(0, -1); // failures
+
+        renderItems.push({
+            type: 'group', groupId, topKey, subKeys, memberKeys: validKeys,
+            sortDate: new Date(topKey)
+        });
+    }
+
+    for (const key of Object.keys(displayData)) {
+        if (!groupedKeys.has(key)) {
+            renderItems.push({ type: 'standalone', sessionKey: key, sortDate: new Date(key) });
+        }
+    }
+
+    renderItems.sort((a, b) => b.sortDate - a.sortDate);
+
+    // Default expanded card: first ungrouped card if nothing is expanded
+    if (expandedCardId === null || !displayData[expandedCardId]) {
+        const firstUngrouped = renderItems.find(i => i.type === 'standalone');
+        expandedCardId = firstUngrouped ? firstUngrouped.sessionKey : null;
+    }
+
+    // Calculate totals
+    let totalProfit = 0, soldProfit = 0, unsoldProfit = 0, unsoldCount = 0, totalHours = 0, validCount = 0;
+    for (const d of Object.values(displayData)) {
         validCount++;
-        
-        // Determine success status (override takes precedence)
-        const isSuccess = override.forceSuccess !== undefined ? override.forceSuccess : enhanceProfit.isSuccessful;
-        
-        // Determine the actual result level (for manual toggles, use highestTargetLevel)
-        const effectiveResultLevel = enhanceProfit.resultLevel || enhanceProfit.highestTargetLevel || 0;
-        
-        // Determine sale price (custom > estimated > 0)
-        let salePrice = 0;
-        let estimatedSale = enhanceProfit.estimatedSale || 0;
-        let estimatedSource = enhanceProfit.estimatedSaleSource || null;
-        let estimatedSourceIcon = enhanceProfit.estimatedSaleSourceIcon || null;
-        
-        // If manually toggled to success but no auto-calculated estimate, calculate it now
-        if (isSuccess && estimatedSale === 0 && effectiveResultLevel > 0) {
-            const saleEstimate = estimatePrice(enhanceProfit.itemHrid, effectiveResultLevel, enhanceProfit.lootTs, 'pessimistic');
-            estimatedSale = saleEstimate.price;
-            estimatedSource = saleEstimate.source;
-            estimatedSourceIcon = saleEstimate.sourceIcon;
-        }
-        
-        if (isSuccess) {
-            if (override.customSale !== undefined && override.customSale !== null) {
-                salePrice = override.customSale;
-            } else {
-                salePrice = getValidPrice(estimatedSale);
-            }
-        }
-        
-        // Tea cost calculation (needed before profit)
-        // Teas used: Ultra Enhancing, Blessed, Wisdom
-        // Duration = 300s / guzzling bonus (guzzling increases effect, reduces duration)
-        const guzzlingBonus = calculator?.getGuzzlingBonus() || 1.1216;
-        const teaDurationSec = 300 / guzzlingBonus;
-        const sessionDurationSec = hours * 3600;
-        const teaUses = sessionDurationSec / teaDurationSec;
-        
-        const ultraEnhancingPrice = prices.market?.['/items/ultra_enhancing_tea']?.['0']?.a || 0;
-        const blessedPrice = prices.market?.['/items/blessed_tea']?.['0']?.a || 0;
-        const wisdomPrice = prices.market?.['/items/wisdom_tea']?.['0']?.a || 0;
-        const teaCostPerUse = ultraEnhancingPrice + blessedPrice + wisdomPrice;
-        const totalTeaCost = teaUses * teaCostPerUse;
-        
-        // Calculate fee (2%) and profit
-        // For failures: only lost mats + prots + teas (still have base item)
-        // For success: sale - fee - all costs (mats + prots + teas + base item)
-        const fee = Math.floor(salePrice * 0.02);
-        const netSale = salePrice - fee;
-        const failureCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + totalTeaCost;
-        
-        // For manual success toggles, baseItemCost may be 0 - calculate it if needed
-        let baseItemCost = enhanceProfit.baseItemCost || 0;
-        if (isSuccess && baseItemCost === 0 && effectiveResultLevel > 0) {
-            const baseEstimate = estimatePrice(enhanceProfit.itemHrid, 0, enhanceProfit.lootTs, 'pessimistic');
-            baseItemCost = baseEstimate.price;
-        }
-        const successCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + baseItemCost + totalTeaCost;
-        const profit = isSuccess ? netSale - successCost : -failureCost;
-        const profitPerDay = hours > 0.01 ? (profit / hours) * 24 : 0;
-        
-        // Check for price errors
-        // Success: needs mat + prot + sale prices
-        // Failure: needs mat + prot prices only
-        const hasPriceErrors = enhanceProfit.matPriceMissing || enhanceProfit.protPriceMissing || 
-            (isSuccess && salePrice === 0);
-        
-        // Determine sold status (only for successful sessions, default true)
-        const isSold = !isSuccess ? true : (override.isSold !== undefined ? override.isSold : true);
-        
-        // Add to totals if we have all required prices (include failures for true P&L)
-        if (!hasPriceErrors) {
-            totalProfit += profit;
-            totalHours += hours;
-            if (isSuccess && !isSold) {
-                unsoldProfit += profit;
+        if (!d.hasPriceErrors) {
+            totalProfit += d.profit;
+            totalHours += d.hours;
+            if (d.isSuccess && !d.isSold) {
+                unsoldProfit += d.profit;
                 unsoldCount++;
             } else {
-                soldProfit += profit;
+                soldProfit += d.profit;
             }
         }
-        
-        // Background class based on success/failure/unsold
-        const bgClass = !isSuccess ? 'session-failure' : (isSold ? 'session-success' : 'session-unsold');
-        const profitClass = hasPriceErrors ? 'warning' : (profit > 0 ? 'positive' : (profit < 0 ? 'negative' : 'neutral'));
-        
-        // Format costs
-        let matCostStr = '-';
-        if (enhanceProfit.matPriceMissing) {
-            matCostStr = '⚠️ no price';
-        } else if (enhanceProfit.totalMatCost > 0) {
-            matCostStr = formatCoins(enhanceProfit.totalMatCost);
-        }
-        
-        let protCostStr = '-';
-        if (enhanceProfit.protsUsed > 0) {
-            if (enhanceProfit.protPriceMissing) {
-                protCostStr = `⚠️ no price (${enhanceProfit.protsUsed}×)`;
-            } else {
-                protCostStr = `${formatCoins(enhanceProfit.totalProtCost)} (${enhanceProfit.protsUsed}×)`;
-            }
-        }
-        
-        // Build header with result + toggle on the LEFT
-        const itemTitle = enhanceProfit.itemName || 'Unknown';
-        const displayResultLevel = isSuccess ? (effectiveResultLevel || '?') : null;
-        const resultBadge = displayResultLevel ? `<span class="result-badge">+${displayResultLevel}</span>` : '<span class="result-badge fail">✗</span>';
-        const toggleIcon = isSuccess ? '✓' : '✗';
-        const toggleClass = isSuccess ? 'toggle-success' : 'toggle-failure';
-        const hashWarning = hashMismatch ? '<span class="hash-warning" title="Session data changed since override">⚠️</span>' : '';
-        
-        // Sold toggle (only for successful sessions)
-        const soldToggleIcon = isSold ? '💰' : '📦';
-        const soldToggleClass = isSold ? 'is-sold' : 'is-unsold';
-        const soldToggleHtml = isSuccess ? `<button class="sold-toggle ${soldToggleClass}" data-session="${sessionKey}" title="${isSold ? 'Sold - click to mark unsold' : 'Unsold - click to mark sold'}">${soldToggleIcon}</button>` : '';
-        
-        // Level info: starting level (prot@) and highest reached
-        const startLevel = enhanceProfit.currentLevel || 0;
-        const highLevel = enhanceProfit.highestLevel || 0;
-        const levelInfo = `+${startLevel}→+${highLevel}`;
-        
-        // Estimated sale display with source icon (only for successful sessions)
-        let estSaleStr = '-';
-        const estIcon = estimatedSourceIcon || enhanceProfit.estimatedSaleSourceIcon || '';
-        if (isSuccess && estimatedSale > 0 && estimatedSource) {
-            estSaleStr = `${estIcon} ${formatCoins(estimatedSale)}`;
-        } else if (isSuccess) {
-            estSaleStr = '⚠️ no price';
-        }
-        
-        // Sale input (only for successful sessions)
-        let saleHtml = '-';
-        if (isSuccess) {
-            const saleFormatted = salePrice > 0 ? formatCoins(salePrice) : '0';
-            saleHtml = `
-                <span class="sale-input-group">
-                    <button class="sale-btn sale-down" data-session="${sessionKey}" data-dir="down">◀</button>
-                    <input type="text" class="sale-input" data-session="${sessionKey}" value="${saleFormatted}" data-raw="${salePrice}">
-                    <button class="sale-btn sale-up" data-session="${sessionKey}" data-dir="up">▶</button>
-                </span>
-            `;
-        }
-        
-        // Fee display
-        const feeStr = isSuccess && fee > 0 ? `-${formatCoins(fee)}` : '-';
-        
-        // Profit display
-        const profitStr = hasPriceErrors ? '⚠️' : formatCoins(profit);
-        const rateStr = hasPriceErrors ? '-' : `${formatCoins(profitPerDay)}/day`;
-        
-        // Prot info - simplified display (prot @level moved to header)
-        const protAtLevel = enhanceProfit.protLevel || 8;
-        let protStr = '-';
-        if (enhanceProfit.protsUsed > 0) {
-            if (enhanceProfit.protPriceMissing) {
-                protStr = `⚠️ (${enhanceProfit.protsUsed}×)`;
-            } else {
-                // Show: total (count × price)
-                protStr = `${formatCoins(enhanceProfit.totalProtCost)} (${enhanceProfit.protsUsed} × ${formatCoins(enhanceProfit.protPrice)})`;
-            }
-        }
-        
-        const teaStr = totalTeaCost > 0 ? formatCoins(totalTeaCost) : '-';
-        
-        entriesHtml += `
-            <div class="loot-entry enhance-entry ${bgClass}" data-session="${sessionKey}">
-                <div class="loot-header">
-                    <span class="loot-action">
-                        ${resultBadge}
-                        <button class="toggle-btn ${toggleClass}" data-session="${sessionKey}" title="Toggle success/failure">${toggleIcon}</button>
-                        ${soldToggleHtml}
-                        ${hashWarning}
-                        <span class="item-name">${itemTitle}</span>
-                        <span class="level-info">${levelInfo}</span>
-                    </span>
-                    <span class="loot-time">${formatLootTime(session.startTime)}</span>
-                </div>
-                <div class="loot-details">
-                    <span class="loot-duration">${duration}</span>
-                    <span class="loot-actions">${enhanceProfit.actionCount} actions</span>
-                    <span class="loot-prots">${enhanceProfit.protsUsed} prots @${protAtLevel}</span>
-                </div>
-                <div class="loot-costs">
-                    <span>Mats: ${matCostStr}</span>
-                    <span>Prot: ${protStr}</span>
-                    <span>Teas: ${teaStr}</span>
-                    ${isSuccess ? `<span>Base: ${enhanceProfit.baseItemSourceIcon || ''} ${formatCoins(enhanceProfit.baseItemCost)}</span>` : ''}
-                </div>
-                ${isSuccess ? `<div class="loot-sale">
-                    <span>Est: ${estSaleStr}</span>
-                    <span>Sale: ${saleHtml}</span>
-                    <span class="fee">Fee: ${feeStr}</span>
-                </div>` : ''}
-                <div class="loot-values">
-                    <span class="loot-value ${profitClass}">Profit: ${profitStr}</span>
-                    <span class="loot-rate">${rateStr}</span>
-                </div>
-            </div>
-        `;
     }
-    
-    // Summary
+
+    // Render items
+    let entriesHtml = '';
+    for (const item of renderItems) {
+        if (item.type === 'group') {
+            const topData = displayData[item.topKey];
+            const subDatas = item.subKeys.map(k => displayData[k]);
+
+            // Group total profit
+            let groupProfit = topData.profit;
+            for (const sd of subDatas) groupProfit += sd.profit;
+            const groupProfitClass = groupProfit > 0 ? 'positive' : (groupProfit < 0 ? 'negative' : 'neutral');
+
+            let groupHtml = '<div class="session-group">';
+
+            // Top card (success)
+            groupHtml += renderSessionCard(topData, { isSubCard: false, isGrouped: true });
+
+            // Handle between top and first sub-card
+            if (subDatas.length === 1) {
+                // 2-card group: one handle, ungroup the sub-card
+                groupHtml += `<div class="group-handle" onclick="ungroupSession('${subDatas[0].sessionKey}')" title="Split group">⇕</div>`;
+            } else {
+                // 3+ cards: handle to ungroup top
+                groupHtml += `<div class="group-handle" onclick="ungroupSession('${item.topKey}')" title="Detach top card">⇕</div>`;
+            }
+
+            // Sub-cards (failures, chronological order)
+            for (let i = 0; i < subDatas.length; i++) {
+                // Handle to ungroup bottom card (between 2nd-to-last and last sub)
+                if (subDatas.length >= 2 && i === subDatas.length - 1) {
+                    groupHtml += `<div class="group-handle" onclick="ungroupSession('${subDatas[i].sessionKey}')" title="Detach bottom card">⇕</div>`;
+                }
+                groupHtml += renderSessionCard(subDatas[i], { isSubCard: true, isGrouped: true });
+            }
+
+            // Group summary
+            groupHtml += `<div class="group-summary">
+                <span>${item.memberKeys.length} sessions</span>
+                <span class="loot-value ${groupProfitClass}">Total: ${formatCoins(groupProfit)}</span>
+            </div>`;
+
+            groupHtml += '</div>';
+            entriesHtml += groupHtml;
+        } else {
+            // Standalone card
+            const d = displayData[item.sessionKey];
+
+            // Show regroup handle if manually ungrouped
+            if (manualUngroups[d.sessionKey]) {
+                entriesHtml += `<div class="group-handle regroup-handle" onclick="regroupSession('${d.sessionKey}')" title="Re-group this session">⇕ re-group</div>`;
+            }
+            entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
+        }
+    }
+
     const avgPerDay = totalHours > 0 ? (totalProfit / totalHours) * 24 : 0;
     const soldClass = soldProfit >= 0 ? 'positive' : 'negative';
     const unsoldClass = unsoldProfit >= 0 ? 'positive' : 'negative';
-    
-    // Format: "X sessions | Sold: xx + Unsold: xx | Avg: xx/day"
     const unsoldStr = unsoldCount > 0 ? ` <span class="loot-summary-value ${unsoldClass}">+ Unsold: ${formatCoins(unsoldProfit)}</span>` : '';
-    
+
     panel.innerHTML = `
         <h5>📜 Enhance History</h5>
         <div class="loot-summary">
@@ -715,8 +724,7 @@ function renderLootHistoryPanel() {
             ${entriesHtml}
         </div>
     `;
-    
-    // Attach event handlers
+
     attachLootHistoryHandlers();
 }
 
@@ -729,25 +737,21 @@ function attachLootHistoryHandlers() {
             const sessionKey = btn.dataset.session;
             const overrides = getSessionOverrides();
             const current = overrides[sessionKey]?.forceSuccess;
-            
-            // Find the session to get current hash
+
             const session = lootHistoryData.find(s => s.startTime === sessionKey);
             const hash = session ? getSessionHash(session) : null;
-            
-            // Toggle: undefined -> true -> false -> undefined (auto)
+
             let newValue;
             if (current === undefined || current === null) {
                 newValue = true;
             } else if (current === true) {
                 newValue = false;
             } else {
-                newValue = undefined; // Back to auto-detect
+                newValue = undefined;
             }
-            
-            // Preserve customSale AND isSold when toggling
+
             const existingOverride = getSessionOverrides()[sessionKey] || {};
             if (newValue === undefined) {
-                // Keep customSale and isSold if they exist, only remove forceSuccess
                 if (existingOverride.customSale !== undefined || existingOverride.isSold !== undefined) {
                     saveSessionOverride(sessionKey, { forceSuccess: undefined, dataHash: hash });
                 } else {
@@ -759,7 +763,7 @@ function attachLootHistoryHandlers() {
             renderLootHistoryPanel();
         };
     });
-    
+
     // Sold toggle buttons
     document.querySelectorAll('.sold-toggle').forEach(btn => {
         btn.onclick = (e) => {
@@ -767,19 +771,17 @@ function attachLootHistoryHandlers() {
             const sessionKey = btn.dataset.session;
             const overrides = getSessionOverrides();
             const currentSold = overrides[sessionKey]?.isSold;
-            
-            // Find the session to get current hash
+
             const session = lootHistoryData.find(s => s.startTime === sessionKey);
             const hash = session ? getSessionHash(session) : null;
-            
-            // Toggle: undefined/true -> false, false -> true
+
             const newValue = (currentSold === undefined || currentSold === true) ? false : true;
-            
+
             saveSessionOverride(sessionKey, { isSold: newValue, dataHash: hash });
             renderLootHistoryPanel();
         };
     });
-    
+
     // Sale up/down buttons
     document.querySelectorAll('.sale-btn').forEach(btn => {
         btn.onclick = (e) => {
@@ -788,26 +790,24 @@ function attachLootHistoryHandlers() {
             const dir = btn.dataset.dir;
             const input = document.querySelector(`.sale-input[data-session="${sessionKey}"]`);
             if (!input) return;
-            
+
             let rawValue = parseInt(input.dataset.raw) || 0;
             const newValue = dir === 'up' ? getNextPrice(rawValue) : getPrevPrice(rawValue);
-            
-            // Find session for hash
+
             const session = lootHistoryData.find(s => s.startTime === sessionKey);
             const hash = session ? getSessionHash(session) : null;
-            
+
             saveSessionOverride(sessionKey, { customSale: newValue, dataHash: hash });
             renderLootHistoryPanel();
         };
     });
-    
+
     // Sale input direct edit
     document.querySelectorAll('.sale-input').forEach(input => {
         input.onchange = (e) => {
             const sessionKey = input.dataset.session;
             const rawText = input.value.replace(/[^0-9.]/g, '');
-            
-            // Parse value (support M/B suffixes)
+
             let value = parseFloat(rawText) || 0;
             if (input.value.toLowerCase().includes('b')) {
                 value *= 1_000_000_000;
@@ -816,21 +816,20 @@ function attachLootHistoryHandlers() {
             } else if (input.value.toLowerCase().includes('k')) {
                 value *= 1_000;
             }
-            
+
             const validValue = getValidPrice(Math.round(value));
-            
-            // Find session for hash
+
             const session = lootHistoryData.find(s => s.startTime === sessionKey);
             const hash = session ? getSessionHash(session) : null;
-            
+
             saveSessionOverride(sessionKey, { customSale: validValue, dataHash: hash });
             renderLootHistoryPanel();
         };
-        
-        // Select all on focus
+
         input.onfocus = () => input.select();
     });
 }
+
 
 function calculateLootSessionValue(session) {
     const drops = session.drops || {};
