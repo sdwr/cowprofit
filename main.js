@@ -440,6 +440,108 @@ function toggleLootHistory(e) {
     if (lootHistoryOpen) renderLootHistoryPanel();
 }
 
+// --- Session Grouping State ---
+let expandedCardId = null;
+
+function getGroupState() {
+    try {
+        return JSON.parse(localStorage.getItem('cowprofit_session_groups') || '{}');
+    } catch { return {}; }
+}
+
+function saveGroupState(state) {
+    localStorage.setItem('cowprofit_session_groups', JSON.stringify(state));
+}
+
+// Auto-group sessions: walk chronologically per item, accumulate failures, close at success
+function autoGroupSessions(sessions) {
+    const state = getGroupState();
+    const manualUngroups = state.manualUngroups || {};
+    const existingGroups = state.groups || {};
+
+    // Build set of manually ungrouped session keys
+    const ungroupedKeys = new Set(Object.keys(manualUngroups));
+
+    // Sort chronologically (oldest first)
+    const sorted = [...sessions].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+    // Group by item name
+    const byItem = {};
+    for (const s of sorted) {
+        const ep = calculateEnhanceSessionProfit(s);
+        if (!ep) continue;
+        const itemName = ep.itemName || 'Unknown';
+        if (!byItem[itemName]) byItem[itemName] = [];
+        byItem[itemName].push(s);
+    }
+
+    const groups = {};
+    for (const [itemName, itemSessions] of Object.entries(byItem)) {
+        let currentGroup = [];
+        for (const s of itemSessions) {
+            const key = s.startTime;
+            const overrides = getSessionOverrides();
+            const override = overrides[key] || {};
+            const ep = calculateEnhanceSessionProfit(s);
+            const isSuccess = override.forceSuccess !== undefined ? override.forceSuccess : ep?.isSuccessful;
+
+            // Skip manually ungrouped sessions (don't add to any group)
+            if (ungroupedKeys.has(key)) {
+                // But if there's a current group building, keep it going without this session
+                continue;
+            }
+
+            currentGroup.push(key);
+
+            if (isSuccess && currentGroup.length > 1) {
+                // Close the group — use the success session key as group ID
+                groups[key] = [...currentGroup];
+                currentGroup = [];
+            } else if (isSuccess) {
+                // Single success, no group needed
+                currentGroup = [];
+            }
+        }
+        // Remaining failures at end stay ungrouped (no success to close them)
+    }
+
+    // Save updated groups
+    state.groups = groups;
+    saveGroupState(state);
+    return groups;
+}
+
+function ungroupSession(sessionKey) {
+    const state = getGroupState();
+    if (!state.manualUngroups) state.manualUngroups = {};
+    state.manualUngroups[sessionKey] = true;
+    saveGroupState(state);
+    renderLootHistoryPanel();
+}
+
+function regroupSession(sessionKey) {
+    const state = getGroupState();
+    if (state.manualUngroups) {
+        delete state.manualUngroups[sessionKey];
+        saveGroupState(state);
+    }
+    renderLootHistoryPanel();
+}
+
+function toggleCardExpand(sessionKey) {
+    if (expandedCardId === sessionKey) {
+        expandedCardId = null;
+    } else {
+        expandedCardId = sessionKey;
+    }
+    renderLootHistoryPanel();
+}
+
+function formatSessionDate(startTime) {
+    const d = new Date(startTime);
+    return d.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+}
+
 function computeSessionDisplay(session) {
     const enhanceProfit = calculateEnhanceSessionProfit(session);
     if (!enhanceProfit) return null;
