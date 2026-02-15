@@ -94,6 +94,25 @@
         .gear-row .label { color: #888; }
         .gear-row .value { color: #e8e8e8; font-family: 'SF Mono', Monaco, monospace; }
         .gear-row .value.highlight { color: #4ade80; }
+        .sync-status {
+            text-align: center;
+            font-size: 0.78rem;
+            margin-bottom: 4px;
+            min-height: 1.2em;
+        }
+        .sync-ok {
+            color: #4ade80;
+        }
+        .sync-none {
+            color: #f59e0b;
+        }
+        .sync-none a {
+            color: #eeb357;
+            text-decoration: underline;
+        }
+        .sync-none a:hover {
+            color: #fff;
+        }
         .subtitle-row {
             display: flex;
             justify-content: center;
@@ -1157,6 +1176,7 @@
                 <div class="gear-panel" id="gear-panel"></div>
             </div>
         </div>
+        <div id="sync-status" class="sync-status"></div>
         <div class="subtitle-row">
             <span class="subtitle">MWI Enhancement Profit Tracker | Last check: <span id="time-check">-</span> |</span>
             <div class="history-dropdown">

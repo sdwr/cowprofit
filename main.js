@@ -97,6 +97,25 @@ window.addEventListener('cowprofit-loot-loaded', function(e) {
     }
 });
 
+// Sync status indicator - show userscript link if no data after timeout
+let userscriptDetected = false;
+window.addEventListener('cowprofit-inventory-loaded', () => { userscriptDetected = true; updateSyncStatus(); });
+window.addEventListener('cowprofit-loot-loaded', () => { userscriptDetected = true; updateSyncStatus(); });
+
+setTimeout(() => {
+    if (!userscriptDetected) updateSyncStatus();
+}, 3000);
+
+function updateSyncStatus() {
+    const el = document.getElementById('sync-status');
+    if (!el) return;
+    if (userscriptDetected) {
+        el.innerHTML = '<span class="sync-ok">✓ Synced</span>';
+    } else {
+        el.innerHTML = `<span class="sync-none">No userscript detected — <a href="https://github.com/sdwr/cowprofit/raw/main/cowprofit-inventory.user.js" target="_blank">Install CowProfit Bridge</a> to sync enhance history</span>`;
+    }
+}
+
 // ============================================
 // SESSION OVERRIDES (localStorage)
 // ============================================
