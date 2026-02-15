@@ -112,7 +112,7 @@ function updateSyncStatus() {
     if (userscriptDetected) {
         el.innerHTML = '<span class="sync-ok">✓ Synced</span>';
     } else {
-        el.innerHTML = `<span class="sync-none">No userscript detected — <a href="https://github.com/sdwr/cowprofit/raw/main/cowprofit-inventory.user.js" target="_blank">Install CowProfit Bridge</a> to sync enhance history</span>`;
+        el.innerHTML = `<span class="sync-none">No userscript detected — <a href="https://github.com/sdwr/cowprofit/blob/main/cowprofit-inventory.user.js" target="_blank">Install CowProfit Bridge</a> to sync enhance history</span>`;
     }
 }
 
