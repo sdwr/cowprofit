@@ -589,7 +589,7 @@ function formatSessionDate(startTime) {
     return d.toLocaleDateString('en-CA'); // YYYY-MM-DD format
 }
 
-function computeSessionDisplay(session) {
+function computeSessionDisplay(session, finalLevelOverride) {
     const enhanceProfit = calculateEnhanceSessionProfit(session);
     if (!enhanceProfit) return null;
 
@@ -646,13 +646,16 @@ function computeSessionDisplay(session) {
     const teaCostPerUse = ultraEnhancingPrice + blessedPrice + wisdomPrice;
     const totalTeaCost = teaUses * teaCostPerUse;
 
-    // Recalculate prot cost for failures (finalLevel=0 instead of maxLevel)
+    // Recalculate prot cost with correct final level
+    // When chained (finalLevelOverride provided), use it instead of guessing
+    // Default: failures end at 0, successes end at maxLevel (from calculateEnhanceSessionProfit)
     let adjustedProtCost = enhanceProfit.totalProtCost;
     let adjustedProtsUsed = enhanceProfit.protsUsed;
-    if (!isSuccess && enhanceProfit.levelDrops) {
+    const effectiveFinalLevel = finalLevelOverride !== undefined ? finalLevelOverride : (isSuccess ? undefined : 0);
+    if (enhanceProfit.levelDrops && effectiveFinalLevel !== undefined) {
         const protResult = calculateProtectionFromDrops(
             enhanceProfit.levelDrops, enhanceProfit.protLevel || 8,
-            enhanceProfit.currentLevel || 0, 0 // finalLevel=0 for failures
+            enhanceProfit.currentLevel || 0, effectiveFinalLevel
         );
         adjustedProtsUsed = protResult.protCount;
         adjustedProtCost = adjustedProtsUsed * (enhanceProfit.protPrice || 0);
@@ -669,7 +672,7 @@ function computeSessionDisplay(session) {
         const baseEstimate = estimatePrice(enhanceProfit.itemHrid, 0, enhanceProfit.lootTs, 'pessimistic');
         baseItemCost = baseEstimate.price;
     }
-    const successCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + baseItemCost + totalTeaCost; // success uses original prot (finalLevel=max)
+    const successCost = enhanceProfit.totalMatCost + adjustedProtCost + baseItemCost + totalTeaCost;
     const profit = isSuccess ? netSale - successCost : -failureCost;
     const profitPerDay = hours > 0.01 ? (profit / hours) * 24 : 0;
 
@@ -861,16 +864,45 @@ function renderLootHistoryPanel() {
         return;
     }
 
-    // Compute display data for all sessions
+    // Auto-group sessions first (needs raw sessions, not display data)
+    // Pre-filter: only sessions that produce valid enhance data
+    const validSessions = enhanceSessions.filter(s => {
+        const ep = calculateEnhanceSessionProfit(s);
+        if (!ep) return false;
+        const hours = (new Date(s.endTime) - new Date(s.startTime)) / 3600000;
+        const overrides = getSessionOverrides();
+        const override = overrides[s.startTime] || {};
+        if (hours < 0.02 && !ep.isSuccessful && override.forceSuccess !== true) return false;
+        return true;
+    });
+    const groups = autoGroupSessions(validSessions);
+
+    // Build session lookup by key
+    const sessionByKey = {};
+    for (const s of enhanceSessions) sessionByKey[s.startTime] = s;
+
+    // Compute display data — chain final levels within groups
+    // Walk each group backwards: session N+1's startLevel = session N's final level
     const displayData = {};
-    for (const s of enhanceSessions) {
-        const d = computeSessionDisplay(s);
-        if (d) displayData[s.startTime] = d;
+    const chainedFinalLevels = {}; // sessionKey → finalLevelOverride
+
+    for (const [groupId, memberKeys] of Object.entries(groups)) {
+        // memberKeys is chronological (oldest first)
+        // Walk from newest to oldest: next session's currentLevel is prev session's final
+        for (let i = memberKeys.length - 1; i >= 1; i--) {
+            const nextSession = sessionByKey[memberKeys[i]];
+            if (!nextSession) continue;
+            const nextEp = calculateEnhanceSessionProfit(nextSession);
+            if (!nextEp) continue;
+            // This session's start level is the previous session's final level
+            chainedFinalLevels[memberKeys[i - 1]] = nextEp.currentLevel || 0;
+        }
     }
 
-    // Auto-group sessions
-    const validSessions = enhanceSessions.filter(s => displayData[s.startTime]);
-    const groups = autoGroupSessions(validSessions);
+    for (const s of enhanceSessions) {
+        const d = computeSessionDisplay(s, chainedFinalLevels[s.startTime]);
+        if (d) displayData[s.startTime] = d;
+    }
     const groupState = getGroupState();
     const manualUngroups = groupState.manualUngroups || {};
 
