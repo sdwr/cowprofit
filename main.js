@@ -832,7 +832,7 @@ function renderLootHistoryPanel() {
 
     const enhanceSessions = lootHistoryData
         .filter(s => s.actionHrid?.includes('enhance'))
-        .slice(0, 30);
+        .slice(0, 100);
 
     if (!enhanceSessions.length) {
         panel.innerHTML = `

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CowProfit Inventory Bridge
 // @namespace    https://github.com/sdwr/cowprofit
-// @version      1.1.0
+// @version      1.2.0
 // @description  Captures MWI inventory, coins, and loot history - bridges to CowProfit via Tampermonkey storage
 // @author       sdwr
 // @license      MIT
@@ -162,11 +162,11 @@
             else updatedCount++;
         }
 
-        // Limit to last 200 entries per character (sorted by startTime)
+        // Limit to last 1000 entries per character (sorted by startTime)
         const entries = Object.entries(stored[charId]);
-        if (entries.length > 200) {
+        if (entries.length > 1000) {
             entries.sort((a, b) => new Date(b[1].startTime) - new Date(a[1].startTime));
-            stored[charId] = Object.fromEntries(entries.slice(0, 200));
+            stored[charId] = Object.fromEntries(entries.slice(0, 1000));
         }
 
         GM_setValue(LOOT_STORAGE_KEY, JSON.stringify(stored));
