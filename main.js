@@ -531,10 +531,31 @@ function ungroupSession(sessionKey, event) {
 function regroupSession(sessionKey, event) {
     if (event) { event.stopPropagation(); event.preventDefault(); }
     const state = getGroupState();
-    if (state.manualUngroups) {
-        delete state.manualUngroups[sessionKey];
-        saveGroupState(state);
+    if (!state.manualUngroups) { renderLootHistoryPanel(); return; }
+
+    // Find the item name for this session
+    const session = lootHistoryData.find(s => s.startTime === sessionKey);
+    const ep = session ? calculateEnhanceSessionProfit(session) : null;
+    const itemName = ep?.itemName;
+
+    // Remove flag from this session
+    delete state.manualUngroups[sessionKey];
+
+    // Also remove flags from all adjacent same-item sessions that are manually ungrouped
+    // so they can group together
+    if (itemName) {
+        const sameItem = lootHistoryData
+            .filter(s => s.actionHrid?.includes('enhance'))
+            .filter(s => {
+                const sep = calculateEnhanceSessionProfit(s);
+                return sep?.itemName === itemName && state.manualUngroups[s.startTime];
+            });
+        for (const s of sameItem) {
+            delete state.manualUngroups[s.startTime];
+        }
     }
+
+    saveGroupState(state);
     renderLootHistoryPanel();
 }
 
