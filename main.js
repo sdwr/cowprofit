@@ -91,6 +91,20 @@ window.addEventListener('cowprofit-loot-loaded', function(e) {
     console.log('[CowProfit v2] Loot sessions loaded:', lootHistoryData.map(s => 
         `${s.actionHrid?.split('/').pop()} @ ${s.startTime} (${s.actionCount} actions)`
     ).slice(0, 5));
+    // Run migration if needed, then auto-group new sessions
+    const validSessions = lootHistoryData.filter(s => {
+        if (!s.actionHrid?.includes('enhance')) return false;
+        const ep = calculateEnhanceSessionProfit(s);
+        if (!ep) return false;
+        const hours = (new Date(s.endTime) - new Date(s.startTime)) / 3600000;
+        const overrides = getSessionOverrides();
+        const override = overrides[s.startTime] || {};
+        if (hours < 0.02 && !ep.isSuccessful && override.forceSuccess !== true) return false;
+        return true;
+    });
+    migrateGroupState(validSessions.map(s => s.startTime));
+    recomputeGroups(validSessions);
+
     // Update loot history panel if open
     if (lootHistoryOpen) {
         renderLootHistoryPanel();
@@ -501,95 +515,269 @@ let showFailed = true;
 
 function getGroupState() {
     try {
-        return JSON.parse(localStorage.getItem('cowprofit_session_groups') || '{}');
-    } catch { return {}; }
+        const state = JSON.parse(localStorage.getItem('cowprofit_session_groups') || '{}');
+        if (!state.groups) state.groups = {};
+        if (!state.seen) state.seen = {};
+        return state;
+    } catch { return { groups: {}, seen: {}, version: 2 }; }
 }
 
 function saveGroupState(state) {
     localStorage.setItem('cowprofit_session_groups', JSON.stringify(state));
 }
 
-// Auto-group sessions: walk chronologically per item, accumulate failures, close at success
-function autoGroupSessions(sessions) {
+// Migration: convert old manualUngroups format to new seen model
+function migrateGroupState(allSessionKeys) {
     const state = getGroupState();
-    const manualUngroups = state.manualUngroups || {};
-    const existingGroups = state.groups || {};
+    if (state.version === 2) return false; // already migrated
 
-    // Build set of manually ungrouped session keys
-    const ungroupedKeys = new Set(Object.keys(manualUngroups));
+    // Old schema had manualUngroups — convert to seen model
+    console.log('[CowProfit] Migrating group state to v2...');
+    state.seen = {};
+    // Mark ALL existing sessions as seen
+    for (const key of allSessionKeys) {
+        state.seen[key] = true;
+    }
+    // Also mark all grouped session keys as seen
+    for (const memberKeys of Object.values(state.groups || {})) {
+        if (Array.isArray(memberKeys)) {
+            for (const k of memberKeys) state.seen[k] = true;
+        }
+    }
+    delete state.manualUngroups;
+    state.version = 2;
+    saveGroupState(state);
+    console.log('[CowProfit] Migration complete. Marked', Object.keys(state.seen).length, 'sessions as seen.');
+    return true;
+}
 
-    // Sort chronologically (oldest first)
-    const sorted = [...sessions].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+// Find group containing a session key. Returns { groupId, members } or null
+function findGroupContaining(sessionKey, groups) {
+    for (const [groupId, members] of Object.entries(groups)) {
+        if (members.includes(sessionKey)) return { groupId, members };
+    }
+    return null;
+}
 
-    // Group by item name
-    const byItem = {};
-    for (const s of sorted) {
+// Check if a session is successful (considering overrides)
+function isSessionSuccess(sessionKey) {
+    const overrides = getSessionOverrides();
+    const override = overrides[sessionKey] || {};
+    if (override.forceSuccess !== undefined) return override.forceSuccess;
+    const session = lootHistoryData.find(s => s.startTime === sessionKey);
+    if (!session) return false;
+    const ep = calculateEnhanceSessionProfit(session);
+    return ep?.isSuccessful || false;
+}
+
+// Get item name for a session key
+function getSessionItemName(sessionKey) {
+    const session = lootHistoryData.find(s => s.startTime === sessionKey);
+    if (!session) return null;
+    const ep = calculateEnhanceSessionProfit(session);
+    return ep?.itemName || null;
+}
+
+// Auto-group only NEW (unseen) sessions. Called on import only.
+function recomputeGroups(sessions) {
+    const state = getGroupState();
+
+    // 1. Clean stale groups (remove missing session keys, dissolve <2)
+    const validSessionKeys = new Set(sessions.map(s => s.startTime));
+    for (const [groupId, members] of Object.entries(state.groups)) {
+        const valid = members.filter(k => validSessionKeys.has(k));
+        if (valid.length < 2) {
+            delete state.groups[groupId];
+        } else if (valid.length !== members.length) {
+            // Re-key if last member changed
+            delete state.groups[groupId];
+            const newKey = valid[valid.length - 1];
+            state.groups[newKey] = valid;
+        }
+    }
+
+    // 2. Collect all currently grouped keys
+    const groupedKeys = new Set();
+    for (const members of Object.values(state.groups)) {
+        for (const k of members) groupedKeys.add(k);
+    }
+
+    // 3. Identify new (unseen) sessions that produce valid enhance data
+    const newSessions = sessions.filter(s => !state.seen[s.startTime]);
+    if (newSessions.length === 0) {
+        // Clean seen set
+        for (const key of Object.keys(state.seen)) {
+            if (!validSessionKeys.has(key)) delete state.seen[key];
+        }
+        saveGroupState(state);
+        return state.groups;
+    }
+
+    console.log('[CowProfit] Auto-grouping', newSessions.length, 'new sessions');
+
+    // Sort new sessions chronologically (oldest first)
+    newSessions.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+    // Build item→sessions map for new sessions
+    const newByItem = {};
+    for (const s of newSessions) {
         const ep = calculateEnhanceSessionProfit(s);
         if (!ep) continue;
         const itemName = ep.itemName || 'Unknown';
-        if (!byItem[itemName]) byItem[itemName] = [];
-        byItem[itemName].push(s);
+        if (!newByItem[itemName]) newByItem[itemName] = [];
+        newByItem[itemName].push(s);
     }
 
-    const groups = {};
-    for (const [itemName, itemSessions] of Object.entries(byItem)) {
-        let currentGroup = [];
-        for (const s of itemSessions) {
+    // 4. Try inserting new sessions into existing group edges
+    const insertedKeys = new Set();
+    for (const [itemName, itemNewSessions] of Object.entries(newByItem)) {
+        for (const s of itemNewSessions) {
             const key = s.startTime;
-            const overrides = getSessionOverrides();
-            const override = overrides[key] || {};
-            const ep = calculateEnhanceSessionProfit(s);
-            const isSuccess = override.forceSuccess !== undefined ? override.forceSuccess : ep?.isSuccessful;
+            const sIsSuccess = isSessionSuccess(key);
 
-            // Manually ungrouped sessions act as a barrier — close any pending group
-            if (ungroupedKeys.has(key)) {
-                if (currentGroup.length > 1) {
-                    const gid = currentGroup[currentGroup.length - 1];
-                    groups[gid] = [...currentGroup];
+            // Find existing groups for this item
+            for (const [groupId, members] of Object.entries(state.groups)) {
+                const groupItemName = getSessionItemName(members[0]);
+                if (groupItemName !== itemName) continue;
+
+                const lastMember = members[members.length - 1];
+                const firstMember = members[0];
+                const lastIsSuccess = isSessionSuccess(lastMember);
+                const groupHasSuccess = members.some(k => isSessionSuccess(k));
+
+                // Can append after last member?
+                if (new Date(key) > new Date(lastMember) && !lastIsSuccess) {
+                    // Can't add if both are success, or if group already has success and this is success
+                    if (sIsSuccess && groupHasSuccess) continue;
+                    members.push(key);
+                    // Re-key group
+                    delete state.groups[groupId];
+                    state.groups[key] = members;
+                    insertedKeys.add(key);
+                    break;
                 }
-                currentGroup = [];
-                continue;
-            }
 
-            currentGroup.push(key);
-
-            if (isSuccess && currentGroup.length > 1) {
-                // Close the group — use the success session key as group ID
-                groups[key] = [...currentGroup];
-                currentGroup = [];
-            } else if (isSuccess) {
-                // Single success, no group needed
-                currentGroup = [];
+                // Can prepend before first member?
+                if (new Date(key) < new Date(firstMember) && !sIsSuccess) {
+                    members.unshift(key);
+                    // Group ID stays the same (last member unchanged)
+                    insertedKeys.add(key);
+                    break;
+                }
             }
-        }
-        // Remaining failures form a group too (in-progress, no success yet)
-        if (currentGroup.length > 1) {
-            const groupId = currentGroup[currentGroup.length - 1]; // most recent as ID
-            groups[groupId] = [...currentGroup];
         }
     }
 
-    // Save updated groups
-    state.groups = groups;
+    // 5. Group remaining new sessions per item, chronologically
+    for (const [itemName, itemNewSessions] of Object.entries(newByItem)) {
+        const remaining = itemNewSessions.filter(s => !insertedKeys.has(s.startTime));
+        if (remaining.length === 0) continue;
+
+        let currentRun = [];
+        for (const s of remaining) {
+            const key = s.startTime;
+            const sIsSuccess = isSessionSuccess(key);
+
+            currentRun.push(key);
+
+            if (sIsSuccess) {
+                if (currentRun.length > 1) {
+                    const gid = currentRun[currentRun.length - 1];
+                    state.groups[gid] = [...currentRun];
+                }
+                currentRun = [];
+            }
+        }
+        // Remaining failures form an in-progress group
+        if (currentRun.length > 1) {
+            const gid = currentRun[currentRun.length - 1];
+            state.groups[gid] = [...currentRun];
+        }
+    }
+
+    // 6. Mark ALL new sessions as seen
+    for (const s of newSessions) {
+        state.seen[s.startTime] = true;
+    }
+
+    // 7. Clean seen set (remove deleted session keys)
+    for (const key of Object.keys(state.seen)) {
+        if (!validSessionKeys.has(key)) delete state.seen[key];
+    }
+
     saveGroupState(state);
-    return groups;
+    return state.groups;
 }
 
+// Edge-only ungroup
 function ungroupSession(sessionKey, event) {
     if (event) { event.stopPropagation(); event.preventDefault(); }
     const state = getGroupState();
-    if (!state.manualUngroups) state.manualUngroups = {};
-    state.manualUngroups[sessionKey] = true;
+    const found = findGroupContaining(sessionKey, state.groups);
+    if (!found) return;
+
+    const { groupId, members } = found;
+    const idx = members.indexOf(sessionKey);
+
+    // Must be first or last
+    if (idx !== 0 && idx !== members.length - 1) return;
+
+    if (members.length === 2) {
+        // Dissolve: both become standalone (both already in seen)
+        delete state.groups[groupId];
+    } else if (idx === 0) {
+        // Remove bottom (oldest)
+        members.splice(0, 1);
+        // groupId unchanged (still keyed by last member)
+    } else {
+        // Remove top (newest) — need to re-key
+        members.splice(idx, 1);
+        delete state.groups[groupId];
+        const newKey = members[members.length - 1];
+        state.groups[newKey] = members;
+    }
+
+    // Session stays in seen — manual only going forward
     saveGroupState(state);
     renderLootHistoryPanel();
 }
 
-function regroupSession(sessionKey, event) {
+// Manual group via handles
+function manualGroupSession(sessionKey, targetKey, event) {
     if (event) { event.stopPropagation(); event.preventDefault(); }
     const state = getGroupState();
-    if (state.manualUngroups) {
-        delete state.manualUngroups[sessionKey];
+
+    const sourceGroup = findGroupContaining(sessionKey, state.groups);
+    const targetGroup = findGroupContaining(targetKey, state.groups);
+
+    if (sourceGroup && targetGroup && sourceGroup.groupId === targetGroup.groupId) return; // same group
+
+    let newMembers;
+    if (sourceGroup && targetGroup) {
+        // Merge two groups
+        newMembers = [...sourceGroup.members, ...targetGroup.members];
+        delete state.groups[sourceGroup.groupId];
+        delete state.groups[targetGroup.groupId];
+    } else if (targetGroup) {
+        // Attach session to target group edge
+        newMembers = [...targetGroup.members, sessionKey];
+        delete state.groups[targetGroup.groupId];
+    } else if (sourceGroup) {
+        // Attach target to source group edge
+        newMembers = [...sourceGroup.members, targetKey];
+        delete state.groups[sourceGroup.groupId];
+    } else {
+        // Both standalone → new 2-member group
+        newMembers = [sessionKey, targetKey];
     }
+
+    // Sort chronologically, re-key by last member
+    newMembers.sort((a, b) => new Date(a) - new Date(b));
+    // Deduplicate
+    newMembers = [...new Set(newMembers)];
+    const newKey = newMembers[newMembers.length - 1];
+    state.groups[newKey] = newMembers;
+
     saveGroupState(state);
     renderLootHistoryPanel();
 }
@@ -882,18 +1070,9 @@ function renderLootHistoryPanel() {
         return;
     }
 
-    // Auto-group sessions first (needs raw sessions, not display data)
-    // Pre-filter: only sessions that produce valid enhance data
-    const validSessions = enhanceSessions.filter(s => {
-        const ep = calculateEnhanceSessionProfit(s);
-        if (!ep) return false;
-        const hours = (new Date(s.endTime) - new Date(s.startTime)) / 3600000;
-        const overrides = getSessionOverrides();
-        const override = overrides[s.startTime] || {};
-        if (hours < 0.02 && !ep.isSuccessful && override.forceSuccess !== true) return false;
-        return true;
-    });
-    const groups = autoGroupSessions(validSessions);
+    // Read stored groups (no recompute — that only happens on import)
+    const groupState = getGroupState();
+    const groups = groupState.groups || {};
 
     // Build session lookup by key
     const sessionByKey = {};
@@ -921,9 +1100,6 @@ function renderLootHistoryPanel() {
         const d = computeSessionDisplay(s, chainedFinalLevels[s.startTime]);
         if (d) displayData[s.startTime] = d;
     }
-    const groupState = getGroupState();
-    const manualUngroups = groupState.manualUngroups || {};
-
     // Build render items
     const groupedKeys = new Set();
     const renderItems = [];
@@ -933,8 +1109,8 @@ function renderLootHistoryPanel() {
         if (validKeys.length < 2) continue;
 
         for (const k of validKeys) groupedKeys.add(k);
-        const topKey = validKeys[validKeys.length - 1]; // success (last/most recent)
-        const subKeys = validKeys.slice(0, -1).reverse(); // failures, newest first
+        const topKey = validKeys[validKeys.length - 1]; // most recent
+        const subKeys = validKeys.slice(0, -1).reverse(); // older, newest first
 
         renderItems.push({
             type: 'group', groupId, topKey, subKeys, memberKeys: validKeys,
@@ -949,6 +1125,75 @@ function renderLootHistoryPanel() {
     }
 
     renderItems.sort((a, b) => b.sortDate - a.sortDate);
+
+    // Build item→sessions map for handle visibility
+    const itemSessionMap = {}; // itemName → [{key, ri, isSuccess, groupId}]
+    for (let ri = 0; ri < renderItems.length; ri++) {
+        const item = renderItems[ri];
+        let keys;
+        if (item.type === 'group') {
+            keys = [item.memberKeys[0], item.memberKeys[item.memberKeys.length - 1]]; // bottom edge, top edge
+        } else {
+            keys = [item.sessionKey];
+        }
+        for (const key of keys) {
+            const d = displayData[key];
+            if (!d) continue;
+            const itemName = d.enhanceProfit?.itemName || 'Unknown';
+            if (!itemSessionMap[itemName]) itemSessionMap[itemName] = [];
+            itemSessionMap[itemName].push({
+                key,
+                ri,
+                isSuccess: d.isSuccess,
+                groupId: item.type === 'group' ? item.groupId : null
+            });
+        }
+    }
+    // Sort each item's array by time
+    for (const arr of Object.values(itemSessionMap)) {
+        arr.sort((a, b) => new Date(a.key) - new Date(b.key));
+    }
+
+    // Handle visibility helper: find nearest same-item neighbor
+    function findNeighbors(key, itemName, direction) {
+        const arr = itemSessionMap[itemName];
+        if (!arr) return null;
+        const idx = arr.findIndex(e => e.key === key);
+        if (idx === -1) return null;
+        if (direction === 'up' && idx < arr.length - 1) return arr[idx + 1]; // more recent
+        if (direction === 'down' && idx > 0) return arr[idx - 1]; // older
+        return null;
+    }
+
+    // Check if connecting two sessions/groups would violate constraints
+    function canConnect(sourceKey, targetKey) {
+        const sourceGroup = findGroupContaining(sourceKey, groups);
+        const targetGroup = findGroupContaining(targetKey, groups);
+
+        // Collect all members of potential merged group
+        let allMembers = [];
+        if (sourceGroup) allMembers.push(...sourceGroup.members);
+        else allMembers.push(sourceKey);
+        if (targetGroup && (!sourceGroup || targetGroup.groupId !== sourceGroup.groupId)) {
+            allMembers.push(...targetGroup.members);
+        } else if (!targetGroup) {
+            allMembers.push(targetKey);
+        }
+        allMembers = [...new Set(allMembers)].sort((a, b) => new Date(a) - new Date(b));
+
+        // Check: no failure after success chronologically
+        let seenSuccess = false;
+        for (const k of allMembers) {
+            const isS = isSessionSuccess(k);
+            if (seenSuccess && !isS) return false; // failure after success
+            if (isS) seenSuccess = true;
+        }
+        // Check: no two successes
+        const successCount = allMembers.filter(k => isSessionSuccess(k)).length;
+        if (successCount > 1) return false;
+
+        return true;
+    }
 
     // Clear expanded card if it no longer exists in data
     if (expandedCardId !== null && !displayData[expandedCardId]) {
@@ -1021,6 +1266,18 @@ function renderLootHistoryPanel() {
         return true;
     });
 
+    // Helper to render a group/manual handle
+    function renderHandle(sourceKey, targetKey, placement, direction) {
+        const escapedSource = sourceKey.replace(/'/g, "\\'");
+        const escapedTarget = targetKey.replace(/'/g, "\\'");
+        const dirClass = direction === 'up' ? 'handle-up' : 'handle-down';
+        if (placement === 'floating') {
+            return `<div class="group-handle-floating ${dirClass}" onclick="manualGroupSession('${escapedSource}', '${escapedTarget}', event)" title="Group sessions">⇕</div>`;
+        } else {
+            return `<div class="group-handle-attached ${dirClass}" onclick="manualGroupSession('${escapedSource}', '${escapedTarget}', event)" title="Group sessions">⇕ group</div>`;
+        }
+    }
+
     // Render items
     let entriesHtml = '';
     for (let ri = 0; ri < filteredItems.length; ri++) {
@@ -1036,15 +1293,23 @@ function renderLootHistoryPanel() {
 
             let groupHtml = '<div class="session-group">';
 
-            // Top card with ungroup overlay (only when all filters on)
+            // Top edge: outward group handle (only when all filters on)
+            if (allFiltersOn) {
+                const topItemName = topData.enhanceProfit?.itemName;
+                const neighbor = topItemName ? findNeighbors(item.topKey, topItemName, 'up') : null;
+                if (neighbor && canConnect(item.topKey, neighbor.key)) {
+                    const placement = Math.abs(ri - neighbor.ri) === 1 ? 'floating' : 'on-card';
+                    if (placement === 'on-card') {
+                        groupHtml += renderHandle(item.topKey, neighbor.key, 'on-card', 'up');
+                    }
+                }
+            }
+
+            // Top card with ungroup handle
             groupHtml += `<div class="group-card-wrapper">`;
             groupHtml += renderSessionCard(topData, { isSubCard: false, isGrouped: true });
             if (allFiltersOn) {
-                if (subDatas.length === 1) {
-                    groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${subDatas[0].sessionKey}', event)" title="Ungroup">⇕</div>`;
-                } else {
-                    groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${item.topKey}', event)" title="Detach">⇕</div>`;
-                }
+                groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${item.topKey}', event)" title="Detach top">⇕</div>`;
             }
             groupHtml += `</div>`;
 
@@ -1052,11 +1317,25 @@ function renderLootHistoryPanel() {
             for (let i = 0; i < subDatas.length; i++) {
                 groupHtml += `<div class="group-card-wrapper">`;
                 groupHtml += renderSessionCard(subDatas[i], { isSubCard: true, isGrouped: true });
-                // Bottom card ungroup handle (3+ cards only, only when all filters on)
-                if (allFiltersOn && subDatas.length >= 2 && i === subDatas.length - 1) {
-                    groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${subDatas[i].sessionKey}', event)" title="Detach">⇕</div>`;
+                // Bottom card ungroup handle (only on last sub-card, which is the bottom edge)
+                if (allFiltersOn && i === subDatas.length - 1) {
+                    groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${subDatas[i].sessionKey}', event)" title="Detach bottom">⇕</div>`;
                 }
                 groupHtml += `</div>`;
+            }
+
+            // Bottom edge: outward group handle
+            if (allFiltersOn) {
+                const bottomKey = item.memberKeys[0]; // oldest
+                const bottomData = displayData[bottomKey];
+                const bottomItemName = bottomData?.enhanceProfit?.itemName;
+                const neighbor = bottomItemName ? findNeighbors(bottomKey, bottomItemName, 'down') : null;
+                if (neighbor && canConnect(bottomKey, neighbor.key)) {
+                    const placement = Math.abs(ri - neighbor.ri) === 1 ? 'floating' : 'on-card';
+                    if (placement === 'on-card') {
+                        groupHtml += renderHandle(bottomKey, neighbor.key, 'on-card', 'down');
+                    }
+                }
             }
 
             // Group summary
@@ -1070,29 +1349,44 @@ function renderLootHistoryPanel() {
         } else {
             // Standalone card
             const d = displayData[item.sessionKey];
-            const myItem = itemNameByKey[d.sessionKey];
+            const myItem = d.enhanceProfit?.itemName || 'Unknown';
 
-            // Find if there's a same-item standalone elsewhere (separated, not adjacent)
-            const hasGroupableMatch = filteredItems.some((other, oi) =>
-                oi !== ri && other.type === 'standalone' &&
-                itemNameByKey[other.sessionKey] === myItem
-            );
-
-            // Check for adjacent same-item standalone
-            const prevIsGroupable = ri > 0 && filteredItems[ri - 1].type === 'standalone'
-                && itemNameByKey[filteredItems[ri - 1].sessionKey] === myItem;
-            const nextIsGroupable = ri < filteredItems.length - 1 && filteredItems[ri + 1].type === 'standalone'
-                && itemNameByKey[filteredItems[ri + 1].sessionKey] === myItem;
-
-            // Render card with optional group handles (only when all filters on)
-            entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
+            // Check for handles in both directions (only when all filters on)
+            let handleAbove = '';
+            let handleBelow = '';
             if (allFiltersOn) {
-                if (manualUngroups[d.sessionKey]) {
-                    entriesHtml += `<div class="group-handle-attached" onclick="regroupSession('${d.sessionKey}', event)" title="Group this session">⇕ group</div>`;
-                } else if (hasGroupableMatch && !prevIsGroupable && !nextIsGroupable) {
-                    entriesHtml += `<div class="group-handle-attached" onclick="regroupSession('${d.sessionKey}', event)" title="Group this session">⇕ group</div>`;
+                const upNeighbor = findNeighbors(d.sessionKey, myItem, 'up');
+                if (upNeighbor && canConnect(d.sessionKey, upNeighbor.key)) {
+                    const placement = Math.abs(ri - upNeighbor.ri) === 1 ? 'floating' : 'on-card';
+                    if (placement === 'on-card') {
+                        handleAbove = renderHandle(d.sessionKey, upNeighbor.key, 'on-card', 'up');
+                    }
+                    // Floating handles rendered between cards (below previous item)
+                }
+                const downNeighbor = findNeighbors(d.sessionKey, myItem, 'down');
+                if (downNeighbor && canConnect(d.sessionKey, downNeighbor.key)) {
+                    const placement = Math.abs(ri - downNeighbor.ri) === 1 ? 'floating' : 'on-card';
+                    if (placement === 'on-card') {
+                        handleBelow = renderHandle(d.sessionKey, downNeighbor.key, 'on-card', 'down');
+                    }
                 }
             }
+
+            // Check if we should render a floating handle between this and previous item
+            let floatingHandle = '';
+            if (allFiltersOn && ri > 0) {
+                const prevItem = filteredItems[ri - 1];
+                const prevKey = prevItem.type === 'group' ? prevItem.memberKeys[0] : prevItem.sessionKey;
+                const prevData = displayData[prevKey];
+                const prevItemName = prevData?.enhanceProfit?.itemName;
+                if (prevItemName === myItem && canConnect(d.sessionKey, prevKey)) {
+                    floatingHandle = renderHandle(d.sessionKey, prevKey, 'floating', 'up');
+                }
+            }
+
+            entriesHtml += floatingHandle + handleAbove;
+            entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
+            entriesHtml += handleBelow;
         }
     }
 
