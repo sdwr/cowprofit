@@ -910,6 +910,9 @@ function renderLootHistoryPanel() {
     }
     // Ungrouped failures within success groups are counted in their group's category, not as "failed"
 
+    // Disable group/ungroup actions when any filter is off
+    const allFiltersOn = showSold && showUnsold && showFailed;
+
     // Build item name lookup for groupability check
     const itemNameByKey = {};
     for (const [key, d] of Object.entries(displayData)) {
@@ -940,13 +943,15 @@ function renderLootHistoryPanel() {
 
             let groupHtml = '<div class="session-group">';
 
-            // Top card (success) with ungroup overlay
+            // Top card with ungroup overlay (only when all filters on)
             groupHtml += `<div class="group-card-wrapper">`;
             groupHtml += renderSessionCard(topData, { isSubCard: false, isGrouped: true });
-            if (subDatas.length === 1) {
-                groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${subDatas[0].sessionKey}', event)" title="Ungroup">⇕</div>`;
-            } else {
-                groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${item.topKey}', event)" title="Detach">⇕</div>`;
+            if (allFiltersOn) {
+                if (subDatas.length === 1) {
+                    groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${subDatas[0].sessionKey}', event)" title="Ungroup">⇕</div>`;
+                } else {
+                    groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${item.topKey}', event)" title="Detach">⇕</div>`;
+                }
             }
             groupHtml += `</div>`;
 
@@ -954,8 +959,8 @@ function renderLootHistoryPanel() {
             for (let i = 0; i < subDatas.length; i++) {
                 groupHtml += `<div class="group-card-wrapper">`;
                 groupHtml += renderSessionCard(subDatas[i], { isSubCard: true, isGrouped: true });
-                // Bottom card ungroup handle (3+ cards only)
-                if (subDatas.length >= 2 && i === subDatas.length - 1) {
+                // Bottom card ungroup handle (3+ cards only, only when all filters on)
+                if (allFiltersOn && subDatas.length >= 2 && i === subDatas.length - 1) {
                     groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${subDatas[i].sessionKey}', event)" title="Detach">⇕</div>`;
                 }
                 groupHtml += `</div>`;
@@ -986,17 +991,14 @@ function renderLootHistoryPanel() {
             const nextIsGroupable = ri < filteredItems.length - 1 && filteredItems[ri + 1].type === 'standalone'
                 && itemNameByKey[filteredItems[ri + 1].sessionKey] === myItem;
 
-            // Render card with optional group handles attached (no margin)
-            if (manualUngroups[d.sessionKey]) {
-                // Manually ungrouped — show regroup handle below card
-                entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
-                entriesHtml += `<div class="group-handle-attached" onclick="regroupSession('${d.sessionKey}', event)" title="Group this session">⇕ group</div>`;
-            } else if (hasGroupableMatch && !prevIsGroupable && !nextIsGroupable) {
-                // Separated groupable — show handle on bottom (toward potential match)
-                entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
-                entriesHtml += `<div class="group-handle-attached" onclick="regroupSession('${d.sessionKey}', event)" title="Group this session">⇕ group</div>`;
-            } else {
-                entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
+            // Render card with optional group handles (only when all filters on)
+            entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
+            if (allFiltersOn) {
+                if (manualUngroups[d.sessionKey]) {
+                    entriesHtml += `<div class="group-handle-attached" onclick="regroupSession('${d.sessionKey}', event)" title="Group this session">⇕ group</div>`;
+                } else if (hasGroupableMatch && !prevIsGroupable && !nextIsGroupable) {
+                    entriesHtml += `<div class="group-handle-attached" onclick="regroupSession('${d.sessionKey}', event)" title="Group this session">⇕ group</div>`;
+                }
             }
         }
     }
