@@ -1293,6 +1293,9 @@ function generateMockData() {
     lootHistoryData = sessions;
     usingMockData = true;
 
+    // Reset group state for mock data so auto-grouping works fresh
+    saveGroupState({ groups: {}, seen: {}, version: 2 });
+
     // Run grouping on mock data
     const validSessions = lootHistoryData.filter(s => {
         if (!s.actionHrid?.includes('enhance')) return false;
@@ -1302,7 +1305,6 @@ function generateMockData() {
         if (hours < 0.02 && !ep.isSuccessful) return false;
         return true;
     });
-    migrateGroupState(validSessions.map(s => s.startTime));
     recomputeGroups(validSessions);
 
     console.log('[CowProfit] Mock data generated:', sessions.length, 'sessions');
@@ -1396,10 +1398,10 @@ function renderLootHistoryPanel() {
 
     renderItems.sort((a, b) => b.sortDate - a.sortDate);
 
-    // Build item→sessions map for handle visibility
+    // Build item→sessions map for handle visibility (from filteredItems, not renderItems)
     const itemSessionMap = {}; // itemName → [{key, ri, isSuccess, groupId}]
-    for (let ri = 0; ri < renderItems.length; ri++) {
-        const item = renderItems[ri];
+    for (let ri = 0; ri < filteredItems.length; ri++) {
+        const item = filteredItems[ri];
         let keys;
         if (item.type === 'group') {
             keys = [item.memberKeys[0], item.memberKeys[item.memberKeys.length - 1]]; // bottom edge, top edge
@@ -1422,6 +1424,17 @@ function renderLootHistoryPanel() {
     // Sort each item's array by time
     for (const arr of Object.values(itemSessionMap)) {
         arr.sort((a, b) => new Date(a.key) - new Date(b.key));
+    }
+
+    // Helper: check if a filteredItems entry contains a given session key
+    function filteredItemContainsKey(fi, key) {
+        if (fi.type === 'group') return fi.memberKeys.includes(key);
+        return fi.sessionKey === key;
+    }
+
+    // Helper: determine handle placement based on adjacency in filteredItems
+    function getHandlePlacement(ri, neighborRi) {
+        return Math.abs(ri - neighborRi) === 1 ? 'floating' : 'on-card';
     }
 
     // Handle visibility helper: find nearest same-item neighbor
@@ -1548,10 +1561,34 @@ function renderLootHistoryPanel() {
         }
     }
 
+    // Helper: get the connectable edge key and item name for a filteredItem's top/bottom
+    function getEdgeInfo(fi, edge) {
+        if (fi.type === 'group') {
+            const key = edge === 'top' ? fi.memberKeys[fi.memberKeys.length - 1] : fi.memberKeys[0];
+            const d = displayData[key];
+            return { key, itemName: d?.enhanceProfit?.itemName || 'Unknown' };
+        } else {
+            const d = displayData[fi.sessionKey];
+            return { key: fi.sessionKey, itemName: d?.enhanceProfit?.itemName || 'Unknown' };
+        }
+    }
+
     // Render items
     let entriesHtml = '';
     for (let ri = 0; ri < filteredItems.length; ri++) {
         const item = filteredItems[ri];
+
+        // Compute floating handle between this item and previous item (any type combo)
+        let floatingHandle = '';
+        if (allFiltersOn && ri > 0) {
+            const prevItem = filteredItems[ri - 1];
+            const curTop = getEdgeInfo(item, 'top');
+            const prevBottom = getEdgeInfo(prevItem, 'bottom');
+            if (curTop.itemName === prevBottom.itemName && canConnect(curTop.key, prevBottom.key)) {
+                floatingHandle = renderHandle(curTop.key, prevBottom.key, 'floating', 'up');
+            }
+        }
+
         if (item.type === 'group') {
             const topData = displayData[item.topKey];
             const subDatas = item.subKeys.map(k => displayData[k]);
@@ -1561,17 +1598,21 @@ function renderLootHistoryPanel() {
             for (const sd of subDatas) groupProfit += sd.profit;
             const groupProfitClass = groupProfit > 0 ? 'positive' : (groupProfit < 0 ? 'negative' : 'neutral');
 
+            // Floating handle goes before the group div
+            entriesHtml += floatingHandle;
+
             let groupHtml = '<div class="session-group">';
 
-            // Top edge: outward group handle (only when all filters on)
+            // Top edge: outward group handle (only non-adjacent / on-card)
             if (allFiltersOn) {
                 const topItemName = topData.enhanceProfit?.itemName;
                 const neighbor = topItemName ? findNeighbors(item.topKey, topItemName, 'up') : null;
                 if (neighbor && canConnect(item.topKey, neighbor.key)) {
-                    const placement = Math.abs(ri - neighbor.ri) === 1 ? 'floating' : 'on-card';
+                    const placement = getHandlePlacement(ri, neighbor.ri);
                     if (placement === 'on-card') {
                         groupHtml += renderHandle(item.topKey, neighbor.key, 'on-card', 'up');
                     }
+                    // floating case handled above
                 }
             }
 
@@ -1587,24 +1628,24 @@ function renderLootHistoryPanel() {
             for (let i = 0; i < subDatas.length; i++) {
                 groupHtml += `<div class="group-card-wrapper">`;
                 groupHtml += renderSessionCard(subDatas[i], { isSubCard: true, isGrouped: true });
-                // Bottom card ungroup handle (only on last sub-card, which is the bottom edge)
                 if (allFiltersOn && i === subDatas.length - 1) {
                     groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${subDatas[i].sessionKey}', event)" title="Detach bottom">⇕</div>`;
                 }
                 groupHtml += `</div>`;
             }
 
-            // Bottom edge: outward group handle
+            // Bottom edge: outward group handle (only non-adjacent / on-card)
             if (allFiltersOn) {
-                const bottomKey = item.memberKeys[0]; // oldest
+                const bottomKey = item.memberKeys[0];
                 const bottomData = displayData[bottomKey];
                 const bottomItemName = bottomData?.enhanceProfit?.itemName;
                 const neighbor = bottomItemName ? findNeighbors(bottomKey, bottomItemName, 'down') : null;
                 if (neighbor && canConnect(bottomKey, neighbor.key)) {
-                    const placement = Math.abs(ri - neighbor.ri) === 1 ? 'floating' : 'on-card';
+                    const placement = getHandlePlacement(ri, neighbor.ri);
                     if (placement === 'on-card') {
                         groupHtml += renderHandle(bottomKey, neighbor.key, 'on-card', 'down');
                     }
+                    // floating case handled by next item's iteration
                 }
             }
 
@@ -1621,36 +1662,25 @@ function renderLootHistoryPanel() {
             const d = displayData[item.sessionKey];
             const myItem = d.enhanceProfit?.itemName || 'Unknown';
 
-            // Check for handles in both directions (only when all filters on)
+            // Check for on-card handles in both directions (only when all filters on)
             let handleAbove = '';
             let handleBelow = '';
             if (allFiltersOn) {
                 const upNeighbor = findNeighbors(d.sessionKey, myItem, 'up');
                 if (upNeighbor && canConnect(d.sessionKey, upNeighbor.key)) {
-                    const placement = Math.abs(ri - upNeighbor.ri) === 1 ? 'floating' : 'on-card';
+                    const placement = getHandlePlacement(ri, upNeighbor.ri);
                     if (placement === 'on-card') {
                         handleAbove = renderHandle(d.sessionKey, upNeighbor.key, 'on-card', 'up');
                     }
-                    // Floating handles rendered between cards (below previous item)
+                    // floating case handled above
                 }
                 const downNeighbor = findNeighbors(d.sessionKey, myItem, 'down');
                 if (downNeighbor && canConnect(d.sessionKey, downNeighbor.key)) {
-                    const placement = Math.abs(ri - downNeighbor.ri) === 1 ? 'floating' : 'on-card';
+                    const placement = getHandlePlacement(ri, downNeighbor.ri);
                     if (placement === 'on-card') {
                         handleBelow = renderHandle(d.sessionKey, downNeighbor.key, 'on-card', 'down');
                     }
-                }
-            }
-
-            // Check if we should render a floating handle between this and previous item
-            let floatingHandle = '';
-            if (allFiltersOn && ri > 0) {
-                const prevItem = filteredItems[ri - 1];
-                const prevKey = prevItem.type === 'group' ? prevItem.memberKeys[0] : prevItem.sessionKey;
-                const prevData = displayData[prevKey];
-                const prevItemName = prevData?.enhanceProfit?.itemName;
-                if (prevItemName === myItem && canConnect(d.sessionKey, prevKey)) {
-                    floatingHandle = renderHandle(d.sessionKey, prevKey, 'floating', 'up');
+                    // floating case handled by next item's iteration
                 }
             }
 
