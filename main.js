@@ -27,6 +27,9 @@ let inventoryData = null;
 // Loot history (set via event from userscript)
 let lootHistoryData = [];
 
+// Mock data flag — cleared when real data arrives
+let usingMockData = false;
+
 // Inventory helpers (for userscript integration)
 function getInventoryCount(hrid) {
     const inv = inventoryData?.inventory || {};
@@ -84,6 +87,8 @@ window.addEventListener('cowprofit-inventory-loaded', function(e) {
 // Listen for loot history from userscript
 window.addEventListener('cowprofit-loot-loaded', function(e) {
     console.log('[CowProfit v2] Loot history received:', e.detail?.length, 'entries');
+    // Real data replaces mock data immediately
+    usingMockData = false;
     // Always use fresh data from userscript - it's the source of truth
     lootHistoryData = e.detail || [];
     // Sort by startTime descending (most recent first)
@@ -1043,8 +1048,273 @@ function renderSessionCard(d, options) {
     </div>`;
 }
 
+// ============================================
+// MOCK DATA GENERATION (demo mode)
+// ============================================
+
+function generateMockData() {
+    if (usingMockData) return; // already generated
+
+    // Pick 4 items that have enhancementCosts AND market prices at +0 and +10
+    const candidates = [];
+    for (const [hrid, item] of Object.entries(gameData.items || {})) {
+        if (!item.enhancementCosts) continue;
+        const mp = prices.market?.[hrid];
+        if (!mp) continue;
+        if (!mp['0']?.b || !mp['10']?.b) continue;
+        // Prefer items with +12 price too, and mid-range cost (not cheese tier)
+        const basePrice = mp['0'].b;
+        if (basePrice < 500000 || basePrice > 500000000) continue;
+        candidates.push({ hrid, item, basePrice, p10: mp['10'].b, p12: mp['12']?.b || 0 });
+    }
+
+    if (candidates.length < 4) {
+        console.warn('[CowProfit] Not enough items for mock data');
+        return;
+    }
+
+    // Sort by base price descending, pick diverse set
+    candidates.sort((a, b) => b.basePrice - a.basePrice);
+    // Pick items at different price tiers
+    const picks = [];
+    const tiers = [0, Math.floor(candidates.length * 0.2), Math.floor(candidates.length * 0.5), Math.floor(candidates.length * 0.8)];
+    for (const idx of tiers) {
+        if (candidates[idx] && !picks.find(p => p.hrid === candidates[idx].hrid)) {
+            picks.push(candidates[idx]);
+        }
+    }
+    // Ensure we have at least 4
+    while (picks.length < 4 && candidates.length > picks.length) {
+        const c = candidates.find(x => !picks.includes(x));
+        if (c) picks.push(c); else break;
+    }
+
+    console.log('[CowProfit] Generating mock data with items:', picks.map(p => p.item.name));
+
+    const now = new Date();
+    const sessions = [];
+
+    // Helper: generate realistic drop distribution for an enhance session
+    // successRates: ~50% at +0, decreasing ~5% per level
+    function generateDrops(itemHrid, startLevel, actionCount, targetReached) {
+        const drops = {};
+        let remaining = actionCount;
+        let currentLvl = startLevel;
+        const levelCounts = {};
+
+        // Simulate enhancement attempts
+        for (let i = 0; i < actionCount && remaining > 0; i++) {
+            const successRate = Math.max(0.05, 0.50 - currentLvl * 0.05);
+            const success = Math.random() < successRate;
+
+            if (success) {
+                currentLvl++;
+                levelCounts[currentLvl] = (levelCounts[currentLvl] || 0) + 1;
+                if (currentLvl >= targetReached) {
+                    // Add the final item
+                    drops[`${itemHrid}::${currentLvl}`] = 1;
+                    // Distribute remaining attempts among lower levels
+                    break;
+                }
+            } else {
+                // Failure: drop to 0 if below prot, or -1 if above prot
+                if (currentLvl >= 8) {
+                    levelCounts[currentLvl - 1] = (levelCounts[currentLvl - 1] || 0) + 1;
+                    currentLvl--;
+                } else {
+                    levelCounts[0] = (levelCounts[0] || 0) + 1;
+                    currentLvl = 0;
+                }
+            }
+        }
+
+        // Convert to drop format
+        for (const [lvl, count] of Object.entries(levelCounts)) {
+            const key = `${itemHrid}::${lvl}`;
+            drops[key] = (drops[key] || 0) + count;
+        }
+
+        return drops;
+    }
+
+    // Helper: create a session object
+    function makeSession(itemHrid, startLevel, actionCount, hoursAgo, durationHours, drops) {
+        const endTime = new Date(now.getTime() - hoursAgo * 3600000);
+        const startTime = new Date(endTime.getTime() - durationHours * 3600000);
+        return {
+            actionHrid: '/actions/enhancing/enhance',
+            actionCount,
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            primaryItemHash: `char::/item_locations/inventory::${itemHrid}::${startLevel}`,
+            drops
+        };
+    }
+
+    const item0 = picks[0]; // expensive item - will be the grouped set
+    const item1 = picks[1]; // success +10
+    const item2 = picks[2]; // success +12
+    const item3 = picks[3]; // in-progress
+
+    // === Session 1-3: Grouped set for item0 (2 failures + 1 success) ===
+    // Failure 1: 48h ago, went to +7 fell back
+    const fail1Drops = {};
+    fail1Drops[`${item0.hrid}::0`] = 45;
+    fail1Drops[`${item0.hrid}::1`] = 38;
+    fail1Drops[`${item0.hrid}::2`] = 30;
+    fail1Drops[`${item0.hrid}::3`] = 25;
+    fail1Drops[`${item0.hrid}::4`] = 20;
+    fail1Drops[`${item0.hrid}::5`] = 15;
+    fail1Drops[`${item0.hrid}::6`] = 10;
+    fail1Drops[`${item0.hrid}::7`] = 5;
+    sessions.push(makeSession(item0.hrid, 0, 188, 48, 3.5, fail1Drops));
+
+    // Failure 2: 36h ago, went to +5 fell back
+    const fail2Drops = {};
+    fail2Drops[`${item0.hrid}::0`] = 55;
+    fail2Drops[`${item0.hrid}::1`] = 42;
+    fail2Drops[`${item0.hrid}::2`] = 32;
+    fail2Drops[`${item0.hrid}::3`] = 22;
+    fail2Drops[`${item0.hrid}::4`] = 14;
+    fail2Drops[`${item0.hrid}::5`] = 6;
+    sessions.push(makeSession(item0.hrid, 0, 171, 36, 3.0, fail2Drops));
+
+    // Success: 24h ago, reached +10
+    const succ0Drops = {};
+    succ0Drops[`${item0.hrid}::0`] = 40;
+    succ0Drops[`${item0.hrid}::1`] = 35;
+    succ0Drops[`${item0.hrid}::2`] = 30;
+    succ0Drops[`${item0.hrid}::3`] = 24;
+    succ0Drops[`${item0.hrid}::4`] = 18;
+    succ0Drops[`${item0.hrid}::5`] = 14;
+    succ0Drops[`${item0.hrid}::6`] = 10;
+    succ0Drops[`${item0.hrid}::7`] = 8;
+    succ0Drops[`${item0.hrid}::8`] = 6;
+    succ0Drops[`${item0.hrid}::9`] = 4;
+    succ0Drops[`${item0.hrid}::10`] = 1;
+    sessions.push(makeSession(item0.hrid, 0, 190, 24, 3.5, succ0Drops));
+
+    // === Session 4: Success +10 for item1, 18h ago ===
+    const succ1Drops = {};
+    succ1Drops[`${item1.hrid}::0`] = 50;
+    succ1Drops[`${item1.hrid}::1`] = 42;
+    succ1Drops[`${item1.hrid}::2`] = 35;
+    succ1Drops[`${item1.hrid}::3`] = 28;
+    succ1Drops[`${item1.hrid}::4`] = 22;
+    succ1Drops[`${item1.hrid}::5`] = 16;
+    succ1Drops[`${item1.hrid}::6`] = 12;
+    succ1Drops[`${item1.hrid}::7`] = 9;
+    succ1Drops[`${item1.hrid}::8`] = 7;
+    succ1Drops[`${item1.hrid}::9`] = 4;
+    succ1Drops[`${item1.hrid}::10`] = 1;
+    sessions.push(makeSession(item1.hrid, 0, 226, 18, 4.0, succ1Drops));
+
+    // === Session 5: Success +12 for item2, 12h ago ===
+    const succ2Drops = {};
+    succ2Drops[`${item2.hrid}::0`] = 65;
+    succ2Drops[`${item2.hrid}::1`] = 55;
+    succ2Drops[`${item2.hrid}::2`] = 45;
+    succ2Drops[`${item2.hrid}::3`] = 38;
+    succ2Drops[`${item2.hrid}::4`] = 30;
+    succ2Drops[`${item2.hrid}::5`] = 24;
+    succ2Drops[`${item2.hrid}::6`] = 18;
+    succ2Drops[`${item2.hrid}::7`] = 14;
+    succ2Drops[`${item2.hrid}::8`] = 10;
+    succ2Drops[`${item2.hrid}::9`] = 7;
+    succ2Drops[`${item2.hrid}::10`] = 5;
+    succ2Drops[`${item2.hrid}::11`] = 3;
+    succ2Drops[`${item2.hrid}::12`] = 1;
+    sessions.push(makeSession(item2.hrid, 0, 315, 12, 5.5, succ2Drops));
+
+    // === Sessions 6-8: Standalone failures ===
+    // Failure for item1, 60h ago - went to +8, fell back
+    const fail3Drops = {};
+    fail3Drops[`${item1.hrid}::0`] = 48;
+    fail3Drops[`${item1.hrid}::1`] = 40;
+    fail3Drops[`${item1.hrid}::2`] = 32;
+    fail3Drops[`${item1.hrid}::3`] = 26;
+    fail3Drops[`${item1.hrid}::4`] = 20;
+    fail3Drops[`${item1.hrid}::5`] = 14;
+    fail3Drops[`${item1.hrid}::6`] = 10;
+    fail3Drops[`${item1.hrid}::7`] = 6;
+    fail3Drops[`${item1.hrid}::8`] = 4;
+    sessions.push(makeSession(item1.hrid, 0, 200, 60, 3.5, fail3Drops));
+
+    // Failure for item2, 72h ago - went to +6, fell back
+    const fail4Drops = {};
+    fail4Drops[`${item2.hrid}::0`] = 52;
+    fail4Drops[`${item2.hrid}::1`] = 44;
+    fail4Drops[`${item2.hrid}::2`] = 35;
+    fail4Drops[`${item2.hrid}::3`] = 28;
+    fail4Drops[`${item2.hrid}::4`] = 18;
+    fail4Drops[`${item2.hrid}::5`] = 12;
+    fail4Drops[`${item2.hrid}::6`] = 6;
+    sessions.push(makeSession(item2.hrid, 0, 195, 72, 3.5, fail4Drops));
+
+    // Failure for item3, 84h ago - went to +5, fell back
+    const fail5Drops = {};
+    fail5Drops[`${item3.hrid}::0`] = 58;
+    fail5Drops[`${item3.hrid}::1`] = 45;
+    fail5Drops[`${item3.hrid}::2`] = 35;
+    fail5Drops[`${item3.hrid}::3`] = 22;
+    fail5Drops[`${item3.hrid}::4`] = 14;
+    fail5Drops[`${item3.hrid}::5`] = 6;
+    sessions.push(makeSession(item3.hrid, 0, 180, 84, 3.0, fail5Drops));
+
+    // === Session 9: In-progress for item3, 2h ago, currently at +6 ===
+    const inProgDrops = {};
+    inProgDrops[`${item3.hrid}::0`] = 30;
+    inProgDrops[`${item3.hrid}::1`] = 25;
+    inProgDrops[`${item3.hrid}::2`] = 20;
+    inProgDrops[`${item3.hrid}::3`] = 16;
+    inProgDrops[`${item3.hrid}::4`] = 12;
+    inProgDrops[`${item3.hrid}::5`] = 8;
+    inProgDrops[`${item3.hrid}::6`] = 4;
+    sessions.push(makeSession(item3.hrid, 0, 115, 2, 2.0, inProgDrops));
+
+    // === Session 10: Another success for item3 from a while ago ===
+    const succ3Drops = {};
+    succ3Drops[`${item3.hrid}::0`] = 42;
+    succ3Drops[`${item3.hrid}::1`] = 36;
+    succ3Drops[`${item3.hrid}::2`] = 30;
+    succ3Drops[`${item3.hrid}::3`] = 24;
+    succ3Drops[`${item3.hrid}::4`] = 18;
+    succ3Drops[`${item3.hrid}::5`] = 14;
+    succ3Drops[`${item3.hrid}::6`] = 10;
+    succ3Drops[`${item3.hrid}::7`] = 8;
+    succ3Drops[`${item3.hrid}::8`] = 5;
+    succ3Drops[`${item3.hrid}::9`] = 3;
+    succ3Drops[`${item3.hrid}::10`] = 1;
+    sessions.push(makeSession(item3.hrid, 0, 191, 96, 3.5, succ3Drops));
+
+    // Sort by startTime descending
+    sessions.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+
+    lootHistoryData = sessions;
+    usingMockData = true;
+
+    // Run grouping on mock data
+    const validSessions = lootHistoryData.filter(s => {
+        if (!s.actionHrid?.includes('enhance')) return false;
+        const ep = calculateEnhanceSessionProfit(s);
+        if (!ep) return false;
+        const hours = (new Date(s.endTime) - new Date(s.startTime)) / 3600000;
+        if (hours < 0.02 && !ep.isSuccessful) return false;
+        return true;
+    });
+    migrateGroupState(validSessions.map(s => s.startTime));
+    recomputeGroups(validSessions);
+
+    console.log('[CowProfit] Mock data generated:', sessions.length, 'sessions');
+}
+
 function renderLootHistoryPanel() {
     const panel = document.getElementById('loot-history-panel');
+
+    // Generate mock data if no real data and panel is being shown
+    if (!lootHistoryData.length && !usingMockData) {
+        generateMockData();
+    }
 
     if (!lootHistoryData.length) {
         panel.innerHTML = `
@@ -1398,7 +1668,10 @@ function renderLootHistoryPanel() {
 
     const totalClass = totalProfit >= 0 ? 'positive' : 'negative';
 
+    const mockBanner = usingMockData ? `<div class="mock-data-banner">📋 Demo data — <a href="https://github.com/sdwr/cowprofit/blob/main/cowprofit-inventory.user.js" target="_blank">install userscript</a> to sync real sessions</div>` : '';
+
     panel.innerHTML = `
+        ${mockBanner}
         <div class="loot-title-row">
             <h5>📜 Enhance History <span class="session-count">(${validCount})</span> <span class="loot-avg ${avgClass}">${formatCoins(avgPerDay)}/day</span></h5>
             <span class="loot-total ${totalClass}">${formatCoins(totalProfit)}</span>
