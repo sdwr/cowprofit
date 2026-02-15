@@ -502,7 +502,11 @@ function autoGroupSessions(sessions) {
                 currentGroup = [];
             }
         }
-        // Remaining failures at end stay ungrouped (no success to close them)
+        // Remaining failures form a group too (in-progress, no success yet)
+        if (currentGroup.length > 1) {
+            const groupId = currentGroup[currentGroup.length - 1]; // most recent as ID
+            groups[groupId] = [...currentGroup];
+        }
     }
 
     // Save updated groups
