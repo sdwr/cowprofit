@@ -646,10 +646,22 @@ function computeSessionDisplay(session) {
     const teaCostPerUse = ultraEnhancingPrice + blessedPrice + wisdomPrice;
     const totalTeaCost = teaUses * teaCostPerUse;
 
+    // Recalculate prot cost for failures (finalLevel=0 instead of maxLevel)
+    let adjustedProtCost = enhanceProfit.totalProtCost;
+    let adjustedProtsUsed = enhanceProfit.protsUsed;
+    if (!isSuccess && enhanceProfit.levelDrops) {
+        const protResult = calculateProtectionFromDrops(
+            enhanceProfit.levelDrops, enhanceProfit.protLevel || 8,
+            enhanceProfit.currentLevel || 0, 0 // finalLevel=0 for failures
+        );
+        adjustedProtsUsed = protResult.protCount;
+        adjustedProtCost = adjustedProtsUsed * (enhanceProfit.protPrice || 0);
+    }
+
     // Calculate fee (2%) and profit
     const fee = Math.floor(salePrice * 0.02);
     const netSale = salePrice - fee;
-    const failureCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + totalTeaCost;
+    const failureCost = enhanceProfit.totalMatCost + adjustedProtCost + totalTeaCost;
 
     // For manual success toggles, baseItemCost may be 0 - calculate it if needed
     let baseItemCost = enhanceProfit.baseItemCost || 0;
@@ -657,7 +669,7 @@ function computeSessionDisplay(session) {
         const baseEstimate = estimatePrice(enhanceProfit.itemHrid, 0, enhanceProfit.lootTs, 'pessimistic');
         baseItemCost = baseEstimate.price;
     }
-    const successCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + baseItemCost + totalTeaCost;
+    const successCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + baseItemCost + totalTeaCost; // success uses original prot (finalLevel=max)
     const profit = isSuccess ? netSale - successCost : -failureCost;
     const profitPerDay = hours > 0.01 ? (profit / hours) * 24 : 0;
 
@@ -687,7 +699,9 @@ function computeSessionDisplay(session) {
         hours,
         duration,
         hasPriceErrors,
-        hashMismatch
+        hashMismatch,
+        adjustedProtsUsed,
+        adjustedProtCost
     };
 }
 
@@ -734,18 +748,21 @@ function renderCardBody(d, isSubCard) {
         </div>`;
     }
 
+    const displayProts = d.adjustedProtsUsed !== undefined ? d.adjustedProtsUsed : ep.protsUsed;
+    const displayProtCost = d.adjustedProtCost !== undefined ? d.adjustedProtCost : ep.totalProtCost;
+
     const detailsHtml = `<div class="loot-details">
         <span class="loot-duration">${d.duration}</span>
         <span class="loot-actions">${ep.actionCount} actions</span>
-        <span class="loot-prots">${ep.protsUsed} prots @${protAtLevel}</span>
+        <span class="loot-prots">${displayProts} prots @${protAtLevel}</span>
     </div>`;
 
     let matCostStr = ep.matPriceMissing ? '⚠️ no price' : (ep.totalMatCost > 0 ? formatCoins(ep.totalMatCost) : '-');
     let protStr = '-';
-    if (ep.protsUsed > 0) {
+    if (displayProts > 0) {
         protStr = ep.protPriceMissing
-            ? `⚠️ (${ep.protsUsed}×)`
-            : `${formatCoins(ep.totalProtCost)} (${ep.protsUsed} × ${formatCoins(ep.protPrice)})`;
+            ? `⚠️ (${displayProts}×)`
+            : `${formatCoins(displayProtCost)} (${displayProts} × ${formatCoins(ep.protPrice)})`;
     }
     const teaStr = d.totalTeaCost > 0 ? formatCoins(d.totalTeaCost) : '-';
 
@@ -1478,12 +1495,12 @@ function calculateEnhanceSessionProfit(session) {
  * At L >= prot: fail -> L-1 (uses protection)
  * At L < prot: fail -> 0 (no protection)
  */
-function calculateProtectionFromDrops(levelDrops, protLevel, startLevel = 0) {
+function calculateProtectionFromDrops(levelDrops, protLevel, startLevel = 0, finalLevelOverride) {
     const levels = Object.keys(levelDrops).map(Number).sort((a, b) => b - a);
     if (levels.length === 0) return { protCount: 0 };
     
     const maxLevel = Math.max(...levels);
-    const finalLevel = maxLevel; // item rests at highest level reached
+    const finalLevel = finalLevelOverride !== undefined ? finalLevelOverride : maxLevel;
     
     const successes = {};
     const failures = {};
