@@ -440,6 +440,108 @@ function toggleLootHistory(e) {
     if (lootHistoryOpen) renderLootHistoryPanel();
 }
 
+function computeSessionDisplay(session) {
+    const enhanceProfit = calculateEnhanceSessionProfit(session);
+    if (!enhanceProfit) return null;
+
+    const sessionKey = session.startTime;
+    const overrides = getSessionOverrides();
+    const override = overrides[sessionKey] || {};
+    const currentHash = getSessionHash(session);
+    const hashMismatch = override.dataHash && override.dataHash !== currentHash;
+
+    const duration = calculateDuration(session.startTime, session.endTime);
+    const durationMs = new Date(session.endTime) - new Date(session.startTime);
+    const hours = durationMs / 3600000;
+
+    // Skip very short sessions (< 1 min) with no results and no override
+    if (hours < 0.02 && !enhanceProfit.isSuccessful && override.forceSuccess !== true) return null;
+
+    // Determine success status (override takes precedence)
+    const isSuccess = override.forceSuccess !== undefined ? override.forceSuccess : enhanceProfit.isSuccessful;
+
+    // Determine the actual result level (for manual toggles, use highestTargetLevel)
+    const effectiveResultLevel = enhanceProfit.resultLevel || enhanceProfit.highestTargetLevel || 0;
+
+    // Determine sale price (custom > estimated > 0)
+    let salePrice = 0;
+    let estimatedSale = enhanceProfit.estimatedSale || 0;
+    let estimatedSource = enhanceProfit.estimatedSaleSource || null;
+    let estimatedSourceIcon = enhanceProfit.estimatedSaleSourceIcon || null;
+
+    // If manually toggled to success but no auto-calculated estimate, calculate it now
+    if (isSuccess && estimatedSale === 0 && effectiveResultLevel > 0) {
+        const saleEstimate = estimatePrice(enhanceProfit.itemHrid, effectiveResultLevel, enhanceProfit.lootTs, 'pessimistic');
+        estimatedSale = saleEstimate.price;
+        estimatedSource = saleEstimate.source;
+        estimatedSourceIcon = saleEstimate.sourceIcon;
+    }
+
+    if (isSuccess) {
+        if (override.customSale !== undefined && override.customSale !== null) {
+            salePrice = override.customSale;
+        } else {
+            salePrice = getValidPrice(estimatedSale);
+        }
+    }
+
+    // Tea cost calculation
+    const guzzlingBonus = calculator?.getGuzzlingBonus() || 1.1216;
+    const teaDurationSec = 300 / guzzlingBonus;
+    const sessionDurationSec = hours * 3600;
+    const teaUses = sessionDurationSec / teaDurationSec;
+
+    const ultraEnhancingPrice = prices.market?.['/items/ultra_enhancing_tea']?.['0']?.a || 0;
+    const blessedPrice = prices.market?.['/items/blessed_tea']?.['0']?.a || 0;
+    const wisdomPrice = prices.market?.['/items/wisdom_tea']?.['0']?.a || 0;
+    const teaCostPerUse = ultraEnhancingPrice + blessedPrice + wisdomPrice;
+    const totalTeaCost = teaUses * teaCostPerUse;
+
+    // Calculate fee (2%) and profit
+    const fee = Math.floor(salePrice * 0.02);
+    const netSale = salePrice - fee;
+    const failureCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + totalTeaCost;
+
+    // For manual success toggles, baseItemCost may be 0 - calculate it if needed
+    let baseItemCost = enhanceProfit.baseItemCost || 0;
+    if (isSuccess && baseItemCost === 0 && effectiveResultLevel > 0) {
+        const baseEstimate = estimatePrice(enhanceProfit.itemHrid, 0, enhanceProfit.lootTs, 'pessimistic');
+        baseItemCost = baseEstimate.price;
+    }
+    const successCost = enhanceProfit.totalMatCost + enhanceProfit.totalProtCost + baseItemCost + totalTeaCost;
+    const profit = isSuccess ? netSale - successCost : -failureCost;
+    const profitPerDay = hours > 0.01 ? (profit / hours) * 24 : 0;
+
+    // Check for price errors
+    const hasPriceErrors = enhanceProfit.matPriceMissing || enhanceProfit.protPriceMissing ||
+        (isSuccess && salePrice === 0);
+
+    // Determine sold status (only for successful sessions, default true)
+    const isSold = !isSuccess ? true : (override.isSold !== undefined ? override.isSold : true);
+
+    return {
+        session,
+        sessionKey,
+        enhanceProfit,
+        isSuccess,
+        isSold,
+        effectiveResultLevel,
+        salePrice,
+        estimatedSale,
+        estimatedSource,
+        estimatedSourceIcon,
+        totalTeaCost,
+        fee,
+        baseItemCost,
+        profit,
+        profitPerDay,
+        hours,
+        duration,
+        hasPriceErrors,
+        hashMismatch
+    };
+}
+
 function renderCardBody(d, isSubCard) {
     const ep = d.enhanceProfit;
     const profitClass = d.hasPriceErrors ? 'warning' : (d.profit > 0 ? 'positive' : (d.profit < 0 ? 'negative' : 'neutral'));
