@@ -528,7 +528,8 @@ function regroupSession(sessionKey) {
     renderLootHistoryPanel();
 }
 
-function toggleCardExpand(sessionKey) {
+function toggleCardExpand(sessionKey, event) {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
     if (expandedCardId === sessionKey) {
         expandedCardId = null;
     } else {
@@ -761,7 +762,7 @@ function renderSessionCard(d, options) {
     const expandIcon = isExpanded ? '▼' : '▶';
 
     return `<div class="session-card ${bgClass} ${isExpanded ? 'card-expanded' : 'card-collapsed'}" data-card-id="${d.sessionKey}">
-        <div class="card-title" onclick="toggleCardExpand('${d.sessionKey}')">
+        <div class="card-title" onclick="toggleCardExpand('${d.sessionKey}', event)">
             <span class="card-expand-icon">${expandIcon}</span>
             ${titleContent}
         </div>
