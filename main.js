@@ -796,13 +796,14 @@ function renderSessionCard(d, options) {
     const dateStr = formatSessionDate(d.session.startTime);
     const profitDisplay = d.hasPriceErrors ? '⚠️' : formatCoins(d.profit);
 
+    const moneyIcon = (d.isSuccess && !d.isSold) ? '📦' : '💰';
     let titleContent;
     if (isSubCard) {
-        titleContent = `<span class="result-badge fail">✗</span> <span class="card-title-text">${itemTitle}</span> <span class="card-title-sep">|</span> ${dateStr} <span class="card-title-sep">|</span> 💰 <span class="${profitClass}">${profitDisplay}</span>`;
+        titleContent = `<span class="result-badge fail">✗</span> <span class="card-title-text">${itemTitle}</span> <span class="card-title-sep">|</span> ${dateStr} <span class="card-title-sep">|</span> ${moneyIcon} <span class="${profitClass}">${profitDisplay}</span>`;
     } else if (d.isSuccess) {
-        titleContent = `<span class="result-badge">+${d.effectiveResultLevel || '?'}</span> <span class="card-title-text">${itemTitle}</span> <span class="card-title-sep">|</span> ${dateStr} <span class="card-title-sep">|</span> 💰 <span class="${profitClass}">${profitDisplay}</span>`;
+        titleContent = `<span class="result-badge">+${d.effectiveResultLevel || '?'}</span> <span class="card-title-text">${itemTitle}</span> <span class="card-title-sep">|</span> ${dateStr} <span class="card-title-sep">|</span> ${moneyIcon} <span class="${profitClass}">${profitDisplay}</span>`;
     } else {
-        titleContent = `<span class="result-badge fail">✗</span> <span class="card-title-text">${itemTitle}</span> <span class="card-title-sep">|</span> ${dateStr} <span class="card-title-sep">|</span> 💰 <span class="${profitClass}">${profitDisplay}</span>`;
+        titleContent = `<span class="result-badge fail">✗</span> <span class="card-title-text">${itemTitle}</span> <span class="card-title-sep">|</span> ${dateStr} <span class="card-title-sep">|</span> ${moneyIcon} <span class="${profitClass}">${profitDisplay}</span>`;
     }
 
     const expandIcon = isExpanded ? '▼' : '▶';
@@ -1046,7 +1047,7 @@ function renderLootHistoryPanel() {
                 <span class="filter-label">Sold:</span> <span class="${soldClass}">${formatCoins(soldProfit)}</span>
             </button>
             <button class="filter-toggle ${showUnsold ? 'active' : 'inactive'}" onclick="toggleFilter('unsold', event)">
-                <span class="filter-label">Unsold:</span> <span class="${unsoldClass}">${formatCoins(unsoldProfit)}</span>
+                <span class="filter-label">Unsold:</span> <span class="unsold-value">${formatCoins(unsoldProfit)}</span>
             </button>
             <button class="filter-toggle ${showFailed ? 'active' : 'inactive'}" onclick="toggleFilter('failed', event)">
                 <span class="filter-label">Failed:</span> <span class="${failedClass}">${formatCoins(failedProfit)}</span>
