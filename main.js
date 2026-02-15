@@ -836,10 +836,9 @@ function renderLootHistoryPanel() {
 
     renderItems.sort((a, b) => b.sortDate - a.sortDate);
 
-    // Default expanded card: first ungrouped card if nothing is expanded
-    if (expandedCardId === null || !displayData[expandedCardId]) {
-        const firstUngrouped = renderItems.find(i => i.type === 'standalone');
-        expandedCardId = firstUngrouped ? firstUngrouped.sessionKey : null;
+    // Clear expanded card if it no longer exists in data
+    if (expandedCardId !== null && !displayData[expandedCardId]) {
+        expandedCardId = null;
     }
 
     // Calculate totals
