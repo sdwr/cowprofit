@@ -1499,7 +1499,7 @@ function calculateProtectionFromDrops(levelDrops, protLevel, startLevel = 0, fin
     const levels = Object.keys(levelDrops).map(Number).sort((a, b) => b - a);
     if (levels.length === 0) return { protCount: 0 };
     
-    const maxLevel = Math.max(...levels);
+    const maxLevel = Math.max(...levels, startLevel || 0);
     const finalLevel = finalLevelOverride !== undefined ? finalLevelOverride : maxLevel;
     
     const successes = {};
