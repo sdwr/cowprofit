@@ -865,8 +865,8 @@ function renderLootHistoryPanel() {
         if (validKeys.length < 2) continue;
 
         for (const k of validKeys) groupedKeys.add(k);
-        const topKey = validKeys[validKeys.length - 1]; // success (last)
-        const subKeys = validKeys.slice(0, -1); // failures
+        const topKey = validKeys[validKeys.length - 1]; // success (last/most recent)
+        const subKeys = validKeys.slice(0, -1).reverse(); // failures, newest first
 
         renderItems.push({
             type: 'group', groupId, topKey, subKeys, memberKeys: validKeys,
