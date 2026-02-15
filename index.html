@@ -997,25 +997,49 @@
             text-overflow: ellipsis;
             max-width: 140px;
         }
-        .group-handle {
-            text-align: center;
-            padding: 2px 0;
-            cursor: pointer;
-            font-size: 0.55rem;
-            color: #555;
-            background: rgba(255,255,255,0.02);
-            border-top: 1px dashed rgba(255,255,255,0.08);
-            border-bottom: 1px dashed rgba(255,255,255,0.08);
-            line-height: 1;
+        .group-card-wrapper {
+            position: relative;
         }
-        .group-handle:hover {
+        .ungroup-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.6rem;
+            color: #555;
+            background: rgba(255,255,255,0.03);
+            border-left: 1px dashed rgba(255,255,255,0.1);
+            z-index: 1;
+        }
+        .ungroup-handle:hover {
+            background: rgba(238,179,87,0.2);
+            color: #eeb357;
+        }
+        .group-handle-standalone {
+            text-align: center;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #888;
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed rgba(255,255,255,0.15);
+            border-radius: 6px;
+            margin-bottom: 2px;
+        }
+        .group-handle-standalone:hover {
             background: rgba(238,179,87,0.15);
             color: #eeb357;
         }
-        .regroup-handle {
-            border-radius: 6px;
-            margin-bottom: 2px;
-            border: 1px dashed rgba(255,255,255,0.15);
+        .session-count {
+            font-weight: 400;
+            color: #888;
+            font-size: 0.8em;
         }
         .group-summary {
             padding: 6px 12px;

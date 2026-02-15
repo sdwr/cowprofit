@@ -511,7 +511,8 @@ function autoGroupSessions(sessions) {
     return groups;
 }
 
-function ungroupSession(sessionKey) {
+function ungroupSession(sessionKey, event) {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
     const state = getGroupState();
     if (!state.manualUngroups) state.manualUngroups = {};
     state.manualUngroups[sessionKey] = true;
@@ -519,7 +520,8 @@ function ungroupSession(sessionKey) {
     renderLootHistoryPanel();
 }
 
-function regroupSession(sessionKey) {
+function regroupSession(sessionKey, event) {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
     const state = getGroupState();
     if (state.manualUngroups) {
         delete state.manualUngroups[sessionKey];
@@ -857,9 +859,16 @@ function renderLootHistoryPanel() {
         }
     }
 
+    // Build item name lookup for groupability check
+    const itemNameByKey = {};
+    for (const [key, d] of Object.entries(displayData)) {
+        itemNameByKey[key] = d.enhanceProfit?.itemName || 'Unknown';
+    }
+
     // Render items
     let entriesHtml = '';
-    for (const item of renderItems) {
+    for (let ri = 0; ri < renderItems.length; ri++) {
+        const item = renderItems[ri];
         if (item.type === 'group') {
             const topData = displayData[item.topKey];
             const subDatas = item.subKeys.map(k => displayData[k]);
@@ -871,25 +880,25 @@ function renderLootHistoryPanel() {
 
             let groupHtml = '<div class="session-group">';
 
-            // Top card (success)
+            // Top card (success) with ungroup overlay
+            groupHtml += `<div class="group-card-wrapper">`;
             groupHtml += renderSessionCard(topData, { isSubCard: false, isGrouped: true });
-
-            // Handle between top and first sub-card
             if (subDatas.length === 1) {
-                // 2-card group: one handle, ungroup the sub-card
-                groupHtml += `<div class="group-handle" onclick="ungroupSession('${subDatas[0].sessionKey}')" title="Split group">⇕</div>`;
+                groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${subDatas[0].sessionKey}', event)" title="Ungroup">⇕</div>`;
             } else {
-                // 3+ cards: handle to ungroup top
-                groupHtml += `<div class="group-handle" onclick="ungroupSession('${item.topKey}')" title="Detach top card">⇕</div>`;
+                groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${item.topKey}', event)" title="Detach">⇕</div>`;
             }
+            groupHtml += `</div>`;
 
-            // Sub-cards (failures, chronological order)
+            // Sub-cards (failures)
             for (let i = 0; i < subDatas.length; i++) {
-                // Handle to ungroup bottom card (between 2nd-to-last and last sub)
-                if (subDatas.length >= 2 && i === subDatas.length - 1) {
-                    groupHtml += `<div class="group-handle" onclick="ungroupSession('${subDatas[i].sessionKey}')" title="Detach bottom card">⇕</div>`;
-                }
+                groupHtml += `<div class="group-card-wrapper">`;
                 groupHtml += renderSessionCard(subDatas[i], { isSubCard: true, isGrouped: true });
+                // Bottom card ungroup handle (3+ cards only)
+                if (subDatas.length >= 2 && i === subDatas.length - 1) {
+                    groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${subDatas[i].sessionKey}', event)" title="Detach">⇕</div>`;
+                }
+                groupHtml += `</div>`;
             }
 
             // Group summary
@@ -903,10 +912,19 @@ function renderLootHistoryPanel() {
         } else {
             // Standalone card
             const d = displayData[item.sessionKey];
+            const myItem = itemNameByKey[d.sessionKey];
 
-            // Show regroup handle if manually ungrouped
+            // Check if manually ungrouped
             if (manualUngroups[d.sessionKey]) {
-                entriesHtml += `<div class="group-handle regroup-handle" onclick="regroupSession('${d.sessionKey}')" title="Re-group this session">⇕ re-group</div>`;
+                entriesHtml += `<div class="group-handle-standalone" onclick="regroupSession('${d.sessionKey}', event)" title="Group this session">⇕ group</div>`;
+            } else {
+                // Check if adjacent standalone has same item (groupable)
+                const prevItem = ri > 0 && renderItems[ri - 1].type === 'standalone'
+                    ? itemNameByKey[renderItems[ri - 1].sessionKey] : null;
+                const nextItem = ri < renderItems.length - 1 && renderItems[ri + 1].type === 'standalone'
+                    ? itemNameByKey[renderItems[ri + 1].sessionKey] : null;
+                // Show handle attached to card if groupable neighbor exists but not adjacent
+                // (adjacent ones will auto-group, so this is for separated ones)
             }
             entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
         }
@@ -915,12 +933,11 @@ function renderLootHistoryPanel() {
     const avgPerDay = totalHours > 0 ? (totalProfit / totalHours) * 24 : 0;
     const soldClass = soldProfit >= 0 ? 'positive' : 'negative';
     const unsoldClass = unsoldProfit >= 0 ? 'positive' : 'negative';
-    const unsoldStr = unsoldCount > 0 ? ` <span class="loot-summary-value ${unsoldClass}">+ Unsold: ${formatCoins(unsoldProfit)}</span>` : '';
+    const unsoldStr = unsoldCount > 0 ? ` <span class="loot-summary-value ${unsoldClass}">Unsold: ${formatCoins(unsoldProfit)}</span>` : '';
 
     panel.innerHTML = `
-        <h5>📜 Enhance History</h5>
+        <h5>📜 Enhance History <span class="session-count">(${validCount})</span></h5>
         <div class="loot-summary">
-            <span>${validCount} sessions</span>
             <span class="loot-summary-value ${soldClass}">Sold: ${formatCoins(soldProfit)}</span>${unsoldStr}
             <span class="loot-summary-value">Avg: ${formatCoins(avgPerDay)}/day</span>
         </div>
