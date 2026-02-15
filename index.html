@@ -1055,8 +1055,34 @@
         }
         .session-count {
             font-weight: 400;
-            color: #888;
-            font-size: 0.8em;
+            color: #aaa;
+            font-size: 0.85em;
+        }
+        .loot-avg {
+            float: right;
+            font-size: 0.75em;
+            font-weight: 400;
+        }
+        .filter-toggle {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 4px;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-size: 0.72rem;
+            color: inherit;
+            font-family: inherit;
+            transition: opacity 0.15s;
+        }
+        .filter-toggle:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .filter-toggle.inactive {
+            opacity: 0.35;
+            text-decoration: line-through;
+        }
+        .filter-toggle .filter-label {
+            color: #999;
         }
         .group-summary {
             padding: 6px 12px;

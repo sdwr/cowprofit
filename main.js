@@ -442,6 +442,9 @@ function toggleLootHistory(e) {
 
 // --- Session Grouping State ---
 let expandedCardId = null;
+let showSold = true;
+let showUnsold = true;
+let showFailed = true;
 
 function getGroupState() {
     try {
@@ -535,6 +538,14 @@ function regroupSession(sessionKey, event) {
         delete state.manualUngroups[sessionKey];
     }
     saveGroupState(state);
+    renderLootHistoryPanel();
+}
+
+function toggleFilter(category, event) {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
+    if (category === 'sold') showSold = !showSold;
+    else if (category === 'unsold') showUnsold = !showUnsold;
+    else if (category === 'failed') showFailed = !showFailed;
     renderLootHistoryPanel();
 }
 
@@ -851,21 +862,53 @@ function renderLootHistoryPanel() {
         expandedCardId = null;
     }
 
-    // Calculate totals
-    let totalProfit = 0, soldProfit = 0, unsoldProfit = 0, unsoldCount = 0, totalHours = 0, validCount = 0;
+    // Calculate totals + categorize render items
+    let totalProfit = 0, soldProfit = 0, unsoldProfit = 0, failedProfit = 0;
+    let totalHours = 0, validCount = 0;
+
+    // Determine category for each render item (for filtering)
+    function getRenderItemCategory(item) {
+        if (item.type === 'group') {
+            const topData = displayData[item.topKey];
+            if (topData?.isSuccess) return topData.isSold ? 'sold' : 'unsold';
+            return 'failed'; // all-failure group
+        } else {
+            const d = displayData[item.sessionKey];
+            if (d?.isSuccess) return d.isSold ? 'sold' : 'unsold';
+            return 'failed';
+        }
+    }
+
     for (const d of Object.values(displayData)) {
         validCount++;
         if (!d.hasPriceErrors) {
             totalProfit += d.profit;
             totalHours += d.hours;
-            if (d.isSuccess && !d.isSold) {
-                unsoldProfit += d.profit;
-                unsoldCount++;
-            } else {
-                soldProfit += d.profit;
+        }
+    }
+
+    // Calculate per-category profit based on render items (group-aware)
+    for (const item of renderItems) {
+        const cat = getRenderItemCategory(item);
+        if (item.type === 'group') {
+            let gProfit = 0;
+            for (const k of item.memberKeys) {
+                const d = displayData[k];
+                if (d && !d.hasPriceErrors) gProfit += d.profit;
+            }
+            if (cat === 'sold') soldProfit += gProfit;
+            else if (cat === 'unsold') unsoldProfit += gProfit;
+            else failedProfit += gProfit;
+        } else {
+            const d = displayData[item.sessionKey];
+            if (d && !d.hasPriceErrors) {
+                if (cat === 'sold') soldProfit += d.profit;
+                else if (cat === 'unsold') unsoldProfit += d.profit;
+                else failedProfit += d.profit;
             }
         }
     }
+    // Ungrouped failures within success groups are counted in their group's category, not as "failed"
 
     // Build item name lookup for groupability check
     const itemNameByKey = {};
@@ -873,10 +916,19 @@ function renderLootHistoryPanel() {
         itemNameByKey[key] = d.enhanceProfit?.itemName || 'Unknown';
     }
 
+    // Filter render items by toggle state
+    const filteredItems = renderItems.filter(item => {
+        const cat = getRenderItemCategory(item);
+        if (cat === 'sold' && !showSold) return false;
+        if (cat === 'unsold' && !showUnsold) return false;
+        if (cat === 'failed' && !showFailed) return false;
+        return true;
+    });
+
     // Render items
     let entriesHtml = '';
-    for (let ri = 0; ri < renderItems.length; ri++) {
-        const item = renderItems[ri];
+    for (let ri = 0; ri < filteredItems.length; ri++) {
+        const item = filteredItems[ri];
         if (item.type === 'group') {
             const topData = displayData[item.topKey];
             const subDatas = item.subKeys.map(k => displayData[k]);
@@ -923,16 +975,16 @@ function renderLootHistoryPanel() {
             const myItem = itemNameByKey[d.sessionKey];
 
             // Find if there's a same-item standalone elsewhere (separated, not adjacent)
-            const hasGroupableMatch = renderItems.some((other, oi) =>
+            const hasGroupableMatch = filteredItems.some((other, oi) =>
                 oi !== ri && other.type === 'standalone' &&
                 itemNameByKey[other.sessionKey] === myItem
             );
 
             // Check for adjacent same-item standalone
-            const prevIsGroupable = ri > 0 && renderItems[ri - 1].type === 'standalone'
-                && itemNameByKey[renderItems[ri - 1].sessionKey] === myItem;
-            const nextIsGroupable = ri < renderItems.length - 1 && renderItems[ri + 1].type === 'standalone'
-                && itemNameByKey[renderItems[ri + 1].sessionKey] === myItem;
+            const prevIsGroupable = ri > 0 && filteredItems[ri - 1].type === 'standalone'
+                && itemNameByKey[filteredItems[ri - 1].sessionKey] === myItem;
+            const nextIsGroupable = ri < filteredItems.length - 1 && filteredItems[ri + 1].type === 'standalone'
+                && itemNameByKey[filteredItems[ri + 1].sessionKey] === myItem;
 
             // Render card with optional group handles attached (no margin)
             if (manualUngroups[d.sessionKey]) {
@@ -952,13 +1004,21 @@ function renderLootHistoryPanel() {
     const avgPerDay = totalHours > 0 ? (totalProfit / totalHours) * 24 : 0;
     const soldClass = soldProfit >= 0 ? 'positive' : 'negative';
     const unsoldClass = unsoldProfit >= 0 ? 'positive' : 'negative';
-    const unsoldStr = unsoldCount > 0 ? ` <span class="loot-summary-value ${unsoldClass}">Unsold: ${formatCoins(unsoldProfit)}</span>` : '';
+    const failedClass = failedProfit >= 0 ? 'positive' : 'negative';
+    const avgClass = avgPerDay >= 0 ? 'positive' : 'negative';
 
     panel.innerHTML = `
-        <h5>📜 Enhance History <span class="session-count">(${validCount})</span></h5>
+        <h5>📜 Enhance History <span class="session-count">(${validCount} sessions)</span> <span class="loot-avg ${avgClass}">${formatCoins(avgPerDay)}/day</span></h5>
         <div class="loot-summary">
-            <span class="loot-summary-value ${soldClass}">Sold: ${formatCoins(soldProfit)}</span>${unsoldStr}
-            <span class="loot-summary-value">Avg: ${formatCoins(avgPerDay)}/day</span>
+            <button class="filter-toggle ${showSold ? 'active' : 'inactive'}" onclick="toggleFilter('sold', event)">
+                <span class="filter-label">Sold:</span> <span class="${soldClass}">${formatCoins(soldProfit)}</span>
+            </button>
+            <button class="filter-toggle ${showUnsold ? 'active' : 'inactive'}" onclick="toggleFilter('unsold', event)">
+                <span class="filter-label">Unsold:</span> <span class="${unsoldClass}">${formatCoins(unsoldProfit)}</span>
+            </button>
+            <button class="filter-toggle ${showFailed ? 'active' : 'inactive'}" onclick="toggleFilter('failed', event)">
+                <span class="filter-label">Failed:</span> <span class="${failedClass}">${formatCoins(failedProfit)}</span>
+            </button>
         </div>
         <div class="loot-entries">
             ${entriesHtml}
