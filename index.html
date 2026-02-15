@@ -1053,23 +1053,39 @@
             background: rgba(238,179,87,0.2);
             color: #eeb357;
         }
+        .loot-title-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .loot-title-row h5 {
+            margin: 0;
+            flex-shrink: 0;
+        }
         .session-count {
             font-weight: 400;
             color: #aaa;
             font-size: 0.85em;
         }
         .loot-avg {
-            float: right;
-            font-size: 0.75em;
-            font-weight: 400;
+            font-size: 0.8em;
+            font-weight: 500;
+            color: #eeb357;
+            margin-left: 4px;
+        }
+        .loot-total {
+            font-size: 1.15rem;
+            font-weight: 600;
+            white-space: nowrap;
         }
         .filter-toggle {
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.12);
             border-radius: 4px;
-            padding: 2px 8px;
+            padding: 3px 10px;
             cursor: pointer;
-            font-size: 0.72rem;
+            font-size: 0.8rem;
             color: inherit;
             font-family: inherit;
             transition: opacity 0.15s;

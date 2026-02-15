@@ -1009,8 +1009,13 @@ function renderLootHistoryPanel() {
     const failedClass = failedProfit >= 0 ? 'positive' : 'negative';
     const avgClass = avgPerDay >= 0 ? 'positive' : 'negative';
 
+    const totalClass = totalProfit >= 0 ? 'positive' : 'negative';
+
     panel.innerHTML = `
-        <h5>📜 Enhance History <span class="session-count">(${validCount} sessions)</span> <span class="loot-avg ${avgClass}">${formatCoins(avgPerDay)}/day</span></h5>
+        <div class="loot-title-row">
+            <h5>📜 Enhance History <span class="session-count">(${validCount})</span> <span class="loot-avg ${avgClass}">${formatCoins(avgPerDay)}/day</span></h5>
+            <span class="loot-total ${totalClass}">${formatCoins(totalProfit)}</span>
+        </div>
         <div class="loot-summary">
             <button class="filter-toggle ${showSold ? 'active' : 'inactive'}" onclick="toggleFilter('sold', event)">
                 <span class="filter-label">Sold:</span> <span class="${soldClass}">${formatCoins(soldProfit)}</span>
