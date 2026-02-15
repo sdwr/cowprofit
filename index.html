@@ -1067,21 +1067,10 @@
         </div>
     </div>
     
-    <!-- v2: Client-side calculations, cache-busted -->
-    <script>
-    // Sequential script loader with cache-busting
-    (function() {
-        var v = Date.now();
-        var scripts = ['prices.js', 'game-data.js', 'enhance-calc.js', 'main.js'];
-        function loadNext(i) {
-            if (i >= scripts.length) return;
-            var s = document.createElement('script');
-            s.src = scripts[i] + '?v=' + v;
-            s.onload = function() { loadNext(i + 1); };
-            document.body.appendChild(s);
-        }
-        loadNext(0);
-    })();
-    </script>
+    <!-- v2: Client-side calculations -->
+    <script src="prices.js"></script>
+    <script src="game-data.js"></script>
+    <script src="enhance-calc.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
