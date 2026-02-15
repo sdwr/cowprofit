@@ -914,19 +914,30 @@ function renderLootHistoryPanel() {
             const d = displayData[item.sessionKey];
             const myItem = itemNameByKey[d.sessionKey];
 
-            // Check if manually ungrouped
+            // Find if there's a same-item standalone elsewhere (separated, not adjacent)
+            const hasGroupableMatch = renderItems.some((other, oi) =>
+                oi !== ri && other.type === 'standalone' &&
+                itemNameByKey[other.sessionKey] === myItem
+            );
+
+            // Check for adjacent same-item standalone
+            const prevIsGroupable = ri > 0 && renderItems[ri - 1].type === 'standalone'
+                && itemNameByKey[renderItems[ri - 1].sessionKey] === myItem;
+            const nextIsGroupable = ri < renderItems.length - 1 && renderItems[ri + 1].type === 'standalone'
+                && itemNameByKey[renderItems[ri + 1].sessionKey] === myItem;
+
+            // Render card with optional group handles attached (no margin)
             if (manualUngroups[d.sessionKey]) {
-                entriesHtml += `<div class="group-handle-standalone" onclick="regroupSession('${d.sessionKey}', event)" title="Group this session">⇕ group</div>`;
+                // Manually ungrouped — show regroup handle below card
+                entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
+                entriesHtml += `<div class="group-handle-attached" onclick="regroupSession('${d.sessionKey}', event)" title="Group this session">⇕ group</div>`;
+            } else if (hasGroupableMatch && !prevIsGroupable && !nextIsGroupable) {
+                // Separated groupable — show handle on bottom (toward potential match)
+                entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
+                entriesHtml += `<div class="group-handle-attached" onclick="regroupSession('${d.sessionKey}', event)" title="Group this session">⇕ group</div>`;
             } else {
-                // Check if adjacent standalone has same item (groupable)
-                const prevItem = ri > 0 && renderItems[ri - 1].type === 'standalone'
-                    ? itemNameByKey[renderItems[ri - 1].sessionKey] : null;
-                const nextItem = ri < renderItems.length - 1 && renderItems[ri + 1].type === 'standalone'
-                    ? itemNameByKey[renderItems[ri + 1].sessionKey] : null;
-                // Show handle attached to card if groupable neighbor exists but not adjacent
-                // (adjacent ones will auto-group, so this is for separated ones)
+                entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
             }
-            entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
         }
     }
 

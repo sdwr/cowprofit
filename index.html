@@ -1005,19 +1005,19 @@
             right: 0;
             top: 0;
             bottom: 0;
-            width: 18px;
+            width: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 0.6rem;
-            color: #555;
-            background: rgba(255,255,255,0.03);
-            border-left: 1px dashed rgba(255,255,255,0.1);
+            font-size: 0.7rem;
+            color: #999;
+            background: rgba(238,179,87,0.08);
+            border-left: 1px solid rgba(238,179,87,0.25);
             z-index: 1;
         }
         .ungroup-handle:hover {
-            background: rgba(238,179,87,0.2);
+            background: rgba(238,179,87,0.25);
             color: #eeb357;
         }
         .group-handle-standalone {
@@ -1034,6 +1034,23 @@
         }
         .group-handle-standalone:hover {
             background: rgba(238,179,87,0.15);
+            color: #eeb357;
+        }
+        .group-handle-attached {
+            text-align: center;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: #777;
+            background: rgba(238,179,87,0.06);
+            border: 1px dashed rgba(238,179,87,0.2);
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            margin: 0 0 4px 0;
+        }
+        .group-handle-attached:hover {
+            background: rgba(238,179,87,0.2);
             color: #eeb357;
         }
         .session-count {
