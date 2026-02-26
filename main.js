@@ -2536,17 +2536,22 @@ function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
         return { price: primaryResult.entry.p, source: 'history', side: primarySide, fallback: false, sourceIcon: '📈', ts: primaryResult.entry.t };
     }
     
-    // Try fallback side (e.g. no ask history yet, fall back to bid)
+    // Primary side history empty — prefer current market over wrong-side history
+    // (e.g. no ask history yet, use current market ask instead of historical bid)
+    const currentMarket = getBuyPrice(hrid, level, mode);
+    if (currentMarket > 0) {
+        const side = (mode === 'optimistic') ? 'bid' : 'ask';
+        return { price: currentMarket, source: 'market', side, fallback: false, sourceIcon: '💰', ts: prices.ts || null };
+    }
+    
+    // No current market — fall back to wrong-side history as last resort
     const fallbackList = getHistoryList(key, fallbackSide);
     const fallbackResult = findHistoricalPrice(fallbackList, lootTs);
     if (fallbackResult) {
         return { price: fallbackResult.entry.p, source: 'history', side: fallbackSide, fallback: true, sourceIcon: '📈', ts: fallbackResult.entry.t };
     }
     
-    // Fall back to current market price
-    const side = (mode === 'optimistic') ? 'bid' : 'ask';
-    const mp = getBuyPrice(hrid, level, mode);
-    return { price: mp, source: 'market', side, fallback: false, sourceIcon: '💰', ts: prices.ts || null };
+    return { price: 0, source: 'unknown', side: null, fallback: true, sourceIcon: '❓', ts: null };
 }
 
 // Backward-compatible wrapper returning just the price number
