@@ -1176,10 +1176,7 @@
         }
         .price-tip:hover::after {
             content: attr(data-tip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
+            position: fixed;
             background: #1a1a2e;
             border: 1px solid rgba(238,179,87,0.6);
             color: #e8e8e8;
@@ -1187,9 +1184,12 @@
             border-radius: 6px;
             font-size: 0.65rem;
             white-space: pre;
-            z-index: 9999;
+            z-index: 99999;
             pointer-events: none;
             box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            /* positioned via JS mousemove, fallback to top-left */
+            left: var(--tip-x, 0px);
+            top: var(--tip-y, 0px);
         }
 
         @media (max-width: 1000px) {

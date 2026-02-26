@@ -3,6 +3,12 @@
  * Uses prices.js + game-data.js + enhance-calc.js
  */
 
+// Track mouse for fixed-position tooltips
+document.addEventListener('mousemove', (e) => {
+    document.documentElement.style.setProperty('--tip-x', e.clientX + 'px');
+    document.documentElement.style.setProperty('--tip-y', (e.clientY - 30) + 'px');
+});
+
 // Data from loaded scripts
 const prices = window.PRICES || {};
 const gameData = window.GAME_DATA_STATIC || {};
@@ -376,8 +382,28 @@ function formatTimeAgo(ts) {
 }
 
 function updateTimes() {
-    document.getElementById('time-check').textContent = formatTimeAgo(prices.generated);
-    document.getElementById('time-market').textContent = formatTimeAgo(prices.ts);
+    const checkEl = document.getElementById('time-check');
+    const marketEl = document.getElementById('time-market');
+    checkEl.textContent = formatTimeAgo(prices.generated);
+    marketEl.textContent = formatTimeAgo(prices.ts);
+    
+    // Stale data warning — yellow highlight if last check > 1 hour ago
+    const now = Math.floor(Date.now() / 1000);
+    const age = now - (prices.generated || 0);
+    const staleEl = document.getElementById('stale-warning');
+    if (age > 3600) {
+        if (!staleEl) {
+            const warn = document.createElement('div');
+            warn.id = 'stale-warning';
+            warn.style.cssText = 'background:#553300;color:#ffcc00;padding:6px 12px;text-align:center;font-size:0.8rem;border-bottom:1px solid #ffcc00;';
+            warn.innerHTML = '⚠️ Price data is over 1 hour old — <kbd>Ctrl+F5</kbd> to refresh';
+            document.querySelector('.subtitle-row')?.parentNode?.insertBefore(warn, document.querySelector('.subtitle-row'));
+        }
+        checkEl.style.color = '#ffcc00';
+    } else {
+        if (staleEl) staleEl.remove();
+        checkEl.style.color = '';
+    }
 }
 
 function formatAge(seconds) {
@@ -979,8 +1005,10 @@ function renderCardBody(d, isSubCard) {
     const pb = ep.priceBundle;
     const matItems = pb ? Object.entries(pb.mats).map(([h, d]) => ({...d, name: h.split('/').pop().replace(/_/g,' ')})) : [];
     const matTip = _multiPriceTip(matItems);
-    const protTip = pb ? _priceTip(pb.prot) : '';
-    const baseTip = pb ? _priceTip(pb.baseItem) : '';
+    const protName = pb?.prot?.hrid ? (gameData.items[pb.prot.hrid]?.name || pb.prot.hrid.split('/').pop().replace(/_/g,' ')) : 'prot';
+    const protTip = pb ? _priceTip({...pb.prot, name: protName}) : '';
+    const baseName = ep.itemName || 'base';
+    const baseTip = pb ? _priceTip({...pb.baseItem, name: baseName}) : '';
     
     let matCostStr = ep.matPriceMissing ? '⚠️ no price' : (ep.totalMatCost > 0 ? formatCoins(ep.totalMatCost) : '-');
     let protStr = '-';
@@ -2346,6 +2374,8 @@ function _shortName(name, maxLen) {
 function _priceTip(detail, opts) {
     if (!detail || !detail.source) return '';
     opts = opts || {};
+    if (opts.showName === undefined) opts.showName = true;
+    if (opts.showPrice === undefined) opts.showPrice = true;
     const nameLen = opts.nameLen || 12;
     
     const src = detail.source;
