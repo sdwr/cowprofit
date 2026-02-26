@@ -3,11 +3,33 @@
  * Uses prices.js + game-data.js + enhance-calc.js
  */
 
-// Track mouse for fixed-position tooltips
-document.addEventListener('mousemove', (e) => {
-    document.documentElement.style.setProperty('--tip-x', e.clientX + 'px');
-    document.documentElement.style.setProperty('--tip-y', (e.clientY - 30) + 'px');
-});
+// JS tooltip for price-tip elements (avoids overflow clipping)
+(function() {
+    const tip = document.getElementById('price-tooltip');
+    if (!tip) return;
+    let active = null;
+    
+    document.addEventListener('mouseover', (e) => {
+        const el = e.target.closest('.price-tip');
+        if (!el || !el.dataset.tip) { if (active) { tip.style.display = 'none'; active = null; } return; }
+        active = el;
+        tip.textContent = el.dataset.tip;
+        tip.style.display = 'block';
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!active) return;
+        const x = Math.min(e.clientX + 12, window.innerWidth - tip.offsetWidth - 8);
+        const y = Math.max(e.clientY - tip.offsetHeight - 8, 4);
+        tip.style.left = x + 'px';
+        tip.style.top = y + 'px';
+    });
+    
+    document.addEventListener('mouseout', (e) => {
+        const el = e.target.closest('.price-tip');
+        if (el === active) { tip.style.display = 'none'; active = null; }
+    });
+})();
 
 // Data from loaded scripts
 const prices = window.PRICES || {};
@@ -387,22 +409,29 @@ function updateTimes() {
     checkEl.textContent = formatTimeAgo(prices.generated);
     marketEl.textContent = formatTimeAgo(prices.ts);
     
-    // Stale data warning — yellow highlight if last check > 1 hour ago
+    // Stale data warning — yellow highlight on "Last check" if > 1 hour ago
     const now = Math.floor(Date.now() / 1000);
     const age = now - (prices.generated || 0);
-    const staleEl = document.getElementById('stale-warning');
     if (age > 3600) {
-        if (!staleEl) {
-            const warn = document.createElement('div');
-            warn.id = 'stale-warning';
-            warn.style.cssText = 'background:#553300;color:#ffcc00;padding:6px 12px;text-align:center;font-size:0.8rem;border-bottom:1px solid #ffcc00;';
-            warn.innerHTML = '⚠️ Price data is over 1 hour old — <kbd>Ctrl+F5</kbd> to refresh';
-            document.querySelector('.subtitle-row')?.parentNode?.insertBefore(warn, document.querySelector('.subtitle-row'));
+        checkEl.style.cssText = 'color:#ffcc00;background:#553300;padding:1px 6px;border-radius:4px;';
+        checkEl.title = 'Ctrl+F5 to refresh price data';
+        // Add inline hint if not already there
+        if (!checkEl.dataset.stale) {
+            checkEl.dataset.stale = '1';
+            const hint = document.createElement('span');
+            hint.className = 'stale-hint';
+            hint.style.cssText = 'color:#ffcc00;font-size:0.65rem;margin-left:4px;';
+            hint.textContent = '(Ctrl+F5)';
+            checkEl.parentNode.insertBefore(hint, checkEl.nextSibling);
         }
-        checkEl.style.color = '#ffcc00';
     } else {
-        if (staleEl) staleEl.remove();
-        checkEl.style.color = '';
+        checkEl.style.cssText = '';
+        checkEl.title = '';
+        if (checkEl.dataset.stale) {
+            delete checkEl.dataset.stale;
+            const hint = checkEl.parentNode.querySelector('.stale-hint');
+            if (hint) hint.remove();
+        }
     }
 }
 
@@ -1005,8 +1034,9 @@ function renderCardBody(d, isSubCard) {
     const pb = ep.priceBundle;
     const matItems = pb ? Object.entries(pb.mats).map(([h, d]) => ({...d, name: h.split('/').pop().replace(/_/g,' ')})) : [];
     const matTip = _multiPriceTip(matItems);
-    const protName = pb?.prot?.hrid ? (gameData.items[pb.prot.hrid]?.name || pb.prot.hrid.split('/').pop().replace(/_/g,' ')) : 'prot';
-    const protTip = pb ? _priceTip({...pb.prot, name: protName}) : '';
+    const protHrid = pb?.prot?.hrid;
+    const protName = protHrid ? (gameData.items[protHrid]?.name || protHrid.split('/').pop().replace(/_/g,' ')) : 'prot';
+    const protTip = pb && pb.prot.source ? _priceTip({...pb.prot, name: protName}) : (protName ? protName : '');
     const baseName = ep.itemName || 'base';
     const baseTip = pb ? _priceTip({...pb.baseItem, name: baseName}) : '';
     

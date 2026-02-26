@@ -1174,8 +1174,7 @@
             cursor: help;
             border-bottom: 1px dotted rgba(255,255,255,0.3);
         }
-        .price-tip:hover::after {
-            content: attr(data-tip);
+        #price-tooltip {
             position: fixed;
             background: #1a1a2e;
             border: 1px solid rgba(238,179,87,0.6);
@@ -1187,9 +1186,8 @@
             z-index: 99999;
             pointer-events: none;
             box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-            /* positioned via JS mousemove, fallback to top-left */
-            left: var(--tip-x, 0px);
-            top: var(--tip-y, 0px);
+            display: none;
+            max-width: 350px;
         }
 
         @media (max-width: 1000px) {
@@ -1316,5 +1314,6 @@
     <script src="game-data.js"></script>
     <script src="enhance-calc.js"></script>
     <script src="main.js"></script>
+<div id="price-tooltip"></div>
 </body>
 </html>
