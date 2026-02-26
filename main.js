@@ -2993,7 +2993,7 @@ function renderShoppingList(r, materials, mode) {
                 <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
                 <span class="shop-qty-text"><span class="shop-need-num">${formatWithCommas(need)}</span> <span class="shop-total-num">/ ${formatWithCommas(total)}</span></span>
             </span>
-            <span class="shop-price price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
+            <span class="shop-price price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
         </div>`;
     }
     
@@ -3145,7 +3145,7 @@ function renderDetailRow(r) {
                 <span class="protect-badge">Prot @ ${r.protectAt}</span>
                 <span class="protect-count">${r.protectCount.toFixed(1)}</span>
                 <span class="protect-name">${protName}</span>
-                <span class="protect-price price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
+                <span class="protect-price price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
             </div>
             <div class="enhance-mats">
                 <div class="enhance-mats-label">Cost per click:</div>
@@ -3181,7 +3181,7 @@ function renderDetailRow(r) {
             </div>
             <div class="detail-line">
                 <span class="label">Protection (${r.protectCount.toFixed(1)} × ${formatCoins(r.protectPrice)})</span>
-                <span class="value price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${formatCoins(totalProtCost)}</span>
+                <span class="value price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(totalProtCost)}</span>
             </div>
             <div class="mat-row total-row">
                 <span class="mat-name">Total Cost</span>
