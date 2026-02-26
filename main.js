@@ -977,7 +977,8 @@ function renderCardBody(d, isSubCard) {
 
     // Build tooltips from PriceBundle
     const pb = ep.priceBundle;
-    const matTip = pb ? Object.entries(pb.mats).filter(([,d]) => d.source !== 'fixed').map(([h, d]) => `${h.split('/').pop().replace(/_/g,' ')}: ${_priceTip(d)}`).join('&#10;') : '';
+    const matItems = pb ? Object.entries(pb.mats).map(([h, d]) => ({...d, name: h.split('/').pop().replace(/_/g,' ')})) : [];
+    const matTip = _multiPriceTip(matItems);
     const protTip = pb ? _priceTip(pb.prot) : '';
     const baseTip = pb ? _priceTip(pb.baseItem) : '';
     
@@ -993,7 +994,7 @@ function renderCardBody(d, isSubCard) {
     let costsHtml = `<div class="loot-costs">
         <span class="price-tip" data-tip="${matTip}">Mats: ${matCostStr}</span>
         <span class="price-tip" data-tip="${protTip}">Prot: ${protStr}</span>
-        <span class="price-tip" data-tip="${pb ? `ultra: ${_priceTip(pb.teas.ultra)}&#10;blessed: ${_priceTip(pb.teas.blessed)}&#10;wisdom: ${_priceTip(pb.teas.wisdom)}` : ''}">Teas: ${teaStr}</span>
+        <span class="price-tip" data-tip="${pb ? _multiPriceTip([{...pb.teas.ultra, name:'ultra'}, {...pb.teas.blessed, name:'blessed'}, {...pb.teas.wisdom, name:'wisdom'}]) : ''}">Teas: ${teaStr}</span>
         ${d.isSuccess && !isSubCard ? `<span class="price-tip" data-tip="${baseTip}">Base: ${ep.baseItemSourceIcon || ''} ${formatCoins(d.baseItemCost)}</span>` : ''}
     </div>`;
 
@@ -1004,8 +1005,8 @@ function renderCardBody(d, isSubCard) {
             ? `${estIcon} ${formatCoins(d.estimatedSale)}` : '⚠️ no price';
         const saleFormatted = d.salePrice > 0 ? formatCoins(d.salePrice) : '0';
         const feeStr = d.fee > 0 ? `-${formatCoins(d.fee)}` : '-';
-        const estTip = pb ? _priceTip(pb.estimatedSale) : '';
-        const revTip = pb ? _priceTip(pb.sellRevenue) : '';
+        const estTip = pb ? _priceTip(pb.estimatedSale, {showPrice: true}) : '';
+        const revTip = pb ? _priceTip(pb.sellRevenue, {showPrice: true}) : '';
 
         saleHtml = `<div class="loot-sale">
             <span class="price-tip" data-tip="${estTip}">Est: ${estSaleStr}</span>
@@ -2312,43 +2313,94 @@ function getBuyPrice(hrid, level, mode) {
 // Returns { price, source, sourceIcon, ts } with full provenance tracking
 // No craft fallback (avoids circular recursion with estimatePrice)
 // Format a timestamp for tooltips (short date+time)
+// Compact timestamp: "2/14 10:05PM"
 function _fmtTs(ts) {
     if (!ts) return '';
-    return new Date(ts * 1000).toLocaleString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    const d = new Date(ts * 1000);
+    const mo = d.getMonth() + 1;
+    const day = d.getDate();
+    let h = d.getHours();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    const min = d.getMinutes().toString().padStart(2, '0');
+    return `${mo}/${day} ${h}:${min}${ampm}`;
+}
+
+// Truncate name to maxLen chars
+function _shortName(name, maxLen) {
+    if (!name || name.length <= maxLen) return name;
+    return name.slice(0, maxLen - 1) + '…';
 }
 
 /**
- * Format a price source for tooltip display.
- * Translates internal source strings to user-friendly labels:
- *   "market"                → "market @ <ts>"
- *   "history (newest)"      → "history @ <ts>"
- *   "history (-2.3h)"       → "history (-2.3h) @ <ts>"
- *   "history (newest) (bid)"→ "history (bid fallback) @ <ts>"
- *   "craft cost" / "craft"  → "craft @ <ts>"
- *   "enhance cost"          → "enhance cost @ <ts>"
+ * Format a single price source for tooltip.
+ * Examples:
+ *   ask @ 2/14 10:05PM           — market ask price
+ *   bid 📈 @ 2/14 10:05PM        — history bid
+ *   ask 📈 @ 2/14 10:05PM ⚠️     — history with fallback to wrong side
+ *   craft                         — crafted cost
+ * 
+ * @param {Object} detail - {source, side, fallback, ts, price, name}
+ * @param {Object} opts - {showName: bool, showPrice: bool, nameLen: number}
  */
-function _priceTip(detail) {
+function _priceTip(detail, opts) {
     if (!detail || !detail.source) return '';
-    let label = detail.source;
+    opts = opts || {};
+    const nameLen = opts.nameLen || 12;
     
-    // Clean up fallback annotations — "(bid)" or "(ask)" means we used the other side
-    if (label.includes('(bid)')) {
-        label = label.replace(/\s*\(bid\)/, '') + ' (bid fallback)';
-    } else if (label.includes('(ask)')) {
-        label = label.replace(/\s*\(ask\)/, '') + ' (ask fallback)';
+    const src = detail.source;
+    if (src === 'fixed') return '';
+    
+    let parts = [];
+    
+    // Name + price prefix
+    if (opts.showName && detail.name) {
+        parts.push(_shortName(detail.name, nameLen));
+    }
+    if (opts.showPrice && detail.price) {
+        parts.push(formatCoins(detail.price));
     }
     
-    // Simplify
-    if (label === 'market') label = 'market';
-    else if (label === 'craft cost') label = 'craft';
-    else if (label === 'fixed') return 'coins';
+    // Source label
+    if (src === 'market') {
+        const side = detail.side || 'ask';
+        parts.push(side);
+    } else if (src === 'history') {
+        const side = detail.side || 'bid';
+        parts.push(`${side} 📈`);
+    } else if (src === 'craft cost' || src === 'craft') {
+        parts.push('craft');
+    } else if (src === 'enhance cost') {
+        parts.push('enhance');
+    } else {
+        parts.push(src);
+    }
     
-    // Strip redundant "history" prefix from "(newest)"/"(oldest)" variants
-    label = label.replace('history (newest)', 'history');
-    label = label.replace('history (oldest)', 'history (oldest)');
-    
+    // Timestamp
     const ts = detail.ts || (typeof prices !== 'undefined' ? prices.ts : null);
-    return ts ? `${label} @ ${_fmtTs(ts)}` : label;
+    if (ts) {
+        parts.push('@ ' + _fmtTs(ts));
+    }
+    
+    // Fallback warning
+    if (detail.fallback) {
+        parts.push('⚠️');
+    }
+    
+    return parts.join(' ');
+}
+
+/**
+ * Format a multi-item tooltip (one line per item).
+ * @param {Array} items - [{name, price, source, side, fallback, ts}, ...]
+ * @param {Object} opts - passed to _priceTip per item
+ */
+function _multiPriceTip(items, opts) {
+    opts = { showName: true, showPrice: true, nameLen: 12, ...opts };
+    return items
+        .filter(d => d.source !== 'fixed')
+        .map(d => _priceTip(d, opts))
+        .join('&#10;');
 }
 
 /**
@@ -2415,8 +2467,9 @@ function findHistoricalPrice(histList, lootTs) {
  */
 function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
     if (!lootTs) {
+        const side = (mode === 'optimistic') ? 'bid' : 'ask';
         const p = getBuyPrice(hrid, level, mode);
-        return { price: p, source: 'market', sourceIcon: '💰', ts: prices.ts || null };
+        return { price: p, source: 'market', side, fallback: false, sourceIcon: '💰', ts: prices.ts || null };
     }
     
     const key = `${hrid}:${level}`;
@@ -2432,29 +2485,29 @@ function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
     
     if (primaryResult) {
         if (mode === 'midpoint') {
-            // For midpoint, try to average bid and ask
             const bidList = getHistoryList(key, 'bid');
             const bidResult = findHistoricalPrice(bidList, lootTs);
             const askList = getHistoryList(key, 'ask');
             const askResult = findHistoricalPrice(askList, lootTs);
             if (bidResult && askResult) {
                 const avg = Math.round((bidResult.entry.p + askResult.entry.p) / 2);
-                return { price: avg, source: primaryResult.label + ' (mid)', sourceIcon: '📈', ts: primaryResult.entry.t };
+                return { price: avg, source: 'history', side: 'mid', fallback: false, sourceIcon: '📈', ts: primaryResult.entry.t };
             }
         }
-        return { price: primaryResult.entry.p, source: primaryResult.label, sourceIcon: '📈', ts: primaryResult.entry.t };
+        return { price: primaryResult.entry.p, source: 'history', side: primarySide, fallback: false, sourceIcon: '📈', ts: primaryResult.entry.t };
     }
     
     // Try fallback side (e.g. no ask history yet, fall back to bid)
     const fallbackList = getHistoryList(key, fallbackSide);
     const fallbackResult = findHistoricalPrice(fallbackList, lootTs);
     if (fallbackResult) {
-        return { price: fallbackResult.entry.p, source: fallbackResult.label + ` (${fallbackSide})`, sourceIcon: '📈', ts: fallbackResult.entry.t };
+        return { price: fallbackResult.entry.p, source: 'history', side: fallbackSide, fallback: true, sourceIcon: '📈', ts: fallbackResult.entry.t };
     }
     
     // Fall back to current market price
+    const side = (mode === 'optimistic') ? 'bid' : 'ask';
     const mp = getBuyPrice(hrid, level, mode);
-    return { price: mp, source: 'market', sourceIcon: '💰', ts: prices.ts || null };
+    return { price: mp, source: 'market', side, fallback: false, sourceIcon: '💰', ts: prices.ts || null };
 }
 
 // Backward-compatible wrapper returning just the price number
@@ -2850,7 +2903,7 @@ function renderShoppingList(r, materials, mode) {
         totalOwned += owned;
         totalNeed += total;
         
-        const mTip = _priceTip(m);
+        const mTip = _priceTip(m, {showPrice: true});
         rows += `<div class="shop-row">
             <span class="shop-name">${m.name}</span>
             <span class="shop-qty">
@@ -2880,7 +2933,7 @@ function renderShoppingList(r, materials, mode) {
                 <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
                 <span class="shop-qty-text"><span class="shop-need-num">${formatWithCommas(need)}</span> <span class="shop-total-num">/ ${formatWithCommas(total)}</span></span>
             </span>
-            <span class="shop-price price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
+            <span class="shop-price price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
         </div>`;
     }
     
@@ -2922,7 +2975,7 @@ function renderDetailRow(r) {
     for (const m of materials) {
         const lineTotal = m.count * m.price;
         matsPerAttempt += lineTotal;
-        const tip = _priceTip(m);
+        const tip = _priceTip(m, {showPrice: true});
         matsHtml += `<div class="mat-row">
             <span class="mat-name">${m.name}</span>
             <span class="mat-count">${m.count.toFixed(m.name === 'Coins' ? 0 : 0)}x @ ${formatCoins(m.price)}</span>
@@ -2946,7 +2999,7 @@ function renderDetailRow(r) {
     if (r.baseSource === 'craft' && craftData) {
         // Craft is cheaper - show breakdown (base item now included in materials)
         const craftMatsHtml = craftData.materials.map(m => {
-            const mTip = _priceTip(m);
+            const mTip = _priceTip(m, {showPrice: true});
             return `
             <div class="mat-row">
                 <span class="mat-name">${m.name}</span>
@@ -2958,7 +3011,7 @@ function renderDetailRow(r) {
         baseItemHtml = `
             <div class="detail-line">
                 <span class="label">Market price</span>
-                <span class="value alt price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
+                <span class="value alt price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Craft price</span>
@@ -2977,7 +3030,7 @@ function renderDetailRow(r) {
         baseItemHtml = `
             <div class="detail-line">
                 <span class="label">Market price</span>
-                <span class="value price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
+                <span class="value price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
             </div>`;
         if (craftData) {
             baseItemHtml += `
@@ -2998,12 +3051,12 @@ function renderDetailRow(r) {
         const pctClass = pctChange > 0 ? 'positive' : 'negative';
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (bid)</span>
-            <span class="value ${pctClass} price-tip" data-tip="market sell @ ${_fmtTs(priceInfo.since)}">${formatCoins(priceInfo.lastPrice)} → ${formatCoins(priceInfo.price)} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
+            <span class="value ${pctClass} price-tip" data-tip="bid @ ${_fmtTs(priceInfo.since)}">${formatCoins(priceInfo.lastPrice)} → ${formatCoins(priceInfo.price)} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
         </div>`;
     } else {
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (+${r.target_level})</span>
-            <span class="value price-tip" data-tip="market sell @ ${_fmtTs(prices.ts)}">${formatCoins(r.sellPrice)}</span>
+            <span class="value price-tip" data-tip="bid @ ${_fmtTs(prices.ts)}">${formatCoins(r.sellPrice)}</span>
         </div>`;
     }
     
@@ -3032,7 +3085,7 @@ function renderDetailRow(r) {
                 <span class="protect-badge">Prot @ ${r.protectAt}</span>
                 <span class="protect-count">${r.protectCount.toFixed(1)}</span>
                 <span class="protect-name">${protName}</span>
-                <span class="protect-price price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
+                <span class="protect-price price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
             </div>
             <div class="enhance-mats">
                 <div class="enhance-mats-label">Cost per click:</div>
@@ -3060,15 +3113,15 @@ function renderDetailRow(r) {
             <h4>💰 Cost Summary</h4>
             <div class="detail-line">
                 <span class="label">Base item</span>
-                <span class="value price-tip" data-tip="${r.baseSource === 'craft' ? 'craft' : 'market buy'} @ ${_fmtTs(prices.ts)}">${formatCoins(r.basePrice)}</span>
+                <span class="value price-tip" data-tip="${r.baseSource === 'craft' ? 'craft' : 'ask'} @ ${_fmtTs(prices.ts)}">${formatCoins(r.basePrice)}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Materials (${r.actions.toFixed(0)} × ${formatCoins(matsPerAttempt)})</span>
-                <span class="value price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${formatCoins(totalEnhanceCost)}</span>
+                <span class="value price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${formatCoins(totalEnhanceCost)}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Protection (${r.protectCount.toFixed(1)} × ${formatCoins(r.protectPrice)})</span>
-                <span class="value price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${formatCoins(totalProtCost)}</span>
+                <span class="value price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${formatCoins(totalProtCost)}</span>
             </div>
             <div class="mat-row total-row">
                 <span class="mat-name">Total Cost</span>
