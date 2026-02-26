@@ -2594,6 +2594,8 @@ function getMaterialDetails(itemHrid, actions, mode, lootTs) {
                 total: cost.count * price * actions,
                 source: detail ? detail.source : 'market',
                 sourceIcon: detail ? detail.sourceIcon : '💰',
+                side: detail ? detail.side : undefined,
+                fallback: detail ? detail.fallback : false,
                 ts: detail ? detail.ts : (prices.ts || null)
             });
         }
@@ -2922,6 +2924,8 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
             total: lineTotal,
             source: detail ? detail.source : 'market',
             sourceIcon: detail ? detail.sourceIcon : '💰',
+            side: detail ? detail.side : undefined,
+            fallback: detail ? detail.fallback : false,
             ts: detail ? detail.ts : (prices.ts || null)
         });
     }
@@ -2944,6 +2948,8 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
             total: basePrice,
             source: detail ? detail.source : 'market',
             sourceIcon: detail ? detail.sourceIcon : '💰',
+            side: detail ? detail.side : undefined,
+            fallback: detail ? detail.fallback : false,
             ts: detail ? detail.ts : (prices.ts || null)
         });
     }
