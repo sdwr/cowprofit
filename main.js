@@ -2888,10 +2888,10 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
 /** Internal: resolve estimatedSale on an existing bundle */
 function _resolveSaleFields(bundle, itemHrid, itemData, lootTs, mode, saleLvl, opts) {
     if (saleLvl >= 8) {
-        // 1. Try market ask price first (what sellers are listing at)
-        const askDetail = getBuyPriceAtTimeDetailed(itemHrid, saleLvl, lootTs, 'pessimistic');
-        if (askDetail.price > 0 && askDetail.source === 'market') {
-            bundle.estimatedSale = { price: askDetail.price, source: 'market', side: 'ask', sourceIcon: '💰', ts: askDetail.ts, level: saleLvl };
+        // 1. Try market bid price (what buyers are paying = realistic sale price)
+        const bidDetail = getBuyPriceAtTimeDetailed(itemHrid, saleLvl, lootTs, 'optimistic');
+        if (bidDetail.price > 0 && bidDetail.source === 'market') {
+            bundle.estimatedSale = { price: bidDetail.price, source: 'market', side: 'bid', sourceIcon: '💰', ts: bidDetail.ts, level: saleLvl };
             return;
         }
         
@@ -2902,7 +2902,7 @@ function _resolveSaleFields(bundle, itemHrid, itemData, lootTs, mode, saleLvl, o
             return;
         }
         
-        // 3. Fall back to bid-based estimate
+        // 3. Fall back to bid history estimate
         const saleEstimate = estimatePrice(itemHrid, saleLvl, lootTs, mode);
         bundle.estimatedSale = { price: saleEstimate.price, source: saleEstimate.source, sourceIcon: saleEstimate.sourceIcon, ts: lootTs, level: saleLvl };
     }
