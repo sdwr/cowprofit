@@ -3,33 +3,7 @@
  * Uses prices.js + game-data.js + enhance-calc.js
  */
 
-// JS tooltip for price-tip elements (avoids overflow clipping)
-(function() {
-    const tip = document.getElementById('price-tooltip');
-    if (!tip) return;
-    let active = null;
-    
-    document.addEventListener('mouseover', (e) => {
-        const el = e.target.closest('.price-tip');
-        if (!el || !el.dataset.tip) { if (active) { tip.style.display = 'none'; active = null; } return; }
-        active = el;
-        tip.textContent = el.dataset.tip;
-        tip.style.display = 'block';
-    });
-    
-    document.addEventListener('mousemove', (e) => {
-        if (!active) return;
-        const x = Math.min(e.clientX + 12, window.innerWidth - tip.offsetWidth - 8);
-        const y = Math.max(e.clientY - tip.offsetHeight - 8, 4);
-        tip.style.left = x + 'px';
-        tip.style.top = y + 'px';
-    });
-    
-    document.addEventListener('mouseout', (e) => {
-        const el = e.target.closest('.price-tip');
-        if (el === active) { tip.style.display = 'none'; active = null; }
-    });
-})();
+
 
 // Data from loaded scripts
 const prices = window.PRICES || {};

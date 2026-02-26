@@ -1174,8 +1174,17 @@
             cursor: help;
             border-bottom: 1px dotted rgba(255,255,255,0.3);
         }
-        #price-tooltip {
-            position: fixed;
+        .price-tip {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted rgba(255,255,255,0.3);
+        }
+        .price-tip:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
             background: #1a1a2e;
             border: 1px solid rgba(238,179,87,0.6);
             color: #e8e8e8;
@@ -1183,11 +1192,9 @@
             border-radius: 6px;
             font-size: 0.65rem;
             white-space: pre;
-            z-index: 99999;
+            z-index: 9999;
             pointer-events: none;
             box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-            display: none;
-            max-width: 350px;
         }
 
         @media (max-width: 1000px) {
@@ -1314,6 +1321,5 @@
     <script src="game-data.js"></script>
     <script src="enhance-calc.js"></script>
     <script src="main.js"></script>
-<div id="price-tooltip"></div>
 </body>
 </html>
