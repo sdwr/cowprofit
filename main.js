@@ -2399,9 +2399,12 @@ function _priceTip(detail, opts) {
     if (src === 'market') {
         const side = detail.side || 'ask';
         parts.push(side);
-    } else if (src === 'history') {
+    } else if (src === 'history' || src.startsWith('history ')) {
         const side = detail.side || 'bid';
-        parts.push(`${side} 📈`);
+        // Include the qualifier if present: "history (-2.3h)" → "bid 📈 (-2.3h)"
+        const qualifier = src.match(/\(([^)]+)\)/);
+        const qStr = qualifier && qualifier[1] !== 'newest' ? ` (${qualifier[1]})` : '';
+        parts.push(`${side} 📈${qStr}`);
     } else if (src === 'craft cost' || src === 'craft') {
         parts.push('craft');
     } else if (src === 'enhance cost') {
@@ -2643,7 +2646,7 @@ function estimatePrice(itemHrid, level, lootTs, mode = 'pessimistic') {
     const result = findHistoricalPrice(bidList, lootTs);
     if (result) {
         const icon = result.label.includes('oldest') ? '📜' : '📈';
-        return { price: result.entry.p, source: result.label, sourceIcon: icon };
+        return { price: result.entry.p, source: result.label, sourceIcon: icon, side: 'bid', ts: result.entry.t };
     }
     
     // 2. Fall back to cost to create (NO market bid fallback)
@@ -2812,9 +2815,24 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
     bundle.teas.blessed = teaBlessed;
     bundle.teas.wisdom = teaWisdom;
     
-    // --- Base Item ---
-    const baseEstimate = estimatePrice(itemHrid, 0, lootTs, mode);
-    bundle.baseItem = { price: baseEstimate.price, source: baseEstimate.source, sourceIcon: baseEstimate.sourceIcon, ts: lootTs };
+    // --- Base Item (cheapest of: market ask, craft cost, bid history) ---
+    const baseMarket = getBuyPriceAtTimeDetailed(itemHrid, 0, lootTs, mode);
+    const baseCraft = getCraftingMaterials(itemHrid, mode, lootTs);
+    const baseCraftPrice = baseCraft?.total || 0;
+    
+    // Pick cheapest available source
+    let baseItem;
+    const baseItemName = gameData.items[itemHrid]?.name || itemHrid.split('/').pop().replace(/_/g, ' ');
+    if (baseCraftPrice > 0 && (baseMarket.price <= 0 || baseCraftPrice < baseMarket.price)) {
+        baseItem = { price: baseCraftPrice, source: 'craft', sourceIcon: '🔨', ts: lootTs, name: baseItemName };
+    } else if (baseMarket.price > 0) {
+        baseItem = { ...baseMarket, name: baseItemName };
+    } else {
+        // Last resort: bid history estimate
+        const baseEstimate = estimatePrice(itemHrid, 0, lootTs, mode);
+        baseItem = { price: baseEstimate.price, source: baseEstimate.source, sourceIcon: baseEstimate.sourceIcon, ts: lootTs };
+    }
+    bundle.baseItem = baseItem;
     
     // --- Sell Revenue (for successful sessions) ---
     // BUG FIX: was using prices.market directly — now uses getBuyPriceAtTimeDetailed with bid preference
@@ -3085,12 +3103,12 @@ function renderDetailRow(r) {
         const pctClass = pctChange > 0 ? 'positive' : 'negative';
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (bid)</span>
-            <span class="value ${pctClass} price-tip" data-tip="bid @ ${_fmtTs(priceInfo.since)}">${formatCoins(priceInfo.lastPrice)} → ${formatCoins(priceInfo.price)} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
+            <span class="value ${pctClass} price-tip" data-tip="${r.item_name} +${r.target_level} bid @ ${_fmtTs(priceInfo.since)}">${formatCoins(priceInfo.lastPrice)} → ${formatCoins(priceInfo.price)} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
         </div>`;
     } else {
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (+${r.target_level})</span>
-            <span class="value price-tip" data-tip="bid @ ${_fmtTs(prices.ts)}">${formatCoins(r.sellPrice)}</span>
+            <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} bid @ ${_fmtTs(prices.ts)}">${formatCoins(r.sellPrice)}</span>
         </div>`;
     }
     
@@ -3147,11 +3165,11 @@ function renderDetailRow(r) {
             <h4>💰 Cost Summary</h4>
             <div class="detail-line">
                 <span class="label">Base item</span>
-                <span class="value price-tip" data-tip="${r.baseSource === 'craft' ? 'craft' : 'ask'} @ ${_fmtTs(prices.ts)}">${formatCoins(r.basePrice)}</span>
+                <span class="value price-tip" data-tip="${r.item_name} ${r.baseSource === 'craft' ? 'craft' : 'ask'} @ ${_fmtTs(prices.ts)}">${formatCoins(r.basePrice)}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Materials (${r.actions.toFixed(0)} × ${formatCoins(matsPerAttempt)})</span>
-                <span class="value price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${formatCoins(totalEnhanceCost)}</span>
+                <span class="value price-tip" data-tip="${_multiPriceTip(materials)}">${formatCoins(totalEnhanceCost)}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Protection (${r.protectCount.toFixed(1)} × ${formatCoins(r.protectPrice)})</span>
