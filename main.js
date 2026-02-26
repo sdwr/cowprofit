@@ -2401,10 +2401,10 @@ function _priceTip(detail, opts) {
         parts.push(side);
     } else if (src === 'history' || src.startsWith('history ')) {
         const side = detail.side || 'bid';
-        // Include the qualifier if present: "history (-2.3h)" → "bid 📈 (-2.3h)"
+        // Include the qualifier if present: "history (-2.3h)" → "bid (-2.3h)"
         const qualifier = src.match(/\(([^)]+)\)/);
         const qStr = qualifier && qualifier[1] !== 'newest' ? ` (${qualifier[1]})` : '';
-        parts.push(`${side} 📈${qStr}`);
+        parts.push(`${side}${qStr}`);
     } else if (src === 'craft cost' || src === 'craft') {
         parts.push('craft');
     } else if (src === 'enhance cost') {
@@ -2815,22 +2815,29 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
     bundle.teas.blessed = teaBlessed;
     bundle.teas.wisdom = teaWisdom;
     
-    // --- Base Item (cheapest of: market ask, craft cost, bid history) ---
+    // --- Base Item (cheapest of: market ask, craft cost from bid prices) ---
+    // Never use raw bid price — base item is something you BUY or CRAFT
     const baseMarket = getBuyPriceAtTimeDetailed(itemHrid, 0, lootTs, mode);
     const baseCraft = getCraftingMaterials(itemHrid, mode, lootTs);
     const baseCraftPrice = baseCraft?.total || 0;
     
-    // Pick cheapest available source
     let baseItem;
     const baseItemName = gameData.items[itemHrid]?.name || itemHrid.split('/').pop().replace(/_/g, ' ');
-    if (baseCraftPrice > 0 && (baseMarket.price <= 0 || baseCraftPrice < baseMarket.price)) {
-        baseItem = { price: baseCraftPrice, source: 'craft', sourceIcon: '🔨', ts: lootTs, name: baseItemName };
-    } else if (baseMarket.price > 0) {
+    if (baseMarket.price > 0 && (baseCraftPrice <= 0 || baseMarket.price <= baseCraftPrice)) {
+        // Market ask is available and cheaper (or craft unavailable)
         baseItem = { ...baseMarket, name: baseItemName };
+    } else if (baseCraftPrice > 0) {
+        // Craft is cheaper or market unavailable
+        baseItem = { price: baseCraftPrice, source: 'craft', sourceIcon: '🔨', ts: lootTs, name: baseItemName };
     } else {
-        // Last resort: bid history estimate
-        const baseEstimate = estimatePrice(itemHrid, 0, lootTs, mode);
-        baseItem = { price: baseEstimate.price, source: baseEstimate.source, sourceIcon: baseEstimate.sourceIcon, ts: lootTs };
+        // Neither available — craft from bid history as last resort
+        const craftFromBid = getCraftingMaterials(itemHrid, 'optimistic', lootTs);
+        const craftBidPrice = craftFromBid?.total || 0;
+        if (craftBidPrice > 0) {
+            baseItem = { price: craftBidPrice, source: 'craft (bid)', sourceIcon: '🔨', ts: lootTs, name: baseItemName, fallback: true };
+        } else {
+            baseItem = { price: 0, source: 'unknown', sourceIcon: '❓', ts: null, name: baseItemName };
+        }
     }
     bundle.baseItem = baseItem;
     
