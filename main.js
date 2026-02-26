@@ -2791,7 +2791,7 @@ function formatWithCommas(num) {
 }
 
 // Shopping list for detail row - 3 column layout with progress bars
-function renderShoppingList(r, materials) {
+function renderShoppingList(r, materials, mode) {
     let rows = '';
     let totalCost = 0;
     let totalOwned = 0;
@@ -2982,7 +2982,7 @@ function renderDetailRow(r) {
             ${baseItemHtml}
         </div>
         
-        ${renderShoppingList(r, materials)}
+        ${renderShoppingList(r, materials, mode)}
         
         <div class="detail-section enhance-panel">
             <div class="enhance-header">
