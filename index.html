@@ -1168,6 +1168,30 @@
             margin-bottom: 4px;
         }
 
+        /* Price source tooltips */
+        .price-tip {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted rgba(255,255,255,0.3);
+        }
+        .price-tip:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid rgba(238,179,87,0.6);
+            color: #e8e8e8;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            white-space: nowrap;
+            z-index: 9999;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+
         @media (max-width: 1000px) {
             table { font-size: 0.65rem; }
             th, td { padding: 5px 3px; }

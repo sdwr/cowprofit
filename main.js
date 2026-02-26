@@ -971,6 +971,12 @@ function renderCardBody(d, isSubCard) {
         <span class="loot-prots">${displayProts} prots @${protAtLevel}</span>
     </div>`;
 
+    // Build tooltips from PriceBundle
+    const pb = ep.priceBundle;
+    const matTip = pb ? Object.entries(pb.mats).map(([h, d]) => `${h.split('/').pop()}: ${d.sourceIcon} ${d.source}`).join(', ') : '';
+    const protTip = pb ? `${pb.prot.sourceIcon || ''} ${pb.prot.source || 'n/a'}` : '';
+    const baseTip = pb ? `${pb.baseItem.sourceIcon || ''} ${pb.baseItem.source || 'n/a'}` : '';
+    
     let matCostStr = ep.matPriceMissing ? '⚠️ no price' : (ep.totalMatCost > 0 ? formatCoins(ep.totalMatCost) : '-');
     let protStr = '-';
     if (displayProts > 0) {
@@ -981,10 +987,10 @@ function renderCardBody(d, isSubCard) {
     const teaStr = d.totalTeaCost > 0 ? formatCoins(d.totalTeaCost) : '-';
 
     let costsHtml = `<div class="loot-costs">
-        <span>Mats: ${matCostStr}</span>
-        <span>Prot: ${protStr}</span>
+        <span class="price-tip" data-tip="${matTip}">Mats: ${matCostStr}</span>
+        <span class="price-tip" data-tip="${protTip}">Prot: ${protStr}</span>
         <span>Teas: ${teaStr}</span>
-        ${d.isSuccess && !isSubCard ? `<span>Base: ${ep.baseItemSourceIcon || ''} ${formatCoins(d.baseItemCost)}</span>` : ''}
+        ${d.isSuccess && !isSubCard ? `<span class="price-tip" data-tip="${baseTip}">Base: ${ep.baseItemSourceIcon || ''} ${formatCoins(d.baseItemCost)}</span>` : ''}
     </div>`;
 
     let saleHtml = '';
@@ -994,9 +1000,11 @@ function renderCardBody(d, isSubCard) {
             ? `${estIcon} ${formatCoins(d.estimatedSale)}` : '⚠️ no price';
         const saleFormatted = d.salePrice > 0 ? formatCoins(d.salePrice) : '0';
         const feeStr = d.fee > 0 ? `-${formatCoins(d.fee)}` : '-';
+        const estTip = pb ? `${pb.estimatedSale.sourceIcon || ''} ${pb.estimatedSale.source || 'n/a'} (lvl +${pb.estimatedSale.level})` : '';
+        const revTip = pb ? `${pb.sellRevenue.sourceIcon || ''} ${pb.sellRevenue.source || 'n/a'}` : '';
 
         saleHtml = `<div class="loot-sale">
-            <span>Est: ${estSaleStr}</span>
+            <span class="price-tip" data-tip="${estTip}">Est: ${estSaleStr}</span>
             <span>Sale: <span class="sale-input-group">
                 <button class="sale-btn sale-down" data-session="${d.sessionKey}" data-dir="down">◀</button>
                 <input type="text" class="sale-input" data-session="${d.sessionKey}" value="${saleFormatted}" data-raw="${d.salePrice}">
@@ -1968,72 +1976,38 @@ function calculateEnhanceSessionProfit(session) {
     const protResult = calculateProtectionFromDrops(levelDrops, protLevel, currentLevel);
     const protsUsed = protResult.protCount;
     
-    // Check session price cache (preserves prices after history rolls off 7-day window)
-    // New format has matPrices key; old format has matCostPerAction — treat old as cache miss (soft migration)
-    const cachedPrices = getCachedSessionPrices(session.startTime);
-    const useCached = cachedPrices && cachedPrices.matPrices; // prices don't change when session data updates
-    
-    // Calculate individual material prices and protection price
-    let matPrices, matPriceMissing, protPrice, protPriceMissing, protHrid;
-    
-    if (useCached) {
-        // Use cached individual prices (history may have rolled off)
-        matPrices = cachedPrices.matPrices;
-        matPriceMissing = cachedPrices.matPriceMissing;
-        protPrice = cachedPrices.protPrice;
-        protHrid = cachedPrices.protHrid;
-        protPriceMissing = cachedPrices.protPriceMissing;
-    } else {
-        // Calculate from historical data — store individual mat prices
-        matPrices = {};
-        matPriceMissing = false;
-        const enhanceCosts = itemData?.enhancementCosts || [];
-        
-        for (const cost of enhanceCosts) {
-            const costHrid = cost.item || cost.itemHrid || cost.hrid;
-            
-            if (costHrid === '/items/coin') {
-                matPrices[costHrid] = 1; // coins are always 1
-            } else {
-                const matPrice = getBuyPriceAtTime(costHrid, 0, lootTs, 'pessimistic');
-                if (matPrice === 0) matPriceMissing = true;
-                matPrices[costHrid] = matPrice;
-            }
-        }
-        
-        // Protection cost - use cheapest option (historical ask prices)
-        const mirrorPrice = getBuyPriceAtTime('/items/mirror_of_protection', 0, lootTs, 'pessimistic');
-        const baseItemPrice = getBuyPriceAtTime(itemHrid, 0, lootTs, 'pessimistic');
-        
-        protPrice = Infinity;
-        protHrid = null;
-        protPriceMissing = false;
-        if (mirrorPrice > 0 && mirrorPrice < protPrice) {
-            protPrice = mirrorPrice;
-            protHrid = '/items/mirror_of_protection';
-        }
-        if (baseItemPrice > 0 && baseItemPrice < protPrice) {
-            protPrice = baseItemPrice;
-            protHrid = itemHrid;
-        }
-        
-        const protItemHrids = itemData?.protectionItems || [];
-        for (const pH of protItemHrids) {
-            const price = getBuyPriceAtTime(pH, 0, lootTs, 'pessimistic');
-            if (price > 0 && price < protPrice) {
-                protPrice = price;
-                protHrid = pH;
-            }
-        }
-        
-        if (protPrice === Infinity) {
-            protPrice = 0;
-            protHrid = null;
-            if (protsUsed > 0) protPriceMissing = true;
-        }
+    // --- Determine success/result for PriceBundle resolution ---
+    // Find highest level from any drops
+    let highestLevel = 0;
+    let resultLevel = 0;
+    let highestTargetLevel = 0;
+    for (const [lvl, count] of Object.entries(levelDrops)) {
+        const level = parseInt(lvl) || 0;
+        if (level > highestLevel) highestLevel = level;
+        if (level >= 10 && level > resultLevel) resultLevel = level;
+        if ([8, 10, 12, 14].includes(level) && level > highestTargetLevel) highestTargetLevel = level;
     }
+    const isSuccessful = resultLevel >= 10 && (levelDrops[resultLevel] || 0) === 1;
+    const saleLevelForEstimate = isSuccessful ? resultLevel : (highestTargetLevel || 10);
     
-    // Compute matCostPerAction from individual prices
+    // Resolve all prices via PriceBundle (single source of truth for prices)
+    const pb = resolveSessionPrices(session, itemHrid, itemData, lootTs, 'pessimistic', {
+        saleLevelForEstimate,
+        resultLevel: isSuccessful ? resultLevel : 0,
+        isSuccessful
+    });
+    
+    // Extract prices from bundle
+    const matPrices = {};
+    for (const [hrid, detail] of Object.entries(pb.mats)) {
+        matPrices[hrid] = detail.price;
+    }
+    const matPriceMissing = pb.matPriceMissing;
+    const protPrice = pb.prot.price;
+    const protHrid = pb.prot.hrid;
+    const protPriceMissing = pb.protPriceMissing && protsUsed > 0;
+    
+    // Compute matCostPerAction from bundle prices
     let matCostPerAction = 0;
     const enhanceCostsForCalc = itemData?.enhancementCosts || [];
     for (const cost of enhanceCostsForCalc) {
@@ -2046,97 +2020,27 @@ function calculateEnhanceSessionProfit(session) {
     const totalMatCost = actionCount * matCostPerAction;
     const totalProtCost = protsUsed * protPrice;
     
-    // Find highest level from any drops (for display)
-    let highestLevel = 0;
-    for (const [lvl, count] of Object.entries(levelDrops)) {
-        const level = parseInt(lvl) || 0;
-        if (level > highestLevel) highestLevel = level;
-    }
-    
-    // Calculate revenue - check drops for completion:
-    // Success = exactly 1 item at level 10+ (sellable result)
-    // Multiple items at highest level = still working on it
+    // Revenue and base item cost from PriceBundle
     let revenue = 0;
     let revenueBreakdown = {};
-    let revenuePriceMissing = false;
+    const revenuePriceMissing = pb.revenuePriceMissing;
     
-    // Find highest level in drops that is 10+ AND highest target level (for debug)
-    let resultLevel = 0;
-    let highestTargetLevel = 0;
-    for (const [lvl, count] of Object.entries(levelDrops)) {
-        const level = parseInt(lvl) || 0;
-        if (level >= 10 && level > resultLevel) {
-            resultLevel = level;
-        }
-        if ([8, 10, 12, 14].includes(level) && level > highestTargetLevel) {
-            highestTargetLevel = level;
-        }
+    if (isSuccessful) {
+        revenue = pb.sellRevenue.price;
+        revenueBreakdown[resultLevel] = { count: 1, sellPrice: revenue, value: revenue };
     }
     
-    // Only count as successful if exactly 1 item at that level
-    let isSuccessful = false;
-    let baseItemCost = 0;
-    let baseItemSource = null;
-    let baseItemSourceIcon = null;
-    
-    if (resultLevel >= 10 && (levelDrops[resultLevel] || 0) === 1) {
-        // Single item at 10+ = completed enhancement, use for revenue
-        isSuccessful = true;
-        const sellPrice = prices.market?.[itemHrid]?.[String(resultLevel)]?.b || 0;
-        if (sellPrice === 0) revenuePriceMissing = true;
-        revenue = sellPrice;
-        revenueBreakdown[resultLevel] = { count: 1, sellPrice, value: sellPrice };
-    }
-    
-    // Calculate baseItemCost for ALL sessions (not just success — session might become successful later)
-    if (useCached) {
-        baseItemCost = cachedPrices.baseItemCost;
-        baseItemSource = cachedPrices.baseItemSource;
-        baseItemSourceIcon = cachedPrices.baseItemSourceIcon;
-    } else {
-        const baseEstimate = estimatePrice(itemHrid, 0, lootTs, 'pessimistic');
-        baseItemCost = baseEstimate.price;
-        baseItemSource = baseEstimate.source;
-        baseItemSourceIcon = baseEstimate.sourceIcon;
-    }
+    const baseItemCost = pb.baseItem.price;
+    const baseItemSource = pb.baseItem.source;
+    const baseItemSourceIcon = pb.baseItem.sourceIcon;
     
     const totalCost = totalMatCost + totalProtCost + (isSuccessful ? baseItemCost : 0);
     
-    // Calculate estimated sale price for ALL sessions (at highest target level)
-    // This way if session is toggled to success, we already have the estimate
-    let estimatedSale = 0;
-    let estimatedSaleSource = null;
-    let estimatedSaleSourceIcon = null;
-    let estimatedSaleLevel = 0;
-    
-    // Use resultLevel for success, highestTargetLevel for failures
-    const saleLevelForEstimate = isSuccessful ? resultLevel : (highestTargetLevel || 10);
-    
-    if (saleLevelForEstimate >= 8) {
-        // Bug fix: always recalculate if cached level doesn't match current level
-        const cachedLevelMatches = useCached && (cachedPrices.estimatedSaleLevel === saleLevelForEstimate);
-        if (cachedLevelMatches) {
-            estimatedSale = cachedPrices.estimatedSale;
-            estimatedSaleSource = cachedPrices.estimatedSaleSource;
-            estimatedSaleSourceIcon = cachedPrices.estimatedSaleSourceIcon;
-            estimatedSaleLevel = cachedPrices.estimatedSaleLevel;
-        } else {
-            // Prefer enhancement cost (what it costs to create) over market history for sale estimates
-            const costToCreate = calculateCostToCreate(itemHrid, saleLevelForEstimate, lootTs, 'pessimistic');
-            if (costToCreate > 0) {
-                estimatedSale = costToCreate;
-                estimatedSaleSource = 'enhance cost';
-                estimatedSaleSourceIcon = '🪄';
-            } else {
-                // Fall back to estimatePrice (history) if cost calc fails
-                const saleEstimate = estimatePrice(itemHrid, saleLevelForEstimate, lootTs, 'pessimistic');
-                estimatedSale = saleEstimate.price;
-                estimatedSaleSource = saleEstimate.source;
-                estimatedSaleSourceIcon = saleEstimate.sourceIcon;
-            }
-            estimatedSaleLevel = saleLevelForEstimate;
-        }
-    }
+    // Estimated sale from PriceBundle
+    const estimatedSale = pb.estimatedSale.price;
+    const estimatedSaleSource = pb.estimatedSale.source;
+    const estimatedSaleSourceIcon = pb.estimatedSale.sourceIcon;
+    const estimatedSaleLevel = pb.estimatedSale.level;
     
     // Fee is 2% of sale price (will be recalculated with actual sale in render)
     const fee = Math.floor(revenue * 0.02);
@@ -2167,38 +2071,12 @@ function calculateEnhanceSessionProfit(session) {
         profit
     });
     
-    // Calculate tea prices for caching (so they persist after history rolls off)
-    const teaPrices_ultra = getBuyPriceAtTime('/items/ultra_enhancing_tea', 0, lootTs, 'pessimistic');
-    const teaPrices_blessed = getBuyPriceAtTime('/items/blessed_tea', 0, lootTs, 'pessimistic');
-    const teaPrices_wisdom = getBuyPriceAtTime('/items/wisdom_tea', 0, lootTs, 'pessimistic');
-    
-    // Cache resolved prices for this session (preserves correct prices after history rolls off)
-    // Always write to update dataHash; prices are only computed fresh when !useCached
-    const cacheEntry = {
-        matPrices,
-        itemName,
-        protPrice,
-        protHrid,
-        baseItemCost,
-        baseItemSource,
-        baseItemSourceIcon,
-        estimatedSale,
-        estimatedSaleLevel,
-        estimatedSaleSource,
-        estimatedSaleSourceIcon,
-        teaPrices: useCached && cachedPrices.teaPrices
-            ? cachedPrices.teaPrices
-            : { ultraEnhancing: teaPrices_ultra, blessed: teaPrices_blessed, wisdom: teaPrices_wisdom },
-        matPriceMissing,
-        protPriceMissing,
-        dataHash: getSessionHash(session)
+    // Tea prices from PriceBundle
+    const sessionTeaPrices = {
+        ultraEnhancing: pb.teas.ultra.price,
+        blessed: pb.teas.blessed.price,
+        wisdom: pb.teas.wisdom.price
     };
-    cacheSessionPrices(session.startTime, cacheEntry);
-    
-    // Use cached tea prices if available, otherwise freshly computed
-    const sessionTeaPrices = useCached && cachedPrices.teaPrices
-        ? cachedPrices.teaPrices
-        : { ultraEnhancing: teaPrices_ultra, blessed: teaPrices_blessed, wisdom: teaPrices_wisdom };
     
     return {
         itemHrid,
@@ -2227,6 +2105,7 @@ function calculateEnhanceSessionProfit(session) {
         revenueBreakdown,
         estimatedSale,
         estimatedSaleLevel,
+        priceBundle: pb,
         estimatedSaleSource,
         estimatedSaleSourceIcon,
         teaPrices: sessionTeaPrices,
@@ -2426,9 +2305,13 @@ function getBuyPrice(hrid, level, mode) {
 }
 
 // Get buy price at a specific timestamp using history, falling back to current market
+// Returns { price, source, sourceIcon, ts } with full provenance tracking
 // No craft fallback (avoids circular recursion with estimatePrice)
-function getBuyPriceAtTime(hrid, level, lootTs, mode) {
-    if (!lootTs) return getBuyPrice(hrid, level, mode);
+function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
+    if (!lootTs) {
+        const p = getBuyPrice(hrid, level, mode);
+        return { price: p, source: 'market', sourceIcon: '💰', ts: prices.ts || null };
+    }
     
     const key = `${hrid}:${level}`;
     const history = prices.history?.[key];
@@ -2437,16 +2320,32 @@ function getBuyPriceAtTime(hrid, level, lootTs, mode) {
         const newestTs = history[0].t;
         const oldestTs = history[history.length - 1].t;
         
-        if (lootTs >= newestTs) return history[0].p;
-        if (lootTs <= oldestTs) return history[history.length - 1].p;
+        if (lootTs >= newestTs) {
+            return { price: history[0].p, source: 'history (newest)', sourceIcon: '📈', ts: newestTs };
+        }
+        if (lootTs <= oldestTs) {
+            return { price: history[history.length - 1].p, source: 'history (oldest)', sourceIcon: '📜', ts: oldestTs };
+        }
         
         for (const entry of history) {
-            if (entry.t <= lootTs) return entry.p;
+            if (entry.t <= lootTs) {
+                const diffHours = (lootTs - entry.t) / 3600;
+                const diffLabel = diffHours < 1 ? `${Math.round(diffHours * 60)}m` : 
+                                  diffHours < 24 ? `${diffHours.toFixed(1)}h` : 
+                                  `${(diffHours / 24).toFixed(1)}d`;
+                return { price: entry.p, source: `history (-${diffLabel})`, sourceIcon: '📈', ts: entry.t };
+            }
         }
     }
     
     // Fall back to current market price
-    return getBuyPrice(hrid, level, mode);
+    const mp = getBuyPrice(hrid, level, mode);
+    return { price: mp, source: 'market', sourceIcon: '💰', ts: prices.ts || null };
+}
+
+// Backward-compatible wrapper returning just the price number
+function getBuyPriceAtTime(hrid, level, lootTs, mode) {
+    return getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode).price;
 }
 
 // Build a prices-shaped object at a specific timestamp for enhance-calc.js
@@ -2631,6 +2530,148 @@ function calculateCostToCreate(itemHrid, level, lootTs, mode = 'pessimistic') {
     
     // Fallback: rough estimate (base item only)
     return baseCost;
+}
+
+// ============================================
+// PRICE BUNDLE — single source of resolved prices for a session
+// ============================================
+
+/**
+ * Resolve all prices needed for an enhance session into a PriceBundle.
+ * This is the ONLY function that should read from prices.market / prices.history
+ * for session calculations. All calc functions receive this bundle.
+ * 
+ * Checks session price cache first (localStorage). Old-format cache entries
+ * (missing `_bundleVersion`) are treated as cache misses.
+ * 
+ * @param {Object} session - The loot session object
+ * @param {string} itemHrid - Item HRID being enhanced
+ * @param {Object} itemData - gameData.items entry for the item
+ * @param {number} lootTs - Unix timestamp for historical price lookup
+ * @param {string} mode - 'pessimistic' (default for sessions)
+ * @param {Object} opts - { saleLevelForEstimate, resultLevel, isSuccessful }
+ * @returns {Object} PriceBundle
+ */
+function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = {}) {
+    const sessionKey = session.startTime;
+    
+    // Check cache — only use if new bundle format
+    const cached = getCachedSessionPrices(sessionKey);
+    if (cached && cached._bundleVersion === 1 && cached.dataHash === getSessionHash(session)) {
+        // Recalc estimatedSale if level changed (toggle success/failure changes level)
+        const saleLvl = opts.saleLevelForEstimate || 10;
+        if (cached.estimatedSale && cached.estimatedSale.level === saleLvl) {
+            return cached;
+        }
+        // Level changed — recompute sale-related fields only, keep rest from cache
+        const bundle = { ...cached };
+        _resolveSaleFields(bundle, itemHrid, itemData, lootTs, mode, saleLvl, opts);
+        bundle.dataHash = getSessionHash(session);
+        cacheSessionPrices(sessionKey, bundle);
+        return bundle;
+    }
+    
+    // === Build fresh PriceBundle ===
+    const bundle = {
+        _bundleVersion: 1,
+        resolvedAt: Date.now(),
+        lootTs,
+        mats: {},
+        prot: { price: 0, source: null, sourceIcon: null, ts: null, hrid: null },
+        teas: {
+            ultra: { price: 0, source: null, sourceIcon: null, ts: null },
+            blessed: { price: 0, source: null, sourceIcon: null, ts: null },
+            wisdom: { price: 0, source: null, sourceIcon: null, ts: null }
+        },
+        baseItem: { price: 0, source: null, sourceIcon: null, ts: null },
+        estimatedSale: { price: 0, source: null, sourceIcon: null, ts: null, level: 0 },
+        sellRevenue: { price: 0, source: null, sourceIcon: null, ts: null, level: 0 },
+        matPriceMissing: false,
+        protPriceMissing: false,
+        revenuePriceMissing: false,
+        dataHash: getSessionHash(session)
+    };
+    
+    // --- Materials ---
+    const enhanceCosts = itemData?.enhancementCosts || [];
+    for (const cost of enhanceCosts) {
+        const costHrid = cost.item || cost.itemHrid || cost.hrid;
+        if (costHrid === '/items/coin') {
+            bundle.mats[costHrid] = { price: 1, source: 'fixed', sourceIcon: '🪙', ts: null };
+        } else {
+            const detail = getBuyPriceAtTimeDetailed(costHrid, 0, lootTs, mode);
+            if (detail.price === 0) bundle.matPriceMissing = true;
+            bundle.mats[costHrid] = detail;
+        }
+    }
+    
+    // --- Protection (cheapest option) ---
+    const mirrorDetail = getBuyPriceAtTimeDetailed('/items/mirror_of_protection', 0, lootTs, mode);
+    const baseItemDetailForProt = getBuyPriceAtTimeDetailed(itemHrid, 0, lootTs, mode);
+    
+    let bestProt = { price: Infinity, source: null, sourceIcon: null, ts: null, hrid: null };
+    if (mirrorDetail.price > 0 && mirrorDetail.price < bestProt.price) {
+        bestProt = { ...mirrorDetail, hrid: '/items/mirror_of_protection' };
+    }
+    if (baseItemDetailForProt.price > 0 && baseItemDetailForProt.price < bestProt.price) {
+        bestProt = { ...baseItemDetailForProt, hrid: itemHrid };
+    }
+    const protItemHrids = itemData?.protectionItems || [];
+    for (const pH of protItemHrids) {
+        const d = getBuyPriceAtTimeDetailed(pH, 0, lootTs, mode);
+        if (d.price > 0 && d.price < bestProt.price) {
+            bestProt = { ...d, hrid: pH };
+        }
+    }
+    if (bestProt.price === Infinity) {
+        bestProt = { price: 0, source: null, sourceIcon: null, ts: null, hrid: null };
+        bundle.protPriceMissing = true; // only matters if prots are actually used
+    }
+    bundle.prot = bestProt;
+    
+    // --- Teas ---
+    const teaUltra = getBuyPriceAtTimeDetailed('/items/ultra_enhancing_tea', 0, lootTs, mode);
+    const teaBlessed = getBuyPriceAtTimeDetailed('/items/blessed_tea', 0, lootTs, mode);
+    const teaWisdom = getBuyPriceAtTimeDetailed('/items/wisdom_tea', 0, lootTs, mode);
+    bundle.teas.ultra = teaUltra;
+    bundle.teas.blessed = teaBlessed;
+    bundle.teas.wisdom = teaWisdom;
+    
+    // --- Base Item ---
+    const baseEstimate = estimatePrice(itemHrid, 0, lootTs, mode);
+    bundle.baseItem = { price: baseEstimate.price, source: baseEstimate.source, sourceIcon: baseEstimate.sourceIcon, ts: lootTs };
+    
+    // --- Sell Revenue (for successful sessions) ---
+    // BUG FIX: was using prices.market directly — now uses getBuyPriceAtTimeDetailed with bid preference
+    const resultLevel = opts.resultLevel || 0;
+    if (opts.isSuccessful && resultLevel >= 10) {
+        // Use bid price from history at loot time
+        const sellDetail = getBuyPriceAtTimeDetailed(itemHrid, resultLevel, lootTs, 'optimistic');
+        // optimistic mode prefers bid, which is what we want for sell revenue
+        bundle.sellRevenue = { price: sellDetail.price, source: sellDetail.source, sourceIcon: sellDetail.sourceIcon, ts: sellDetail.ts, level: resultLevel };
+        if (sellDetail.price === 0) bundle.revenuePriceMissing = true;
+    }
+    
+    // --- Estimated Sale Price ---
+    const saleLvl = opts.saleLevelForEstimate || 10;
+    _resolveSaleFields(bundle, itemHrid, itemData, lootTs, mode, saleLvl, opts);
+    
+    // Cache
+    cacheSessionPrices(sessionKey, bundle);
+    return bundle;
+}
+
+/** Internal: resolve estimatedSale on an existing bundle */
+function _resolveSaleFields(bundle, itemHrid, itemData, lootTs, mode, saleLvl, opts) {
+    if (saleLvl >= 8) {
+        const costToCreate = calculateCostToCreate(itemHrid, saleLvl, lootTs, mode);
+        if (costToCreate > 0) {
+            bundle.estimatedSale = { price: costToCreate, source: 'enhance cost', sourceIcon: '🪄', ts: lootTs, level: saleLvl };
+        } else {
+            const saleEstimate = estimatePrice(itemHrid, saleLvl, lootTs, mode);
+            bundle.estimatedSale = { price: saleEstimate.price, source: saleEstimate.source, sourceIcon: saleEstimate.sourceIcon, ts: lootTs, level: saleLvl };
+        }
+    }
 }
 
 // Get crafting materials for an item (WITH artisan tea - these are crafting inputs)
