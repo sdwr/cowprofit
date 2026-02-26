@@ -409,9 +409,13 @@ function renderHistoryPanel() {
     const historyData = prices.history || {};
     const timestamps = new Set();
     
-    for (const entries of Object.values(historyData)) {
-        if (Array.isArray(entries)) {
-            for (const e of entries) {
+    for (const entryData of Object.values(historyData)) {
+        // Handle both old format (flat array) and new format ({b: [...], a: [...]})
+        const lists = Array.isArray(entryData) 
+            ? [entryData] 
+            : [entryData.b || [], entryData.a || []];
+        for (const list of lists) {
+            for (const e of list) {
                 if (e.t) timestamps.add(e.t);
             }
         }
@@ -2307,6 +2311,68 @@ function getBuyPrice(hrid, level, mode) {
 // Get buy price at a specific timestamp using history, falling back to current market
 // Returns { price, source, sourceIcon, ts } with full provenance tracking
 // No craft fallback (avoids circular recursion with estimatePrice)
+/**
+ * Get the appropriate history list for an item based on price side.
+ * Handles both old format (flat array of {p,t}) and new format ({b:[...], a:[...]}).
+ * 
+ * @param {string} key - History key like "/items/foo:10"
+ * @param {'bid'|'ask'} side - Which price list to get
+ *   - 'bid' = sell price / what buyers are paying (used for: age, sell revenue, item valuation)
+ *   - 'ask' = buy price / what sellers are asking (used for: buying mats pessimistically)
+ * @returns {Array} List of {p, t} entries, newest first
+ */
+function getHistoryList(key, side) {
+    const entry = prices.history?.[key];
+    if (!entry) return [];
+    
+    // Old format: flat array of {p, t} — these were bid prices
+    if (Array.isArray(entry)) {
+        return side === 'bid' ? entry : [];
+    }
+    
+    // New format: {b: [...], a: [...]}
+    return (side === 'bid' ? entry.b : entry.a) || [];
+}
+
+/**
+ * Look up a historical price from a sorted list (newest-first).
+ * Returns the entry closest before the given timestamp.
+ */
+function findHistoricalPrice(histList, lootTs) {
+    if (!histList || histList.length === 0) return null;
+    
+    const newestTs = histList[0].t;
+    const oldestTs = histList[histList.length - 1].t;
+    
+    if (lootTs >= newestTs) {
+        return { entry: histList[0], label: 'history (newest)' };
+    }
+    if (lootTs <= oldestTs) {
+        return { entry: histList[histList.length - 1], label: 'history (oldest)' };
+    }
+    
+    for (const e of histList) {
+        if (e.t <= lootTs) {
+            const diffHours = (lootTs - e.t) / 3600;
+            const diffLabel = diffHours < 1 ? `${Math.round(diffHours * 60)}m` : 
+                              diffHours < 24 ? `${diffHours.toFixed(1)}h` : 
+                              `${(diffHours / 24).toFixed(1)}d`;
+            return { entry: e, label: `history (-${diffLabel})` };
+        }
+    }
+    return null;
+}
+
+/**
+ * Get historical buy price with source tracking.
+ * 
+ * Price side selection:
+ *   - pessimistic mode → ask history (what you'd pay to buy now)
+ *   - optimistic mode  → bid history (cheapest possible buy)
+ *   - midpoint mode    → average of bid and ask if both available
+ * 
+ * Fallback: current market price via getBuyPrice().
+ */
 function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
     if (!lootTs) {
         const p = getBuyPrice(hrid, level, mode);
@@ -2314,28 +2380,36 @@ function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
     }
     
     const key = `${hrid}:${level}`;
-    const history = prices.history?.[key];
     
-    if (history && history.length > 0) {
-        const newestTs = history[0].t;
-        const oldestTs = history[history.length - 1].t;
-        
-        if (lootTs >= newestTs) {
-            return { price: history[0].p, source: 'history (newest)', sourceIcon: '📈', ts: newestTs };
-        }
-        if (lootTs <= oldestTs) {
-            return { price: history[history.length - 1].p, source: 'history (oldest)', sourceIcon: '📜', ts: oldestTs };
-        }
-        
-        for (const entry of history) {
-            if (entry.t <= lootTs) {
-                const diffHours = (lootTs - entry.t) / 3600;
-                const diffLabel = diffHours < 1 ? `${Math.round(diffHours * 60)}m` : 
-                                  diffHours < 24 ? `${diffHours.toFixed(1)}h` : 
-                                  `${(diffHours / 24).toFixed(1)}d`;
-                return { price: entry.p, source: `history (-${diffLabel})`, sourceIcon: '📈', ts: entry.t };
+    // Determine which history list to use based on mode
+    // Pessimistic = ask (worst case buy price), Optimistic = bid (best case buy price)
+    const primarySide = (mode === 'optimistic') ? 'bid' : 'ask';
+    const fallbackSide = (mode === 'optimistic') ? 'ask' : 'bid';
+    
+    // Try primary side first
+    const primaryList = getHistoryList(key, primarySide);
+    const primaryResult = findHistoricalPrice(primaryList, lootTs);
+    
+    if (primaryResult) {
+        if (mode === 'midpoint') {
+            // For midpoint, try to average bid and ask
+            const bidList = getHistoryList(key, 'bid');
+            const bidResult = findHistoricalPrice(bidList, lootTs);
+            const askList = getHistoryList(key, 'ask');
+            const askResult = findHistoricalPrice(askList, lootTs);
+            if (bidResult && askResult) {
+                const avg = Math.round((bidResult.entry.p + askResult.entry.p) / 2);
+                return { price: avg, source: primaryResult.label + ' (mid)', sourceIcon: '📈', ts: primaryResult.entry.t };
             }
         }
+        return { price: primaryResult.entry.p, source: primaryResult.label, sourceIcon: '📈', ts: primaryResult.entry.t };
+    }
+    
+    // Try fallback side (e.g. no ask history yet, fall back to bid)
+    const fallbackList = getHistoryList(key, fallbackSide);
+    const fallbackResult = findHistoricalPrice(fallbackList, lootTs);
+    if (fallbackResult) {
+        return { price: fallbackResult.entry.p, source: fallbackResult.label + ` (${fallbackSide})`, sourceIcon: '📈', ts: fallbackResult.entry.t };
     }
     
     // Fall back to current market price
@@ -2394,19 +2468,18 @@ function getMaterialDetails(itemHrid, actions, mode, lootTs) {
 // Get price history for an item at a level
 function getPriceAge(itemHrid, level) {
     const key = `${itemHrid}:${level}`;
-    const history = prices.history?.[key];
-    if (!history || history.length === 0) return null;
+    // Age is based on bid (sell) price — how long the current sell price has lasted
+    const bidList = getHistoryList(key, 'bid');
+    if (!bidList || bidList.length === 0) return null;
     
-    // history[0] is most recent entry
-    const currentEntry = history[0];
+    const currentEntry = bidList[0];
     const now = Math.floor(Date.now() / 1000);
     const age = now - currentEntry.t;
     
-    // Get direction and previous price if there's a previous entry
     let direction = null;
     let lastPrice = null;
-    if (history.length > 1) {
-        lastPrice = history[1].p;
+    if (bidList.length > 1) {
+        lastPrice = bidList[1].p;
         if (currentEntry.p > lastPrice) direction = 'up';
         else if (currentEntry.p < lastPrice) direction = 'down';
     }
@@ -2432,43 +2505,14 @@ function getPriceAge(itemHrid, level) {
  */
 function estimatePrice(itemHrid, level, lootTs, mode = 'pessimistic') {
     const key = `${itemHrid}:${level}`;
-    const history = prices.history?.[key];
+    // estimatePrice values items = what you can sell for → use bid history
+    const bidList = getHistoryList(key, 'bid');
     
-    // 1. Check history - find most recent entry BEFORE loot timestamp
-    if (history && history.length > 0) {
-        // History is sorted newest-first
-        const newestTs = history[0].t;
-        const oldestTs = history[history.length - 1].t;
-        
-        // If loot is newer than all history, use newest price
-        if (lootTs >= newestTs) {
-            return { price: history[0].p, source: 'history (newest)', sourceIcon: '📈' };
-        }
-        
-        // If loot is older than all history, use oldest price
-        if (lootTs <= oldestTs) {
-            return { price: history[history.length - 1].p, source: 'history (oldest)', sourceIcon: '📜' };
-        }
-        
-        // Find most recent entry BEFORE loot timestamp
-        // History is newest-first, so find first entry where t <= lootTs
-        let bestEntry = null;
-        for (const entry of history) {
-            if (entry.t <= lootTs) {
-                bestEntry = entry;
-                break; // First match is most recent before loot
-            }
-        }
-        
-        if (bestEntry) {
-            // Format time diff for source label (how long before loot this price was)
-            const diffHours = (lootTs - bestEntry.t) / 3600;
-            const diffLabel = diffHours < 1 ? `${Math.round(diffHours * 60)}m` : 
-                              diffHours < 24 ? `${diffHours.toFixed(1)}h` : 
-                              `${(diffHours / 24).toFixed(1)}d`;
-            
-            return { price: bestEntry.p, source: `history (-${diffLabel})`, sourceIcon: '📈' };
-        }
+    // 1. Check bid history - find most recent entry BEFORE loot timestamp
+    const result = findHistoricalPrice(bidList, lootTs);
+    if (result) {
+        const icon = result.label.includes('oldest') ? '📜' : '📈';
+        return { price: result.entry.p, source: result.label, sourceIcon: icon };
     }
     
     // 2. Fall back to cost to create (NO market bid fallback)

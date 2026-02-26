@@ -29,31 +29,55 @@ def save_price_history(data):
         json.dump(data, f)
 
 
+def prune_list(entries, cutoff):
+    """
+    Prune a single price list (bid or ask).
+    Keep: all entries within 7 days + 1 baseline entry older than 7 days.
+    """
+    if not entries:
+        return []
+    
+    recent = [e for e in entries if e['t'] >= cutoff]
+    old = [e for e in entries if e['t'] < cutoff]
+    
+    if old:
+        old.sort(key=lambda x: x['t'], reverse=True)
+        recent.append(old[0])
+    
+    if recent:
+        recent.sort(key=lambda x: x['t'], reverse=True)
+    
+    return recent
+
+
+def migrate_old_entry(entry_data):
+    """
+    Migrate old format (flat list of {p, t}) to new format ({b: [...], a: [...]}).
+    Old entries only had bid prices, so they go into the 'b' list.
+    """
+    if isinstance(entry_data, list):
+        # Old format: [{p, t}, ...] → {b: [{p, t}, ...], a: []}
+        return {'b': entry_data, 'a': []}
+    # Already new format
+    return entry_data
+
+
 def prune_history(history, now_ts):
     """
     Prune old entries from history.
-    Keep: all entries within 7 days + 1 baseline entry older than 7 days.
+    New format: each key maps to {b: [{p, t}, ...], a: [{p, t}, ...]}.
     """
     cutoff = now_ts - HISTORY_WINDOW
     pruned = {}
     
-    for key, entries in history.items():
-        if not entries:
-            continue
+    for key, entry_data in history.items():
+        entry_data = migrate_old_entry(entry_data)
         
-        # Split into recent and old
-        recent = [e for e in entries if e['t'] >= cutoff]
-        old = [e for e in entries if e['t'] < cutoff]
+        b_list = prune_list(entry_data.get('b', []), cutoff)
+        a_list = prune_list(entry_data.get('a', []), cutoff)
         
-        # Keep recent + 1 baseline from old (most recent old entry)
-        if old:
-            old.sort(key=lambda x: x['t'], reverse=True)
-            recent.append(old[0])
-        
-        if recent:
-            # Sort by timestamp descending (newest first)
-            recent.sort(key=lambda x: x['t'], reverse=True)
-            pruned[key] = recent
+        if b_list or a_list:
+            pruned[key] = {'b': b_list, 'a': a_list}
     
     return pruned
 
@@ -61,6 +85,8 @@ def prune_history(history, now_ts):
 def update_history(market_data, history_data):
     """
     Update price history with new market data.
+    Stores bid and ask prices separately — only records when a price changes.
+    Format per key: {b: [{p, t}, ...], a: [{p, t}, ...]}
     Returns (updated_history_data, is_new_data, change_count).
     """
     market_ts = market_data.get('timestamp', 0)
@@ -75,24 +101,38 @@ def update_history(market_data, history_data):
     changes = 0
     
     for item_hrid, levels in market_data.get('marketData', {}).items():
-        for level_str, prices in levels.items():
-            bid = prices.get('b', -1)
-            if bid == -1:
+        for level_str, price_data in levels.items():
+            bid = price_data.get('b', -1)
+            ask = price_data.get('a', -1)
+            
+            # Skip if no bid or ask
+            if bid == -1 and ask == -1:
                 continue
             
             key = f"{item_hrid}:{level_str}"
             
-            # Get current history for this item:level
-            entries = history.get(key, [])
+            # Migrate old format if needed
+            entry_data = migrate_old_entry(history.get(key, {'b': [], 'a': []}))
             
-            # Check if price changed
-            current_price = entries[0]['p'] if entries else None
+            # Update bid list if changed
+            if bid != -1:
+                b_list = entry_data.get('b', [])
+                current_bid = b_list[0]['p'] if b_list else None
+                if current_bid != bid:
+                    b_list.insert(0, {'p': bid, 't': market_ts})
+                    entry_data['b'] = b_list
+                    changes += 1
             
-            if current_price != bid:
-                # Add new entry
-                entries.insert(0, {'p': bid, 't': market_ts})
-                history[key] = entries
-                changes += 1
+            # Update ask list if changed
+            if ask != -1:
+                a_list = entry_data.get('a', [])
+                current_ask = a_list[0]['p'] if a_list else None
+                if current_ask != ask:
+                    a_list.insert(0, {'p': ask, 't': market_ts})
+                    entry_data['a'] = a_list
+                    changes += 1
+            
+            history[key] = entry_data
     
     # Prune old entries
     history = prune_history(history, now_ts)
@@ -162,9 +202,11 @@ def main():
         f.write(prices_js)
     
     size_kb = len(prices_js) / 1024
-    history_count = sum(len(v) for v in history_data.get('history', {}).values())
+    history = history_data.get('history', {})
+    bid_entries = sum(len(v.get('b', []) if isinstance(v, dict) else v) for v in history.values())
+    ask_entries = sum(len(v.get('a', [])) for v in history.values() if isinstance(v, dict))
     print(f"  Generated {OUTPUT_FILE} ({size_kb:.1f} KB)")
-    print(f"  {len(history_data.get('history', {}))} items tracked, {history_count} total history entries")
+    print(f"  {len(history)} items tracked, {bid_entries} bid + {ask_entries} ask history entries")
     
     return is_new_data
 
