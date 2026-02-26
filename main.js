@@ -1044,11 +1044,11 @@ function renderCardBody(d, isSubCard) {
 
         saleHtml = `<div class="loot-sale">
             <span class="price-tip" data-tip="${estTip}">Est: ${estSaleStr}</span>
-            <span class="price-tip" data-tip="${revTip}">Sale: <span class="sale-input-group">
+            <span class="price-tip" data-tip="${revTip}">Sale:</span> <span class="sale-input-group">
                 <button class="sale-btn sale-down" data-session="${d.sessionKey}" data-dir="down">◀</button>
                 <input type="text" class="sale-input" data-session="${d.sessionKey}" value="${saleFormatted}" data-raw="${d.salePrice}">
                 <button class="sale-btn sale-up" data-session="${d.sessionKey}" data-dir="up">▶</button>
-            </span></span>
+            </span>
             <span class="fee">Fee: ${feeStr}</span>
         </div>`;
     }
@@ -2888,13 +2888,23 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
 /** Internal: resolve estimatedSale on an existing bundle */
 function _resolveSaleFields(bundle, itemHrid, itemData, lootTs, mode, saleLvl, opts) {
     if (saleLvl >= 8) {
+        // 1. Try market ask price first (what sellers are listing at)
+        const askDetail = getBuyPriceAtTimeDetailed(itemHrid, saleLvl, lootTs, 'pessimistic');
+        if (askDetail.price > 0 && askDetail.source === 'market') {
+            bundle.estimatedSale = { price: askDetail.price, source: 'market', side: 'ask', sourceIcon: '💰', ts: askDetail.ts, level: saleLvl };
+            return;
+        }
+        
+        // 2. Try cost to create (enhance cost estimate)
         const costToCreate = calculateCostToCreate(itemHrid, saleLvl, lootTs, mode);
         if (costToCreate > 0) {
             bundle.estimatedSale = { price: costToCreate, source: 'enhance cost', sourceIcon: '🪄', ts: lootTs, level: saleLvl };
-        } else {
-            const saleEstimate = estimatePrice(itemHrid, saleLvl, lootTs, mode);
-            bundle.estimatedSale = { price: saleEstimate.price, source: saleEstimate.source, sourceIcon: saleEstimate.sourceIcon, ts: lootTs, level: saleLvl };
+            return;
         }
+        
+        // 3. Fall back to bid-based estimate
+        const saleEstimate = estimatePrice(itemHrid, saleLvl, lootTs, mode);
+        bundle.estimatedSale = { price: saleEstimate.price, source: saleEstimate.source, sourceIcon: saleEstimate.sourceIcon, ts: lootTs, level: saleLvl };
     }
 }
 
