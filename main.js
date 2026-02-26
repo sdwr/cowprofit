@@ -977,7 +977,7 @@ function renderCardBody(d, isSubCard) {
 
     // Build tooltips from PriceBundle
     const pb = ep.priceBundle;
-    const matTip = pb ? Object.entries(pb.mats).map(([h, d]) => `${h.split('/').pop()}: ${_priceTip(d)}`).join(', ') : '';
+    const matTip = pb ? Object.entries(pb.mats).filter(([,d]) => d.source !== 'fixed').map(([h, d]) => `${h.split('/').pop().replace(/_/g,' ')}: ${_priceTip(d)}`).join('&#10;') : '';
     const protTip = pb ? _priceTip(pb.prot) : '';
     const baseTip = pb ? _priceTip(pb.baseItem) : '';
     
@@ -993,7 +993,7 @@ function renderCardBody(d, isSubCard) {
     let costsHtml = `<div class="loot-costs">
         <span class="price-tip" data-tip="${matTip}">Mats: ${matCostStr}</span>
         <span class="price-tip" data-tip="${protTip}">Prot: ${protStr}</span>
-        <span class="price-tip" data-tip="${pb ? `ultra: ${_priceTip(pb.teas.ultra)}, blessed: ${_priceTip(pb.teas.blessed)}, wisdom: ${_priceTip(pb.teas.wisdom)}` : ''}">Teas: ${teaStr}</span>
+        <span class="price-tip" data-tip="${pb ? `ultra: ${_priceTip(pb.teas.ultra)}&#10;blessed: ${_priceTip(pb.teas.blessed)}&#10;wisdom: ${_priceTip(pb.teas.wisdom)}` : ''}">Teas: ${teaStr}</span>
         ${d.isSuccess && !isSubCard ? `<span class="price-tip" data-tip="${baseTip}">Base: ${ep.baseItemSourceIcon || ''} ${formatCoins(d.baseItemCost)}</span>` : ''}
     </div>`;
 
@@ -2317,24 +2317,38 @@ function _fmtTs(ts) {
     return new Date(ts * 1000).toLocaleString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
-// Format a price source for tooltips: "market buy @ Feb 26, 1:05 PM"
-// Keeps it short — source is simplified to buy/sell/craft/history
+/**
+ * Format a price source for tooltip display.
+ * Translates internal source strings to user-friendly labels:
+ *   "market"                → "market @ <ts>"
+ *   "history (newest)"      → "history @ <ts>"
+ *   "history (-2.3h)"       → "history (-2.3h) @ <ts>"
+ *   "history (newest) (bid)"→ "history (bid fallback) @ <ts>"
+ *   "craft cost" / "craft"  → "craft @ <ts>"
+ *   "enhance cost"          → "enhance cost @ <ts>"
+ */
 function _priceTip(detail) {
     if (!detail || !detail.source) return '';
     let label = detail.source;
-    // Simplify verbose sources
-    if (label === 'market') label = 'market buy';
-    else if (label.startsWith('history')) label = label; // keep "history (-2.3h)" etc
+    
+    // Clean up fallback annotations — "(bid)" or "(ask)" means we used the other side
+    if (label.includes('(bid)')) {
+        label = label.replace(/\s*\(bid\)/, '') + ' (bid fallback)';
+    } else if (label.includes('(ask)')) {
+        label = label.replace(/\s*\(ask\)/, '') + ' (ask fallback)';
+    }
+    
+    // Simplify
+    if (label === 'market') label = 'market';
     else if (label === 'craft cost') label = 'craft';
-    else if (label === 'enhance cost') label = 'enhance cost';
+    else if (label === 'fixed') return 'coins';
+    
+    // Strip redundant "history" prefix from "(newest)"/"(oldest)" variants
+    label = label.replace('history (newest)', 'history');
+    label = label.replace('history (oldest)', 'history (oldest)');
+    
     const ts = detail.ts || (typeof prices !== 'undefined' ? prices.ts : null);
     return ts ? `${label} @ ${_fmtTs(ts)}` : label;
-}
-
-// Build a data-tip attr string for a price-tip span
-function _tipAttr(detail) {
-    const tip = _priceTip(detail);
-    return tip ? ` price-tip" data-tip="${tip}` : '"';
 }
 
 /**
