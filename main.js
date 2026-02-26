@@ -1012,7 +1012,9 @@ function renderCardBody(d, isSubCard) {
     const protName = protHrid ? (gameData.items[protHrid]?.name || protHrid.split('/').pop().replace(/_/g,' ')) : 'prot';
     const protTip = pb && pb.prot.source ? _priceTip({...pb.prot, name: protName}) : (protName ? protName : '');
     const baseName = ep.itemName || 'base';
-    const baseTip = pb ? _priceTip({...pb.baseItem, name: baseName}) : '';
+    const baseTip = pb ? (pb.baseItem._craftTip 
+        ? `${_shortName(baseName, 12)} ${formatCoins(pb.baseItem.price)} craft${pb.baseItem.fallback ? ' ⚠️' : ''}&#10;${pb.baseItem._craftTip}`
+        : _priceTip({...pb.baseItem, name: baseName})) : '';
     
     let matCostStr = ep.matPriceMissing ? '⚠️ no price' : (ep.totalMatCost > 0 ? formatCoins(ep.totalMatCost) : '-');
     let protStr = '-';
@@ -2823,21 +2825,36 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
     
     let baseItem;
     const baseItemName = gameData.items[itemHrid]?.name || itemHrid.split('/').pop().replace(/_/g, ' ');
-    if (baseMarket.price > 0 && (baseCraftPrice <= 0 || baseMarket.price <= baseCraftPrice)) {
-        // Market ask is available and cheaper (or craft unavailable)
+    // Only trust market price if it's a real ask (not a bid fallback)
+    const marketIsRealAsk = baseMarket.price > 0 && !baseMarket.fallback;
+    
+    if (marketIsRealAsk && (baseCraftPrice <= 0 || baseMarket.price <= baseCraftPrice)) {
+        // Real market ask is available and cheaper (or craft unavailable)
         baseItem = { ...baseMarket, name: baseItemName };
     } else if (baseCraftPrice > 0) {
-        // Craft is cheaper or market unavailable
-        baseItem = { price: baseCraftPrice, source: 'craft', sourceIcon: '🔨', ts: lootTs, name: baseItemName };
-    } else {
-        // Neither available — craft from bid history as last resort
+        // Craft is cheaper, or market was bid fallback — use craft
+        // Build multi-line tooltip showing craft materials
+        const craftTipItems = (baseCraft.materials || []).map(m => ({
+            name: m.name, price: m.price, source: m.source || 'market', side: m.side, ts: m.ts, fallback: m.fallback
+        }));
+        const craftMatTip = _multiPriceTip(craftTipItems);
+        baseItem = { price: baseCraftPrice, source: 'craft', sourceIcon: '🔨', ts: lootTs, name: baseItemName, _craftTip: craftMatTip };
+    } else if (baseMarket.price > 0) {
+        // Only bid fallback available, no craft — craft from bid prices
         const craftFromBid = getCraftingMaterials(itemHrid, 'optimistic', lootTs);
         const craftBidPrice = craftFromBid?.total || 0;
         if (craftBidPrice > 0) {
-            baseItem = { price: craftBidPrice, source: 'craft (bid)', sourceIcon: '🔨', ts: lootTs, name: baseItemName, fallback: true };
+            const craftBidItems = (craftFromBid.materials || []).map(m => ({
+                name: m.name, price: m.price, source: m.source || 'market', side: m.side, ts: m.ts, fallback: true
+            }));
+            const craftBidTip = _multiPriceTip(craftBidItems);
+            baseItem = { price: craftBidPrice, source: 'craft (bid)', sourceIcon: '🔨', ts: lootTs, name: baseItemName, fallback: true, _craftTip: craftBidTip };
         } else {
-            baseItem = { price: 0, source: 'unknown', sourceIcon: '❓', ts: null, name: baseItemName };
+            // Can't craft either — use bid fallback as last resort (with warning)
+            baseItem = { ...baseMarket, name: baseItemName };
         }
+    } else {
+        baseItem = { price: 0, source: 'unknown', sourceIcon: '❓', ts: null, name: baseItemName };
     }
     bundle.baseItem = baseItem;
     
@@ -3067,6 +3084,7 @@ function renderDetailRow(r) {
             </div>`;
         }).join('');
         
+        const craftSummaryTip = _multiPriceTip(craftData.materials);
         baseItemHtml = `
             <div class="detail-line">
                 <span class="label">Market price</span>
@@ -3074,7 +3092,7 @@ function renderDetailRow(r) {
             </div>
             <div class="detail-line">
                 <span class="label">Craft price</span>
-                <span class="value price-tip" data-tip="craft @ ${_fmtTs(prices.ts)}">${formatCoins(r.basePrice)}</span>
+                <span class="value price-tip" data-tip="${craftSummaryTip}">${formatCoins(r.basePrice)}</span>
             </div>
             <div class="craft-breakdown">
                 ${craftMatsHtml}
@@ -3092,10 +3110,11 @@ function renderDetailRow(r) {
                 <span class="value price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
             </div>`;
         if (craftData) {
+            const craftAltTip = _multiPriceTip(craftData.materials);
             baseItemHtml += `
             <div class="detail-line">
                 <span class="label">Craft price</span>
-                <span class="value alt price-tip" data-tip="craft @ ${_fmtTs(prices.ts)}">${formatCoins(craftData.total)}</span>
+                <span class="value alt price-tip" data-tip="${craftAltTip}">${formatCoins(craftData.total)}</span>
             </div>`;
         }
     }
