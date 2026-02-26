@@ -977,9 +977,9 @@ function renderCardBody(d, isSubCard) {
 
     // Build tooltips from PriceBundle
     const pb = ep.priceBundle;
-    const matTip = pb ? Object.entries(pb.mats).map(([h, d]) => `${h.split('/').pop()}: ${d.sourceIcon} ${d.source}`).join(', ') : '';
-    const protTip = pb ? `${pb.prot.sourceIcon || ''} ${pb.prot.source || 'n/a'}` : '';
-    const baseTip = pb ? `${pb.baseItem.sourceIcon || ''} ${pb.baseItem.source || 'n/a'}` : '';
+    const matTip = pb ? Object.entries(pb.mats).map(([h, d]) => `${h.split('/').pop()}: ${_priceTip(d)}`).join(', ') : '';
+    const protTip = pb ? _priceTip(pb.prot) : '';
+    const baseTip = pb ? _priceTip(pb.baseItem) : '';
     
     let matCostStr = ep.matPriceMissing ? '⚠️ no price' : (ep.totalMatCost > 0 ? formatCoins(ep.totalMatCost) : '-');
     let protStr = '-';
@@ -993,7 +993,7 @@ function renderCardBody(d, isSubCard) {
     let costsHtml = `<div class="loot-costs">
         <span class="price-tip" data-tip="${matTip}">Mats: ${matCostStr}</span>
         <span class="price-tip" data-tip="${protTip}">Prot: ${protStr}</span>
-        <span class="price-tip" data-tip="${pb ? `Ultra: ${pb.teas.ultra.sourceIcon||''} ${pb.teas.ultra.source||'n/a'}, Blessed: ${pb.teas.blessed.sourceIcon||''} ${pb.teas.blessed.source||'n/a'}, Wisdom: ${pb.teas.wisdom.sourceIcon||''} ${pb.teas.wisdom.source||'n/a'}` : ''}">Teas: ${teaStr}</span>
+        <span class="price-tip" data-tip="${pb ? `ultra: ${_priceTip(pb.teas.ultra)}, blessed: ${_priceTip(pb.teas.blessed)}, wisdom: ${_priceTip(pb.teas.wisdom)}` : ''}">Teas: ${teaStr}</span>
         ${d.isSuccess && !isSubCard ? `<span class="price-tip" data-tip="${baseTip}">Base: ${ep.baseItemSourceIcon || ''} ${formatCoins(d.baseItemCost)}</span>` : ''}
     </div>`;
 
@@ -1004,8 +1004,8 @@ function renderCardBody(d, isSubCard) {
             ? `${estIcon} ${formatCoins(d.estimatedSale)}` : '⚠️ no price';
         const saleFormatted = d.salePrice > 0 ? formatCoins(d.salePrice) : '0';
         const feeStr = d.fee > 0 ? `-${formatCoins(d.fee)}` : '-';
-        const estTip = pb ? `${pb.estimatedSale.sourceIcon || ''} ${pb.estimatedSale.source || 'n/a'} (lvl +${pb.estimatedSale.level})` : '';
-        const revTip = pb ? `${pb.sellRevenue.sourceIcon || ''} ${pb.sellRevenue.source || 'n/a'}` : '';
+        const estTip = pb ? _priceTip(pb.estimatedSale) : '';
+        const revTip = pb ? _priceTip(pb.sellRevenue) : '';
 
         saleHtml = `<div class="loot-sale">
             <span class="price-tip" data-tip="${estTip}">Est: ${estSaleStr}</span>
@@ -2311,6 +2311,32 @@ function getBuyPrice(hrid, level, mode) {
 // Get buy price at a specific timestamp using history, falling back to current market
 // Returns { price, source, sourceIcon, ts } with full provenance tracking
 // No craft fallback (avoids circular recursion with estimatePrice)
+// Format a timestamp for tooltips (short date+time)
+function _fmtTs(ts) {
+    if (!ts) return '';
+    return new Date(ts * 1000).toLocaleString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+// Format a price source for tooltips: "market buy @ Feb 26, 1:05 PM"
+// Keeps it short — source is simplified to buy/sell/craft/history
+function _priceTip(detail) {
+    if (!detail || !detail.source) return '';
+    let label = detail.source;
+    // Simplify verbose sources
+    if (label === 'market') label = 'market buy';
+    else if (label.startsWith('history')) label = label; // keep "history (-2.3h)" etc
+    else if (label === 'craft cost') label = 'craft';
+    else if (label === 'enhance cost') label = 'enhance cost';
+    const ts = detail.ts || (typeof prices !== 'undefined' ? prices.ts : null);
+    return ts ? `${label} @ ${_fmtTs(ts)}` : label;
+}
+
+// Build a data-tip attr string for a price-tip span
+function _tipAttr(detail) {
+    const tip = _priceTip(detail);
+    return tip ? ` price-tip" data-tip="${tip}` : '"';
+}
+
 /**
  * Get the appropriate history list for an item based on price side.
  * Handles both old format (flat array of {p,t}) and new format ({b:[...], a:[...]}).
@@ -2462,7 +2488,7 @@ function getMaterialDetails(itemHrid, actions, mode, lootTs) {
                 total: cost.count * price * actions,
                 source: detail ? detail.source : 'market',
                 sourceIcon: detail ? detail.sourceIcon : '💰',
-                ts: detail ? detail.ts : null
+                ts: detail ? detail.ts : (prices.ts || null)
             });
         }
     }
@@ -2753,7 +2779,7 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
             total: lineTotal,
             source: detail ? detail.source : 'market',
             sourceIcon: detail ? detail.sourceIcon : '💰',
-            ts: detail ? detail.ts : null
+            ts: detail ? detail.ts : (prices.ts || null)
         });
     }
     
@@ -2775,7 +2801,7 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
             total: basePrice,
             source: detail ? detail.source : 'market',
             sourceIcon: detail ? detail.sourceIcon : '💰',
-            ts: detail ? detail.ts : null
+            ts: detail ? detail.ts : (prices.ts || null)
         });
     }
     
@@ -2810,7 +2836,7 @@ function renderShoppingList(r, materials, mode) {
         totalOwned += owned;
         totalNeed += total;
         
-        const mTip = m.source ? `${m.sourceIcon || '💰'} ${m.source}${m.ts ? ' @ ' + new Date(m.ts * 1000).toLocaleString() : ''}` : '';
+        const mTip = _priceTip(m);
         rows += `<div class="shop-row">
             <span class="shop-name">${m.name}</span>
             <span class="shop-qty">
@@ -2840,7 +2866,7 @@ function renderShoppingList(r, materials, mode) {
                 <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
                 <span class="shop-qty-text"><span class="shop-need-num">${formatWithCommas(need)}</span> <span class="shop-total-num">/ ${formatWithCommas(total)}</span></span>
             </span>
-            <span class="shop-price price-tip" data-tip="💰 market (${mode}) — cheapest prot">${formatCoins(r.protectPrice)}</span>
+            <span class="shop-price price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
         </div>`;
     }
     
@@ -2882,7 +2908,7 @@ function renderDetailRow(r) {
     for (const m of materials) {
         const lineTotal = m.count * m.price;
         matsPerAttempt += lineTotal;
-        const tip = m.source ? `${m.sourceIcon || ''} ${m.source}${m.ts ? ' @ ' + new Date(m.ts * 1000).toLocaleString() : ''}` : '';
+        const tip = _priceTip(m);
         matsHtml += `<div class="mat-row">
             <span class="mat-name">${m.name}</span>
             <span class="mat-count">${m.count.toFixed(m.name === 'Coins' ? 0 : 0)}x @ ${formatCoins(m.price)}</span>
@@ -2906,23 +2932,23 @@ function renderDetailRow(r) {
     if (r.baseSource === 'craft' && craftData) {
         // Craft is cheaper - show breakdown (base item now included in materials)
         const craftMatsHtml = craftData.materials.map(m => {
-            const mTip = m.source ? `${m.sourceIcon || '💰'} ${m.source}${m.ts ? ' @ ' + new Date(m.ts * 1000).toLocaleString() : ''}` : '💰 market';
+            const mTip = _priceTip(m);
             return `
             <div class="mat-row">
                 <span class="mat-name">${m.name}</span>
                 <span class="mat-count">${m.count.toFixed(2)}x @ ${formatCoins(m.price)}</span>
-                <span class="mat-price price-tip" data-tip="${mTip}">${formatCoins(m.total)}</span>
+                <span class="mat-price${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>${formatCoins(m.total)}</span>
             </div>`;
         }).join('');
         
         baseItemHtml = `
             <div class="detail-line">
                 <span class="label">Market price</span>
-                <span class="value alt price-tip" data-tip="💰 market (${mode})">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
+                <span class="value alt price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Craft price</span>
-                <span class="value price-tip" data-tip="🔨 craft cost (w/ artisan tea)">${formatCoins(r.basePrice)}</span>
+                <span class="value price-tip" data-tip="craft @ ${_fmtTs(prices.ts)}">${formatCoins(r.basePrice)}</span>
             </div>
             <div class="craft-breakdown">
                 ${craftMatsHtml}
@@ -2937,13 +2963,13 @@ function renderDetailRow(r) {
         baseItemHtml = `
             <div class="detail-line">
                 <span class="label">Market price</span>
-                <span class="value price-tip" data-tip="💰 market (${mode})">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
+                <span class="value price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
             </div>`;
         if (craftData) {
             baseItemHtml += `
             <div class="detail-line">
                 <span class="label">Craft price</span>
-                <span class="value alt price-tip" data-tip="🔨 craft cost (w/ artisan tea)">${formatCoins(craftData.total)}</span>
+                <span class="value alt price-tip" data-tip="craft @ ${_fmtTs(prices.ts)}">${formatCoins(craftData.total)}</span>
             </div>`;
         }
     }
@@ -2958,12 +2984,12 @@ function renderDetailRow(r) {
         const pctClass = pctChange > 0 ? 'positive' : 'negative';
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (bid)</span>
-            <span class="value ${pctClass} price-tip" data-tip="📈 bid history — since ${new Date(priceInfo.since * 1000).toLocaleString()}">${formatCoins(priceInfo.lastPrice)} → ${formatCoins(priceInfo.price)} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
+            <span class="value ${pctClass} price-tip" data-tip="market sell @ ${_fmtTs(priceInfo.since)}">${formatCoins(priceInfo.lastPrice)} → ${formatCoins(priceInfo.price)} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
         </div>`;
     } else {
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (+${r.target_level})</span>
-            <span class="value price-tip" data-tip="💰 current market bid">${formatCoins(r.sellPrice)}</span>
+            <span class="value price-tip" data-tip="market sell @ ${_fmtTs(prices.ts)}">${formatCoins(r.sellPrice)}</span>
         </div>`;
     }
     
@@ -2992,7 +3018,7 @@ function renderDetailRow(r) {
                 <span class="protect-badge">Prot @ ${r.protectAt}</span>
                 <span class="protect-count">${r.protectCount.toFixed(1)}</span>
                 <span class="protect-name">${protName}</span>
-                <span class="protect-price price-tip" data-tip="💰 market (${mode}) — cheapest of mirror/base/shard">${formatCoins(r.protectPrice)}</span>
+                <span class="protect-price price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
             </div>
             <div class="enhance-mats">
                 <div class="enhance-mats-label">Cost per click:</div>
@@ -3020,15 +3046,15 @@ function renderDetailRow(r) {
             <h4>💰 Cost Summary</h4>
             <div class="detail-line">
                 <span class="label">Base item</span>
-                <span class="value price-tip" data-tip="${r.baseSource === 'craft' ? '🔨 craft cost' : '💰 market'} (${mode})">${formatCoins(r.basePrice)}</span>
+                <span class="value price-tip" data-tip="${r.baseSource === 'craft' ? 'craft' : 'market buy'} @ ${_fmtTs(prices.ts)}">${formatCoins(r.basePrice)}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Materials (${r.actions.toFixed(0)} × ${formatCoins(matsPerAttempt)})</span>
-                <span class="value price-tip" data-tip="💰 market (${mode}) — enhance mats × actions">${formatCoins(totalEnhanceCost)}</span>
+                <span class="value price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${formatCoins(totalEnhanceCost)}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Protection (${r.protectCount.toFixed(1)} × ${formatCoins(r.protectPrice)})</span>
-                <span class="value price-tip" data-tip="💰 market (${mode}) — cheapest prot option">${formatCoins(totalProtCost)}</span>
+                <span class="value price-tip" data-tip="market buy @ ${_fmtTs(prices.ts)}">${formatCoins(totalProtCost)}</span>
             </div>
             <div class="mat-row total-row">
                 <span class="mat-name">Total Cost</span>
