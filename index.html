@@ -1240,14 +1240,14 @@
     <div class="container">
         <div class="header-row">
             <span class="version-tag" id="version-tag"></span>
+            <div class="gear-dropdown">
+                <button class="gear-btn" onclick="toggleGear()">&#x2699; Gear <span id="gear-arrow">&#9660;</span></button>
+                <div class="gear-panel" id="gear-panel"></div>
+            </div>
             <h1>&#x1F404; CowProfit</h1>
             <div class="loot-history-dropdown">
                 <button class="gear-btn" onclick="toggleLootHistory()">&#x1F4DC; Enhance <span id="loot-session-count"></span><span id="loot-history-arrow">&#9660;</span></button>
                 <div class="loot-history-panel" id="loot-history-panel"></div>
-            </div>
-            <div class="gear-dropdown">
-                <button class="gear-btn" onclick="toggleGear()">&#x2699; Gear <span id="gear-arrow">&#9660;</span></button>
-                <div class="gear-panel" id="gear-panel"></div>
             </div>
         </div>
         <div id="sync-status" class="sync-status"></div>

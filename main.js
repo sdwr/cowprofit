@@ -297,7 +297,8 @@ function init() {
     }
     
     const savedGearConfig = loadGearConfig();
-    calculator = new EnhanceCalculator(gameData, savedGearConfig);
+    const initialGameData = buildGearGameData(savedGearConfig);
+    calculator = new EnhanceCalculator(initialGameData, savedGearConfig);
     console.log(`[CowProfit v2] Calculator ready. ${Object.keys(gameData.items).length} items loaded.`);
     
     // Display version
@@ -504,10 +505,32 @@ function saveGearConfig(config) {
     }
 }
 
+function buildGearGameData(config) {
+    // Clone gameData items, zeroing stats for unequipped gear
+    const unequippedItems = [];
+    if (config.enchantedGlovesEquipped === false) unequippedItems.push('/items/enchanted_gloves');
+    if (config.enhancerTopEquipped === false) unequippedItems.push('/items/enhancers_top');
+    if (config.enhancerBotEquipped === false) unequippedItems.push('/items/enhancers_bottoms');
+    if (config.philoNeckEquipped === false) unequippedItems.push('/items/philosophers_necklace');
+    if (config.guzzlingPouchEquipped === false) unequippedItems.push('/items/guzzling_pouch');
+    
+    if (unequippedItems.length === 0) return gameData;
+    
+    // Shallow clone items with zeroed stats for unequipped
+    const patchedItems = { ...gameData.items };
+    for (const hrid of unequippedItems) {
+        if (patchedItems[hrid]) {
+            patchedItems[hrid] = { ...patchedItems[hrid], stats: {} };
+        }
+    }
+    return { ...gameData, items: patchedItems };
+}
+
 function onGearChange() {
     const c = readGearFromInputs();
     saveGearConfig(c);
-    calculator = new EnhanceCalculator(gameData, c);
+    const gd = buildGearGameData(c);
+    calculator = new EnhanceCalculator(gd, c);
     updateGearComputedStats();
     calculateAllProfits();
     renderTable();
@@ -539,10 +562,15 @@ function readGearFromInputs() {
         enhancerLevel: val('gear-enhancer-level', 14),
         achievementSuccessBonus: checked('gear-achievement') ? 0.2 : 0,
         enchantedGlovesLevel: val('gear-gloves', 10),
+        enchantedGlovesEquipped: checked('gear-gloves-on'),
         enhancerTopLevel: val('gear-top', 8),
+        enhancerTopEquipped: checked('gear-top-on'),
         enhancerBotLevel: val('gear-bot', 8),
+        enhancerBotEquipped: checked('gear-bot-on'),
         philoNeckLevel: val('gear-neck', 7),
+        philoNeckEquipped: checked('gear-neck-on'),
         guzzlingPouchLevel: val('gear-guzzling', 8),
+        guzzlingPouchEquipped: checked('gear-guzzling-on'),
         teaEnhancing: teaVal === 'enhancing',
         teaSuperEnhancing: teaVal === 'super',
         teaUltraEnhancing: teaVal === 'ultra',
@@ -604,7 +632,7 @@ function renderGearPanel() {
         <div class="gear-section">
             <h5>🎯 Enhancing</h5>
             <div class="gear-row"><span class="label">Level</span>${numInput('gear-enhancing-level', c.enhancingLevel, 1, 200)}<span class="computed" id="gear-eff-level"></span></div>
-            <div class="gear-row"><span class="label">Observatory</span>${numInput('gear-observatory', c.observatoryLevel, 0, 20)}</div>
+            <div class="gear-row"><span class="label">Observatory</span>${numInput('gear-observatory', c.observatoryLevel, 0, 8)}</div>
         </div>
         <div class="gear-section">
             <h5>🔧 Tool & Success</h5>
@@ -613,12 +641,12 @@ function renderGearPanel() {
             <div class="gear-row">${checkbox('gear-achievement', 'Achievement (0.2%)', c.achievementSuccessBonus > 0)}</div>
         </div>
         <div class="gear-section">
-            <h5>⚡ Speed Gear</h5>
-            <div class="gear-row"><span class="label">Gloves</span>${numInput('gear-gloves', c.enchantedGlovesLevel, 0, 20)}</div>
-            <div class="gear-row"><span class="label">Top</span>${numInput('gear-top', c.enhancerTopLevel, 0, 20)}</div>
-            <div class="gear-row"><span class="label">Bottoms</span>${numInput('gear-bot', c.enhancerBotLevel, 0, 20)}</div>
-            <div class="gear-row"><span class="label">Neck</span>${numInput('gear-neck', c.philoNeckLevel, 0, 20)}</div>
-            <div class="gear-row"><span class="label">Guzzling</span>${numInput('gear-guzzling', c.guzzlingPouchLevel, 0, 20)}<span class="computed" id="gear-guzzling-bonus"></span></div>
+            <h5>⚡ Gear</h5>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-gloves-on"${c.enchantedGlovesEquipped !== false ? ' checked' : ''}><span class="label">Gloves</span>${numInput('gear-gloves', c.enchantedGlovesLevel, 0, 20)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-top-on"${c.enhancerTopEquipped !== false ? ' checked' : ''}><span class="label">Top</span>${numInput('gear-top', c.enhancerTopLevel, 0, 20)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-bot-on"${c.enhancerBotEquipped !== false ? ' checked' : ''}><span class="label">Bottoms</span>${numInput('gear-bot', c.enhancerBotLevel, 0, 20)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-neck-on"${c.philoNeckEquipped !== false ? ' checked' : ''}><span class="label">Neck</span>${numInput('gear-neck', c.philoNeckLevel, 0, 20)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-guzzling-on"${c.guzzlingPouchEquipped !== false ? ' checked' : ''}><span class="label">Guzzling</span>${numInput('gear-guzzling', c.guzzlingPouchLevel, 0, 20)}</div>
         </div>
         <div class="gear-section">
             <h5>🍵 Teas</h5>
@@ -632,7 +660,7 @@ function renderGearPanel() {
             </div>
             <div class="gear-row">${checkbox('gear-tea-blessed', 'Blessed Tea', c.teaBlessed)}</div>
             <div class="gear-row">${checkbox('gear-tea-wisdom', 'Wisdom Tea', c.teaWisdom)}</div>
-            <div class="gear-row">${checkbox('gear-tea-artisan', 'Artisan Tea', c.artisanTea)}<span class="computed" id="gear-artisan-reduction"></span></div>
+            <div class="gear-row">${checkbox('gear-tea-artisan', 'Artisan Tea', c.artisanTea)}</div>
         </div>
         <div class="gear-section">
             <h5>💎 Charm</h5>
@@ -644,6 +672,23 @@ function renderGearPanel() {
     // Attach change listeners
     document.getElementById('gear-panel').addEventListener('input', onGearChange);
     document.getElementById('gear-panel').addEventListener('change', onGearChange);
+    
+    // Disable level inputs when gear unchecked
+    const gearToggles = [
+        ['gear-gloves-on', 'gear-gloves'],
+        ['gear-top-on', 'gear-top'],
+        ['gear-bot-on', 'gear-bot'],
+        ['gear-neck-on', 'gear-neck'],
+        ['gear-guzzling-on', 'gear-guzzling'],
+    ];
+    for (const [cbId, inputId] of gearToggles) {
+        const cb = document.getElementById(cbId);
+        const inp = document.getElementById(inputId);
+        if (cb && inp) {
+            inp.disabled = !cb.checked;
+            cb.addEventListener('change', () => { inp.disabled = !cb.checked; });
+        }
+    }
 
     updateGearComputedStats();
 }
@@ -658,8 +703,7 @@ function updateGearComputedStats() {
     const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
     set('gear-eff-level', `Eff: ${effLevel.toFixed(1)}`);
     set('gear-enhancer-bonus', `+${enhBonus.toFixed(2)}%`);
-    set('gear-guzzling-bonus', `${guzzling.toFixed(4)}x`);
-    set('gear-artisan-reduction', calculator.config.artisanTea ? `${((1 - artisanMult) * 100).toFixed(1)}% reduction` : '');
+
 }
 
 // Loot History dropdown
