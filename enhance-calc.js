@@ -65,8 +65,22 @@ class EnhanceCalculator {
         ];
     }
     
-    // Get noncombat stat from an item
+    // Check if a gear piece is equipped (defaults to true for backwards compat)
+    _isEquipped(hrid) {
+        const equipMap = {
+            '/items/enchanted_gloves': 'enchantedGlovesEquipped',
+            '/items/enhancers_top': 'enhancerTopEquipped',
+            '/items/enhancers_bottoms': 'enhancerBotEquipped',
+            '/items/philosophers_necklace': 'philoNeckEquipped',
+            '/items/guzzling_pouch': 'guzzlingPouchEquipped',
+        };
+        const key = equipMap[hrid];
+        return key ? (this.config[key] !== false) : true;
+    }
+    
+    // Get noncombat stat from an item (returns 0 if unequipped)
     _getNoncombatStat(hrid, statName) {
+        if (!this._isEquipped(hrid)) return 0;
         const item = this.items[hrid];
         if (!item || !item.stats) return 0;
         return item.stats[statName] || 0;

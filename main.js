@@ -297,8 +297,7 @@ function init() {
     }
     
     const savedGearConfig = loadGearConfig();
-    const initialGameData = buildGearGameData(savedGearConfig);
-    calculator = new EnhanceCalculator(initialGameData, savedGearConfig);
+    calculator = new EnhanceCalculator(gameData, savedGearConfig);
     console.log(`[CowProfit v2] Calculator ready. ${Object.keys(gameData.items).length} items loaded.`);
     
     // Display version
@@ -505,32 +504,10 @@ function saveGearConfig(config) {
     }
 }
 
-function buildGearGameData(config) {
-    // Clone gameData items, zeroing stats for unequipped gear
-    const unequippedItems = [];
-    if (config.enchantedGlovesEquipped === false) unequippedItems.push('/items/enchanted_gloves');
-    if (config.enhancerTopEquipped === false) unequippedItems.push('/items/enhancers_top');
-    if (config.enhancerBotEquipped === false) unequippedItems.push('/items/enhancers_bottoms');
-    if (config.philoNeckEquipped === false) unequippedItems.push('/items/philosophers_necklace');
-    if (config.guzzlingPouchEquipped === false) unequippedItems.push('/items/guzzling_pouch');
-    
-    if (unequippedItems.length === 0) return gameData;
-    
-    // Shallow clone items with zeroed stats for unequipped
-    const patchedItems = { ...gameData.items };
-    for (const hrid of unequippedItems) {
-        if (patchedItems[hrid]) {
-            patchedItems[hrid] = { ...patchedItems[hrid], stats: {} };
-        }
-    }
-    return { ...gameData, items: patchedItems };
-}
-
 function onGearChange() {
     const c = readGearFromInputs();
     saveGearConfig(c);
-    const gd = buildGearGameData(c);
-    calculator = new EnhanceCalculator(gd, c);
+    calculator = new EnhanceCalculator(gameData, c);
     updateGearComputedStats();
     calculateAllProfits();
     renderTable();
