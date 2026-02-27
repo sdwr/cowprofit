@@ -296,7 +296,8 @@ function init() {
         return;
     }
     
-    calculator = new EnhanceCalculator(gameData);
+    const savedGearConfig = loadGearConfig();
+    calculator = new EnhanceCalculator(gameData, savedGearConfig);
     console.log(`[CowProfit v2] Calculator ready. ${Object.keys(gameData.items).length} items loaded.`);
     
     // Display version
@@ -481,50 +482,184 @@ function toggleGear(e) {
     if (gearOpen) renderGearPanel();
 }
 
+// ============================================
+// GEAR CONFIG MANAGEMENT
+// ============================================
+
+const GEAR_CONFIG_KEY = 'cowprofit_gear_config';
+
+function loadGearConfig() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(GEAR_CONFIG_KEY));
+        if (saved) return { ...DEFAULT_CONFIG, ...saved };
+    } catch (e) {}
+    return { ...DEFAULT_CONFIG };
+}
+
+function saveGearConfig(config) {
+    try {
+        localStorage.setItem(GEAR_CONFIG_KEY, JSON.stringify(config));
+    } catch (e) {
+        console.warn('[CowProfit] Failed to save gear config:', e);
+    }
+}
+
+function onGearChange() {
+    const c = readGearFromInputs();
+    saveGearConfig(c);
+    calculator = new EnhanceCalculator(gameData, c);
+    updateGearComputedStats();
+    calculateAllProfits();
+    renderTable();
+    if (lootHistoryOpen) renderLootHistoryPanel();
+}
+
+function readGearFromInputs() {
+    const val = (id, fallback) => {
+        const el = document.getElementById(id);
+        return el ? (parseInt(el.value) || fallback) : fallback;
+    };
+    const checked = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.checked : false;
+    };
+    const selVal = (id, fallback) => {
+        const el = document.getElementById(id);
+        return el ? el.value : fallback;
+    };
+
+    // Enhancing tea radio
+    const teaRadio = document.querySelector('input[name="gear-enh-tea"]:checked');
+    const teaVal = teaRadio ? teaRadio.value : 'none';
+
+    return {
+        enhancingLevel: val('gear-enhancing-level', 125),
+        observatoryLevel: val('gear-observatory', 8),
+        enhancer: selVal('gear-enhancer', 'celestial_enhancer'),
+        enhancerLevel: val('gear-enhancer-level', 14),
+        achievementSuccessBonus: checked('gear-achievement') ? 0.2 : 0,
+        enchantedGlovesLevel: val('gear-gloves', 10),
+        enhancerTopLevel: val('gear-top', 8),
+        enhancerBotLevel: val('gear-bot', 8),
+        philoNeckLevel: val('gear-neck', 7),
+        guzzlingPouchLevel: val('gear-guzzling', 8),
+        teaEnhancing: teaVal === 'enhancing',
+        teaSuperEnhancing: teaVal === 'super',
+        teaUltraEnhancing: teaVal === 'ultra',
+        teaBlessed: checked('gear-tea-blessed'),
+        teaWisdom: checked('gear-tea-wisdom'),
+        artisanTea: checked('gear-tea-artisan'),
+        charmTier: selVal('gear-charm-tier', 'advanced'),
+        charmLevel: val('gear-charm-level', 6),
+        // Keep buffs from defaults
+        enhancingBuffLevel: DEFAULT_CONFIG.enhancingBuffLevel,
+        experienceBuffLevel: DEFAULT_CONFIG.experienceBuffLevel,
+    };
+}
+
+let gearPanelRendered = false;
+
 function renderGearPanel() {
     if (!calculator) {
         document.getElementById('gear-panel').innerHTML = '<div style="padding:10px;color:#888;">Calculator not loaded</div>';
         return;
     }
     
+    if (gearPanelRendered) {
+        updateGearComputedStats();
+        return;
+    }
+    gearPanelRendered = true;
+
     const c = calculator.config;
-    const guzzling = calculator.getGuzzlingBonus();
-    const enhancerBonus = calculator.getEnhancerBonus();
-    const effectiveLevel = calculator.getEffectiveLevel();
-    const artisanMult = calculator.getArtisanTeaMultiplier();
+    const enhancerTypes = [
+        ['cheese_enhancer', 'Cheese'],
+        ['verdant_enhancer', 'Verdant'],
+        ['azure_enhancer', 'Azure'],
+        ['burble_enhancer', 'Burble'],
+        ['crimson_enhancer', 'Crimson'],
+        ['rainbow_enhancer', 'Rainbow'],
+        ['holy_enhancer', 'Holy'],
+        ['celestial_enhancer', 'Celestial'],
+    ];
+    const charmTiers = ['none', 'trainee', 'basic', 'advanced', 'expert', 'master', 'grandmaster'];
+    const enhTeaVal = c.teaUltraEnhancing ? 'ultra' : c.teaSuperEnhancing ? 'super' : c.teaEnhancing ? 'enhancing' : 'none';
+
+    const numInput = (id, value, min, max) =>
+        `<input type="number" class="gear-input" id="${id}" value="${value}" min="${min}" max="${max}">`;
     
+    const selectOpts = (id, options, selected) =>
+        `<select class="gear-select" id="${id}">${options.map(([v, l]) =>
+            `<option value="${v}"${v === selected ? ' selected' : ''}>${l}</option>`
+        ).join('')}</select>`;
+
+    const checkbox = (id, label, checked) =>
+        `<label style="font-size:0.72rem;color:#aaa;cursor:pointer;display:flex;align-items:center;gap:3px;">
+            <input type="checkbox" class="gear-check" id="${id}"${checked ? ' checked' : ''}>${label}</label>`;
+
+    const radio = (name, value, label, checked) =>
+        `<label><input type="radio" name="${name}" value="${value}"${checked ? ' checked' : ''}><span>${label}</span></label>`;
+
     document.getElementById('gear-panel').innerHTML = `
         <div class="gear-section">
             <h5>🎯 Enhancing</h5>
-            <div class="gear-row"><span class="label">Base Level</span><span class="value">${c.enhancingLevel}</span></div>
-            <div class="gear-row"><span class="label">Effective Level</span><span class="value highlight">${effectiveLevel.toFixed(1)}</span></div>
-            <div class="gear-row"><span class="label">Observatory</span><span class="value">+${c.observatoryLevel}</span></div>
+            <div class="gear-row"><span class="label">Level</span>${numInput('gear-enhancing-level', c.enhancingLevel, 1, 200)}<span class="computed" id="gear-eff-level"></span></div>
+            <div class="gear-row"><span class="label">Observatory</span>${numInput('gear-observatory', c.observatoryLevel, 0, 20)}</div>
         </div>
         <div class="gear-section">
             <h5>🔧 Tool & Success</h5>
-            <div class="gear-row"><span class="label">${c.enhancer.replace(/_/g, ' ')} +${c.enhancerLevel}</span><span class="value">+${enhancerBonus.toFixed(2)}%</span></div>
-            <div class="gear-row"><span class="label">Achievement Bonus</span><span class="value">+${(c.achievementSuccessBonus * 100).toFixed(2)}%</span></div>
+            <div class="gear-row"><span class="label">Enhancer</span>${selectOpts('gear-enhancer', enhancerTypes, c.enhancer)}</div>
+            <div class="gear-row"><span class="label">Tool Level</span>${numInput('gear-enhancer-level', c.enhancerLevel, 0, 20)}<span class="computed" id="gear-enhancer-bonus"></span></div>
+            <div class="gear-row">${checkbox('gear-achievement', 'Achievement (0.2%)', c.achievementSuccessBonus > 0)}</div>
         </div>
         <div class="gear-section">
             <h5>⚡ Speed Gear</h5>
-            <div class="gear-row"><span class="label">Gloves +${c.enchantedGlovesLevel}</span><span class="value">equipped</span></div>
-            <div class="gear-row"><span class="label">Top +${c.enhancerTopLevel}</span><span class="value">equipped</span></div>
-            <div class="gear-row"><span class="label">Bot +${c.enhancerBotLevel}</span><span class="value">equipped</span></div>
-            <div class="gear-row"><span class="label">Neck +${c.philoNeckLevel}</span><span class="value">equipped</span></div>
+            <div class="gear-row"><span class="label">Gloves</span>${numInput('gear-gloves', c.enchantedGlovesLevel, 0, 20)}</div>
+            <div class="gear-row"><span class="label">Top</span>${numInput('gear-top', c.enhancerTopLevel, 0, 20)}</div>
+            <div class="gear-row"><span class="label">Bottoms</span>${numInput('gear-bot', c.enhancerBotLevel, 0, 20)}</div>
+            <div class="gear-row"><span class="label">Neck</span>${numInput('gear-neck', c.philoNeckLevel, 0, 20)}</div>
+            <div class="gear-row"><span class="label">Guzzling</span>${numInput('gear-guzzling', c.guzzlingPouchLevel, 0, 20)}<span class="computed" id="gear-guzzling-bonus"></span></div>
         </div>
         <div class="gear-section">
-            <h5>🍵 Active Teas</h5>
-            <div class="gear-row"><span class="label">Enhancing Tea</span><span class="value">${c.teaUltraEnhancing ? 'Ultra ✓' : c.teaSuperEnhancing ? 'Super ✓' : c.teaEnhancing ? '✓' : '✗'}</span></div>
-            <div class="gear-row"><span class="label">Blessed Tea</span><span class="value">${c.teaBlessed ? '✓' : '✗'}</span></div>
-            <div class="gear-row"><span class="label">Wisdom Tea</span><span class="value">${c.teaWisdom ? '✓' : '✗'}</span></div>
-            <div class="gear-row"><span class="label">Artisan Tea</span><span class="value">${c.artisanTea ? ((1 - artisanMult) * 100).toFixed(1) + '% mat reduction' : '✗'}</span></div>
-            <div class="gear-row"><span class="label">Guzzling Bonus</span><span class="value highlight">${guzzling.toFixed(4)}x</span></div>
+            <h5>🍵 Teas</h5>
+            <div class="gear-row"><span class="label">Enhancing</span>
+                <div class="gear-radio-group">
+                    ${radio('gear-enh-tea', 'none', 'None', enhTeaVal === 'none')}
+                    ${radio('gear-enh-tea', 'enhancing', 'Enh', enhTeaVal === 'enhancing')}
+                    ${radio('gear-enh-tea', 'super', 'Super', enhTeaVal === 'super')}
+                    ${radio('gear-enh-tea', 'ultra', 'Ultra', enhTeaVal === 'ultra')}
+                </div>
+            </div>
+            <div class="gear-row">${checkbox('gear-tea-blessed', 'Blessed Tea', c.teaBlessed)}</div>
+            <div class="gear-row">${checkbox('gear-tea-wisdom', 'Wisdom Tea', c.teaWisdom)}</div>
+            <div class="gear-row">${checkbox('gear-tea-artisan', 'Artisan Tea', c.artisanTea)}<span class="computed" id="gear-artisan-reduction"></span></div>
         </div>
         <div class="gear-section">
             <h5>💎 Charm</h5>
-            <div class="gear-row"><span class="label">${c.charmTier.charAt(0).toUpperCase() + c.charmTier.slice(1)} +${c.charmLevel}</span><span class="value">XP bonus</span></div>
+            <div class="gear-row"><span class="label">Tier</span>${selectOpts('gear-charm-tier', charmTiers.map(t => [t, t.charAt(0).toUpperCase() + t.slice(1)]), c.charmTier)}</div>
+            <div class="gear-row"><span class="label">Level</span>${numInput('gear-charm-level', c.charmLevel, 0, 20)}</div>
         </div>
     `;
+
+    // Attach change listeners
+    document.getElementById('gear-panel').addEventListener('input', onGearChange);
+    document.getElementById('gear-panel').addEventListener('change', onGearChange);
+
+    updateGearComputedStats();
+}
+
+function updateGearComputedStats() {
+    if (!calculator) return;
+    const effLevel = calculator.getEffectiveLevel();
+    const enhBonus = calculator.getEnhancerBonus();
+    const guzzling = calculator.getGuzzlingBonus();
+    const artisanMult = calculator.getArtisanTeaMultiplier();
+
+    const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+    set('gear-eff-level', `Eff: ${effLevel.toFixed(1)}`);
+    set('gear-enhancer-bonus', `+${enhBonus.toFixed(2)}%`);
+    set('gear-guzzling-bonus', `${guzzling.toFixed(4)}x`);
+    set('gear-artisan-reduction', calculator.config.artisanTea ? `${((1 - artisanMult) * 100).toFixed(1)}% reduction` : '');
 }
 
 // Loot History dropdown
