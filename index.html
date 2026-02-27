@@ -1236,6 +1236,41 @@
             .header-row { flex-wrap: wrap; }
             .loot-history-panel { min-width: 300px; }
         }
+        /* Progressive recalc skeletons */
+        .cell-loading {
+            position: relative;
+            color: transparent !important;
+        }
+        .cell-loading::after {
+            content: '';
+            position: absolute;
+            inset: 4px 6px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #1a1a2e, #2a2a3e, #1a1a2e);
+            background-size: 200% 100%;
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes skeleton-pulse {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        /* FLIP sort animation */
+        tr.data-row {
+            transition: none;
+        }
+        tr.data-row.flip-animate {
+            transition: transform 0.4s ease-out;
+        }
+        /* Recalc progress indicator */
+        .recalc-indicator {
+            display: none;
+            font-size: 0.7rem;
+            color: #eeb35780;
+            margin-left: 8px;
+        }
+        .recalc-indicator.active {
+            display: inline;
+        }
     </style>
 </head>
 <body>

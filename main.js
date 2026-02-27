@@ -23,6 +23,13 @@ let gearOpen = false;
 let historyOpen = false;
 let lootHistoryOpen = false;
 
+// Progressive recalc state
+let recalcController = {
+    runId: 0,
+    inProgress: false,
+    debounceTimer: null,
+};
+
 // Inventory data (set via event from userscript)
 let inventoryData = null;
 
@@ -354,6 +361,205 @@ function calculateAllProfits() {
     console.log(`[CowProfit v2] Calculated ${allResults.pessimistic.length} items in ${elapsed.toFixed(0)}ms`);
 }
 
+// Build the list of enhanceable items (cached for chunked recalc)
+let _enhanceableItems = null;
+function getEnhanceableItems() {
+    if (_enhanceableItems) return _enhanceableItems;
+    _enhanceableItems = [];
+    for (const [hrid, item] of Object.entries(gameData.items)) {
+        if (!item.enhancementCosts) continue;
+        const name = item.name?.toLowerCase() || '';
+        if (['cheese_', 'verdant_', 'wooden_', 'rough_'].some(s => name.includes(s))) continue;
+        _enhanceableItems.push({ hrid, item });
+    }
+    return _enhanceableItems;
+}
+
+// Async chunked version for gear changes
+async function calculateAllProfitsAsync(runId, onChunkDone) {
+    const CHUNK_SIZE = 30;
+    const items = getEnhanceableItems();
+    const modes = [PriceMode.PESSIMISTIC, PriceMode.MIDPOINT, PriceMode.OPTIMISTIC];
+    const modeNames = ['pessimistic', 'midpoint', 'optimistic'];
+    const tempResults = { pessimistic: [], midpoint: [], optimistic: [] };
+    
+    for (let ci = 0; ci < items.length; ci += CHUNK_SIZE) {
+        // Check abort
+        if (recalcController.runId !== runId) {
+            console.log(`[CowProfit] Recalc ${runId} aborted`);
+            return null;
+        }
+        
+        const chunk = items.slice(ci, ci + CHUNK_SIZE);
+        
+        for (const { hrid, item } of chunk) {
+            for (let mi = 0; mi < modes.length; mi++) {
+                const mode = modes[mi];
+                const modeName = modeNames[mi];
+                for (const target of TARGET_LEVELS) {
+                    const result = calculator.calculateProfit(hrid, target, prices, mode);
+                    if (result && result.sellPrice > 0 && result.roi < MAX_ROI) {
+                        result.item_name = item.name;
+                        result.item_hrid = hrid;
+                        result.target_level = target;
+                        tempResults[modeName].push(result);
+                    }
+                }
+            }
+        }
+        
+        if (onChunkDone) onChunkDone(ci + chunk.length, items.length);
+        
+        // Yield to event loop
+        await new Promise(r => setTimeout(r, 0));
+    }
+    
+    // Final abort check
+    if (recalcController.runId !== runId) return null;
+    
+    // Sort all
+    for (const modeName of modeNames) {
+        tempResults[modeName].sort((a, b) => b.profit - a.profit);
+    }
+    
+    return tempResults;
+}
+
+// Apply skeleton loading state to dependent cells
+function applySkeletonState() {
+    const tbody = document.getElementById('table-body');
+    if (!tbody) return;
+    // Columns that depend on gear: enhance cost(4), total cost(5), sell price stays, profit(7), roi(8), $/day(9), time(10), xp/day(11)
+    // Actually base price doesn't change, sell price doesn't change. Dependent: matCost, totalCost, profit, roi, $/day, time, xp/day
+    const skeletonCols = [4, 5, 7, 8, 9, 10, 11]; // 0-indexed td positions
+    const rows = tbody.querySelectorAll('tr.data-row');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        skeletonCols.forEach(ci => {
+            if (cells[ci]) cells[ci].classList.add('cell-loading');
+        });
+    });
+}
+
+// Remove skeleton state from all cells
+function removeSkeletonState() {
+    document.querySelectorAll('.cell-loading').forEach(el => el.classList.remove('cell-loading'));
+}
+
+// FLIP sort animation
+function flipSortAnimation(tbody) {
+    const rows = Array.from(tbody.querySelectorAll('tr.data-row'));
+    if (rows.length === 0) return;
+    
+    // FIRST: record current positions
+    const firstRects = new Map();
+    rows.forEach(row => {
+        firstRects.set(row, row.getBoundingClientRect());
+    });
+    
+    // LAST: re-render table (caller does this), then read new positions
+    // This function is called AFTER innerHTML is set, so we read new positions
+    const newRows = Array.from(tbody.querySelectorAll('tr.data-row'));
+    
+    newRows.forEach(row => {
+        const rowId = row.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+        if (!rowId) return;
+        
+        // Find matching old row by rowId
+        const oldRow = rows.find(r => {
+            const oid = r.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+            return oid === rowId;
+        });
+        if (!oldRow || !firstRects.has(oldRow)) return;
+        
+        const first = firstRects.get(oldRow);
+        const last = row.getBoundingClientRect();
+        const deltaY = first.top - last.top;
+        
+        if (Math.abs(deltaY) < 1) return;
+        
+        // INVERT
+        row.style.transform = `translateY(${deltaY}px)`;
+        row.style.transition = 'none';
+        
+        // PLAY
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                row.classList.add('flip-animate');
+                row.style.transform = '';
+                row.addEventListener('transitionend', () => {
+                    row.classList.remove('flip-animate');
+                    row.style.transition = '';
+                }, { once: true });
+            });
+        });
+    });
+}
+
+// Debounced async gear change handler
+async function onGearChangeAsync() {
+    const c = readGearFromInputs();
+    saveGearConfig(c);
+    calculator = new EnhanceCalculator(gameData, c);
+    updateGearComputedStats();
+    
+    // Abort any in-flight recalc
+    const runId = ++recalcController.runId;
+    recalcController.inProgress = true;
+    
+    // Apply skeleton state to current rows
+    applySkeletonState();
+    
+    const result = await calculateAllProfitsAsync(runId, (done, total) => {
+        // Could update a progress indicator here
+    });
+    
+    if (!result) return; // Aborted
+    
+    // Capture pre-sort positions
+    const tbody = document.getElementById('table-body');
+    const oldRows = Array.from(tbody.querySelectorAll('tr.data-row'));
+    const firstRects = new Map();
+    oldRows.forEach(row => {
+        const rowId = row.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+        if (rowId) firstRects.set(rowId, row.getBoundingClientRect());
+    });
+    
+    // Apply results and re-render
+    allResults = result;
+    renderTable();
+    
+    // FLIP animation
+    const newRows = Array.from(tbody.querySelectorAll('tr.data-row'));
+    newRows.forEach(row => {
+        const rowId = row.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+        if (!rowId || !firstRects.has(rowId)) return;
+        
+        const first = firstRects.get(rowId);
+        const last = row.getBoundingClientRect();
+        const deltaY = first.top - last.top;
+        
+        if (Math.abs(deltaY) < 1) return;
+        
+        row.style.transform = `translateY(${deltaY}px)`;
+        row.style.transition = 'none';
+        
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                row.classList.add('flip-animate');
+                row.style.transform = '';
+                row.addEventListener('transitionend', () => {
+                    row.classList.remove('flip-animate');
+                    row.style.transition = '';
+                }, { once: true });
+            });
+        });
+    });
+    
+    recalcController.inProgress = false;
+    if (lootHistoryOpen) renderLootHistoryPanel();
+}
+
 // Formatting helpers
 function formatCoins(value) {
     if (value === 0 || value === null || value === undefined) return '-';
@@ -505,13 +711,11 @@ function saveGearConfig(config) {
 }
 
 function onGearChange() {
-    const c = readGearFromInputs();
-    saveGearConfig(c);
-    calculator = new EnhanceCalculator(gameData, c);
-    updateGearComputedStats();
-    calculateAllProfits();
-    renderTable();
-    if (lootHistoryOpen) renderLootHistoryPanel();
+    // Debounce: 150ms
+    clearTimeout(recalcController.debounceTimer);
+    recalcController.debounceTimer = setTimeout(() => {
+        onGearChangeAsync();
+    }, 150);
 }
 
 function readGearFromInputs() {
