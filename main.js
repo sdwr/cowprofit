@@ -608,13 +608,13 @@ function renderGearPanel() {
     document.getElementById('gear-panel').innerHTML = `
         <div class="gear-section">
             <h5>🎯 Enhancing</h5>
-            <div class="gear-row"><span class="label">Level</span>${numInput('gear-enhancing-level', c.enhancingLevel, 1, 200)}<span class="computed" id="gear-eff-level"></span></div>
+            <div class="gear-row"><span class="label">Level</span>${numInput('gear-enhancing-level', c.enhancingLevel, 1, 200)}</div>
             <div class="gear-row"><span class="label">Observatory</span>${numInput('gear-observatory', c.observatoryLevel, 0, 8)}</div>
         </div>
         <div class="gear-section">
             <h5>🔧 Tool & Success</h5>
             <div class="gear-row"><span class="label">Enhancer</span>${selectOpts('gear-enhancer', enhancerTypes, c.enhancer)}</div>
-            <div class="gear-row"><span class="label">Tool Level</span>${numInput('gear-enhancer-level', c.enhancerLevel, 0, 20)}<span class="computed" id="gear-enhancer-bonus"></span></div>
+            <div class="gear-row"><span class="label">Tool Level</span>${numInput('gear-enhancer-level', c.enhancerLevel, 0, 20)}</div>
             <div class="gear-row">${checkbox('gear-achievement', 'Achievement (0.2%)', c.achievementSuccessBonus > 0)}</div>
         </div>
         <div class="gear-section">
@@ -676,10 +676,6 @@ function updateGearComputedStats() {
     const enhBonus = calculator.getEnhancerBonus();
     const guzzling = calculator.getGuzzlingBonus();
     const artisanMult = calculator.getArtisanTeaMultiplier();
-
-    const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
-    set('gear-eff-level', `Eff: ${effLevel.toFixed(1)}`);
-    set('gear-enhancer-bonus', `+${enhBonus.toFixed(2)}%`);
 
 }
 
