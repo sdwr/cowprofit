@@ -2441,18 +2441,20 @@ function calculateEnhanceSessionProfit(session) {
     // Get optimal protection level from calculator (instead of hardcoding 8)
     // The calculator finds the most cost-effective prot level for this item
     let protLevel = 8; // fallback
-    if (calculator && typeof calculator.calculateEnhancementCost === 'function') {
+    if (calculator) {
         try {
-            // Use highest level reached as target for prot calculation
             const targetForProt = Math.max(...Object.keys(levelDrops).map(Number), 10);
-            // Build historical prices for the calculator
             const matHrids = (itemData?.enhancementCosts || []).map(c => c.item || c.itemHrid || c.hrid).filter(h => h !== '/items/coin');
             const protItemHridsForCalc = itemData?.protectionItems || [];
             const allHridsForCalc = [itemHrid, '/items/mirror_of_protection', ...matHrids, ...protItemHridsForCalc];
-            const pricesAtTime = buildPricesAtTime(lootTs, allHridsForCalc);
-            const calcResult = calculator.calculateEnhancementCost(itemHrid, targetForProt, pricesAtTime, 'pessimistic');
-            if (calcResult && calcResult.protectAt) {
-                protLevel = calcResult.protectAt;
+            const itemResolver = new ItemResolver(gameData);
+            const priceResolver = new PriceResolver(gameData, PRICE_TIERS);
+            const shopping = itemResolver.resolve(itemHrid, targetForProt);
+            if (shopping) {
+                const histMarket = buildPricesAtTime(lootTs, allHridsForCalc).market;
+                const resolved = priceResolver.resolve(shopping, histMarket, {matMode:'pessimistic', protMode:'pessimistic', sellMode:'pessimistic'}, calculator.getArtisanTeaMultiplier());
+                const sim = calculator.simulate(resolved, targetForProt, shopping.itemLevel);
+                if (sim && sim.protectAt) protLevel = sim.protectAt;
             }
         } catch (e) {
             console.warn('[Loot] Failed to get optimal prot level, using 8:', e);
@@ -3244,18 +3246,28 @@ function calculateCostToCreate(itemHrid, level, lootTs, mode = 'pessimistic') {
     const baseCost = baseEstimate.price;
     
     // Use calculator if available
-    if (calculator && typeof calculator.calculateEnhancementCost === 'function') {
+    if (calculator) {
         try {
-            // Build historical prices object for enhance-calc.js
             const item = gameData.items[itemHrid];
             const matHrids = (item?.enhancementCosts || []).map(c => c.item).filter(h => h !== '/items/coin');
             const protHrids = item?.protectionItems || [];
             const allHrids = [itemHrid, '/items/mirror_of_protection', ...matHrids, ...protHrids];
-            const pricesAtTime = buildPricesAtTime(lootTs, allHrids);
-            const calcResult = calculator.calculateEnhancementCost(itemHrid, level, pricesAtTime, mode);
-            if (calcResult && calcResult.totalCost > 0) {
-                // calcResult.totalCost includes base item, return as-is
-                return calcResult.totalCost;
+            const modeMap = {
+                'pessimistic': {matMode:'pessimistic', protMode:'pessimistic', sellMode:'pessimistic'},
+                'midpoint': {matMode:'pessimistic', protMode:'pessimistic', sellMode:'midpoint'},
+                'optimistic': {matMode:'optimistic', protMode:'optimistic', sellMode:'optimistic'},
+            };
+            const modes = modeMap[mode] || modeMap['pessimistic'];
+            const itemResolver = new ItemResolver(gameData);
+            const priceResolver = new PriceResolver(gameData, PRICE_TIERS);
+            const shopping = itemResolver.resolve(itemHrid, level);
+            if (shopping) {
+                const histMarket = buildPricesAtTime(lootTs, allHrids).market;
+                const resolved = priceResolver.resolve(shopping, histMarket, modes, calculator.getArtisanTeaMultiplier());
+                const sim = calculator.simulate(resolved, level, shopping.itemLevel);
+                if (sim && sim.totalCost > 0) {
+                    return sim.totalCost;
+                }
             }
         } catch (e) {
             console.warn('Failed to calculate enhancement cost:', e);
