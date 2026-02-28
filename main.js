@@ -3906,7 +3906,7 @@ function renderTable() {
         const priceInfo = getPriceAge(r.item_hrid, r.target_level);
         const ageStr = priceInfo ? formatAge(priceInfo.age) : '-';
         const ageArrow = priceInfo?.direction === 'up' ? ' <span class="price-up">↑</span>' : 
-                         priceInfo?.direction === 'down' ? ' <span class="price-down">↓</span>' : '';
+                         priceInfo?.direction === 'down' ? ' <span class="price-down">↓</span>' : ' <span style="visibility:hidden">↑</span>';
         
         // Material % bar in item name (from inventory)
         const matPct = calculateMatPercent(r);
