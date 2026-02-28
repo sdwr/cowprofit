@@ -1,6 +1,10 @@
 /**
  * MWI Enhancement Cost Calculator (JavaScript port)
  * Implements the same Markov chain math as Python enhance_calc.py
+ * 
+ * Slimmed: price resolution moved to price-resolver.js,
+ * item resolution moved to item-resolver.js.
+ * This file contains only simulation + gear config.
  */
 
 // Default player config (same as Python USER_CONFIG)
@@ -37,7 +41,7 @@ const DEFAULT_CONFIG = {
     achievementSuccessBonus: 0.2,
 };
 
-// Price modes
+// Legacy PriceMode — kept for enhance history compatibility
 const PriceMode = {
     PESSIMISTIC: 'pessimistic',
     OPTIMISTIC: 'optimistic',
@@ -50,6 +54,7 @@ class EnhanceCalculator {
         this.recipes = gameData.recipes || {};
         this.constants = gameData.constants || {};
         this.config = { ...DEFAULT_CONFIG, ...config };
+        this._gameData = gameData;
         
         // Constants from game data or defaults
         this.enhanceBonus = this.constants.enhanceBonus || [
@@ -234,142 +239,6 @@ class EnhanceCalculator {
         return baseXp * (1 + xpBonus);
     }
     
-    // Get vendor price for an item
-    getVendorPrice(hrid) {
-        const item = this.items[hrid];
-        return item?.sellPrice || 0;
-    }
-    
-    // Get buy price from market data
-    _getBuyPrice(hrid, enhancementLevel, prices, mode = PriceMode.MIDPOINT) {
-        if (hrid === '/items/coin') return 1;
-        
-        const market = prices.market || {};
-        const itemMarket = market[hrid] || {};
-        const levelData = itemMarket[String(enhancementLevel)] || {};
-        
-        const ask = levelData.a ?? -1;
-        const bid = levelData.b ?? -1;
-        
-        if (ask === -1 && bid === -1) return 0;
-        
-        if (mode === PriceMode.PESSIMISTIC) {
-            return ask > 0 ? ask : 0;
-        } else if (mode === PriceMode.OPTIMISTIC) {
-            return bid > 0 ? bid : (ask > 0 ? ask : 0);
-        } else {
-            if (ask > 0 && bid > 0) return (ask + bid) / 2;
-            return ask > 0 ? ask : 0;
-        }
-    }
-    
-    // Get sell price from market data
-    getSellPrice(hrid, enhancementLevel, prices, mode = PriceMode.MIDPOINT) {
-        if (hrid === '/items/coin') return 1;
-        
-        const market = prices.market || {};
-        const itemMarket = market[hrid] || {};
-        const levelData = itemMarket[String(enhancementLevel)] || {};
-        
-        const ask = levelData.a ?? -1;
-        const bid = levelData.b ?? -1;
-        
-        if (ask === -1 && bid === -1) return 0;
-        
-        if (mode === PriceMode.PESSIMISTIC) {
-            return bid > 0 ? bid : 0;
-        } else if (mode === PriceMode.OPTIMISTIC) {
-            return ask > 0 ? ask : (bid > 0 ? bid : 0);
-        } else {
-            if (ask > 0 && bid > 0) return (ask + bid) / 2;
-            return bid > 0 ? bid : (ask > 0 ? ask : 0);
-        }
-    }
-    
-    // Calculate crafting cost recursively
-    getCraftingCost(hrid, prices, mode = PriceMode.MIDPOINT, depth = 0) {
-        if (depth > 10) return 0;
-        if (hrid === '/items/coin') return 1;
-        
-        const item = this.items[hrid];
-        if (!item) return 0;
-        
-        const category = item.category || '';
-        if (category !== '/item_categories/equipment' && hrid !== '/items/philosophers_mirror') {
-            return 0;
-        }
-        
-        const recipe = this.recipes[hrid];
-        if (!recipe) return 0;
-        
-        let cost = 0;
-        const artisanMult = this.getArtisanTeaMultiplier();
-        
-        // Input materials (affected by artisan tea)
-        for (const input of (recipe.inputs || [])) {
-            const count = input.count * artisanMult;
-            let inputPrice = this._getBuyPrice(input.item, 0, prices, mode);
-            if (inputPrice <= 0) {
-                inputPrice = this.getCraftingCost(input.item, prices, mode, depth + 1);
-            }
-            if (inputPrice <= 0) {
-                inputPrice = this.getVendorPrice(input.item);
-            }
-            cost += count * inputPrice;
-        }
-        
-        // Upgrade item (NOT affected by artisan tea)
-        if (recipe.upgrade) {
-            let upgradePrice = this._getBuyPrice(recipe.upgrade, 0, prices, mode);
-            if (upgradePrice <= 0) {
-                upgradePrice = this.getCraftingCost(recipe.upgrade, prices, mode, depth + 1);
-            }
-            if (upgradePrice <= 0) {
-                upgradePrice = this.getVendorPrice(recipe.upgrade);
-            }
-            cost += upgradePrice;
-        }
-        
-        return cost;
-    }
-    
-    // Get item price (lower of market or craft)
-    getItemPrice(hrid, enhancementLevel, prices, mode = PriceMode.MIDPOINT) {
-        if (hrid === '/items/coin') return { price: 1, source: 'fixed' };
-        
-        // Special case: trainee charms
-        if (hrid.includes('trainee') && hrid.includes('charm')) {
-            return { price: 250000, source: 'vendor' };
-        }
-        
-        const marketPrice = this._getBuyPrice(hrid, enhancementLevel, prices, mode);
-        
-        if (enhancementLevel === 0) {
-            const craftingCost = this.getCraftingCost(hrid, prices, mode);
-            
-            if (marketPrice > 0 && craftingCost > 0) {
-                if (craftingCost < marketPrice) {
-                    return { price: craftingCost, source: 'craft' };
-                } else {
-                    return { price: marketPrice, source: 'market' };
-                }
-            } else if (marketPrice > 0) {
-                return { price: marketPrice, source: 'market' };
-            } else if (craftingCost > 0) {
-                return { price: craftingCost, source: 'craft' };
-            }
-        } else if (marketPrice > 0) {
-            return { price: marketPrice, source: 'market' };
-        }
-        
-        const vendor = this.getVendorPrice(hrid);
-        if (vendor > 0) {
-            return { price: vendor, source: 'vendor' };
-        }
-        
-        return { price: 0, source: 'none' };
-    }
-    
     // Matrix inversion using Gaussian elimination
     _invertMatrix(matrix) {
         const n = matrix.length;
@@ -495,15 +364,112 @@ class EnhanceCalculator {
             totalXp,
         };
     }
+
+    /**
+     * simulate() — Run enhancement simulation with pre-resolved prices.
+     *
+     * @param {Object} resolvedPrices - From PriceResolver.resolve()
+     *   { matPrices: [[count, price, detail], ...], coinCost, basePrice, baseSource,
+     *     protectPrice, protectHrid, sellPrice }
+     * @param {number} targetLevel
+     * @param {number} itemLevel
+     * @returns {Object|null} Best simulation result
+     */
+    simulate(resolvedPrices, targetLevel, itemLevel) {
+        const totalBonus = this.getTotalBonus(itemLevel);
+        const attemptTime = this.getAttemptTime(itemLevel);
+        const useBlessed = this.config.teaBlessed;
+        const guzzling = useBlessed ? this.getGuzzlingBonus() : 1;
+
+        // Extract [count, price] pairs from matPrices (strip detail)
+        const matPricesSimple = resolvedPrices.matPrices.map(([count, price]) => [count, price]);
+
+        // Find optimal protection level (iterate 2..targetLevel)
+        let bestResult = null;
+        let bestTotal = Infinity;
+
+        for (let protLevel = 2; protLevel <= targetLevel; protLevel++) {
+            const result = this._markovEnhance(
+                targetLevel, protLevel, totalBonus,
+                matPricesSimple, resolvedPrices.coinCost,
+                resolvedPrices.protectPrice, resolvedPrices.basePrice,
+                useBlessed, guzzling, itemLevel
+            );
+
+            if (result.totalCost < bestTotal) {
+                bestTotal = result.totalCost;
+                bestResult = { ...result, protectAt: protLevel };
+            }
+        }
+
+        if (bestResult) {
+            bestResult.itemLevel = itemLevel;
+            bestResult.protectPrice = resolvedPrices.protectPrice;
+            bestResult.protectHrid = resolvedPrices.protectHrid;
+            bestResult.basePrice = resolvedPrices.basePrice;
+            bestResult.baseSource = resolvedPrices.baseSource;
+            bestResult.attemptTime = attemptTime;
+        }
+
+        return bestResult;
+    }
     
-    // Calculate enhancement cost for an item
+    /**
+     * Legacy wrapper — calculateEnhancementCost
+     * Used by enhance history code. Internally creates ItemResolver + PriceResolver,
+     * resolves with pessimistic mode for all categories, then calls simulate().
+     */
     calculateEnhancementCost(itemHrid, targetLevel, prices, mode = PriceMode.MIDPOINT) {
+        // Map legacy PriceMode to BuyMode/SellMode
+        let matMode, protMode, sellMode;
+        if (mode === PriceMode.PESSIMISTIC || mode === 'pessimistic') {
+            matMode = BuyMode.PESSIMISTIC;
+            protMode = BuyMode.PESSIMISTIC;
+            sellMode = SellMode.PESSIMISTIC;
+        } else if (mode === PriceMode.OPTIMISTIC || mode === 'optimistic') {
+            matMode = BuyMode.OPTIMISTIC;
+            protMode = BuyMode.OPTIMISTIC;
+            sellMode = SellMode.OPTIMISTIC;
+        } else {
+            // midpoint: buy at midpoint doesn't exist in BuyMode, 
+            // but legacy midpoint used ask+bid/2. Map to pessimistic for buying
+            // (legacy _getBuyPrice midpoint: (ask+bid)/2, but we don't have that in BuyMode)
+            // Actually, we need to replicate legacy behavior exactly.
+            // Legacy midpoint buy: (ask+bid)/2 if both exist, else ask
+            // Legacy midpoint sell: (ask+bid)/2 if both exist, else bid
+            // For legacy compat, fall back to the old direct method
+            return this._legacyCalculateEnhancementCost(itemHrid, targetLevel, prices, mode);
+        }
+
+        const resolver = new ItemResolver(this._gameData);
+        const pricer = new PriceResolver(this._gameData, typeof PRICE_TIERS !== 'undefined' ? PRICE_TIERS : []);
+
+        const shopping = resolver.resolve(itemHrid, targetLevel);
+        if (!shopping) return null;
+
+        const artisanMult = this.getArtisanTeaMultiplier();
+        const resolved = pricer.resolve(shopping, prices.market || prices, { matMode, protMode, sellMode }, artisanMult);
+
+        // Check we have valid protection
+        if (resolved.protectPrice <= 0 && resolved.protectHrid === null) return null;
+
+        const result = this.simulate(resolved, targetLevel, shopping.itemLevel);
+        if (result) {
+            result.itemHrid = itemHrid;
+        }
+        return result;
+    }
+
+    /**
+     * Legacy implementation for midpoint mode (preserves exact old behavior).
+     * This avoids needing to add a midpoint BuyMode.
+     */
+    _legacyCalculateEnhancementCost(itemHrid, targetLevel, prices, mode) {
         const item = this.items[itemHrid];
         if (!item || !item.enhancementCosts) return null;
         
         const itemLevel = item.level || 1;
         
-        // Parse enhancement costs
         const matCosts = [];
         let coinCost = 0;
         
@@ -515,18 +481,15 @@ class EnhanceCalculator {
             }
         }
         
-        // Get material prices
         const matPrices = [];
         for (const [hrid, count] of matCosts) {
-            const { price } = this.getItemPrice(hrid, 0, prices, mode);
+            const { price } = this._legacyGetItemPrice(hrid, 0, prices, mode);
             matPrices.push([count, price]);
         }
         
-        // Get base item price
-        const { price: basePrice, source: baseSource } = this.getItemPrice(itemHrid, 0, prices, mode);
+        const { price: basePrice, source: baseSource } = this._legacyGetItemPrice(itemHrid, 0, prices, mode);
         
-        // Get protection options
-        const mirrorPrice = this.getItemPrice('/items/mirror_of_protection', 0, prices, mode).price;
+        const mirrorPrice = this._legacyGetItemPrice('/items/mirror_of_protection', 0, prices, mode).price;
         
         const protectHrids = item.protectionItems || [];
         const protectOptions = [
@@ -536,14 +499,13 @@ class EnhanceCalculator {
         
         for (const phrid of protectHrids) {
             if (!phrid.includes('_refined')) {
-                const pprice = this.getItemPrice(phrid, 0, prices, mode).price;
+                const pprice = this._legacyGetItemPrice(phrid, 0, prices, mode).price;
                 if (pprice > 0) {
                     protectOptions.push([phrid, pprice]);
                 }
             }
         }
         
-        // Find cheapest valid protection
         const validProtects = protectOptions.filter(([, p]) => p > 0);
         if (validProtects.length === 0) return null;
         
@@ -556,7 +518,6 @@ class EnhanceCalculator {
         const useBlessed = this.config.teaBlessed;
         const guzzling = useBlessed ? this.getGuzzlingBonus() : 1;
         
-        // Find optimal protection level
         let bestResult = null;
         let bestTotal = Infinity;
         
@@ -585,19 +546,87 @@ class EnhanceCalculator {
         
         return bestResult;
     }
-    
-    // Calculate profit for enhancing to target level
+
+    // Legacy price helpers (used only by _legacyCalculateEnhancementCost)
+    _legacyGetBuyPrice(hrid, enhancementLevel, prices, mode) {
+        if (hrid === '/items/coin') return 1;
+        const market = prices.market || {};
+        const itemMarket = market[hrid] || {};
+        const levelData = itemMarket[String(enhancementLevel)] || {};
+        const ask = levelData.a ?? -1;
+        const bid = levelData.b ?? -1;
+        if (ask === -1 && bid === -1) return 0;
+        if (mode === PriceMode.PESSIMISTIC) return ask > 0 ? ask : 0;
+        if (mode === PriceMode.OPTIMISTIC) return bid > 0 ? bid : (ask > 0 ? ask : 0);
+        if (ask > 0 && bid > 0) return (ask + bid) / 2;
+        return ask > 0 ? ask : 0;
+    }
+
+    _legacyGetVendorPrice(hrid) {
+        const item = this.items[hrid];
+        return item?.sellPrice || 0;
+    }
+
+    _legacyCraftingCost(hrid, prices, mode, depth = 0) {
+        if (depth > 10) return 0;
+        if (hrid === '/items/coin') return 1;
+        const item = this.items[hrid];
+        if (!item) return 0;
+        const category = item.category || '';
+        if (category !== '/item_categories/equipment' && hrid !== '/items/philosophers_mirror') return 0;
+        const recipe = this.recipes[hrid];
+        if (!recipe) return 0;
+        let cost = 0;
+        const artisanMult = this.getArtisanTeaMultiplier();
+        for (const input of (recipe.inputs || [])) {
+            const count = input.count * artisanMult;
+            let inputPrice = this._legacyGetBuyPrice(input.item, 0, prices, mode);
+            if (inputPrice <= 0) inputPrice = this._legacyCraftingCost(input.item, prices, mode, depth + 1);
+            if (inputPrice <= 0) inputPrice = this._legacyGetVendorPrice(input.item);
+            cost += count * inputPrice;
+        }
+        if (recipe.upgrade) {
+            let upgradePrice = this._legacyGetBuyPrice(recipe.upgrade, 0, prices, mode);
+            if (upgradePrice <= 0) upgradePrice = this._legacyCraftingCost(recipe.upgrade, prices, mode, depth + 1);
+            if (upgradePrice <= 0) upgradePrice = this._legacyGetVendorPrice(recipe.upgrade);
+            cost += upgradePrice;
+        }
+        return cost;
+    }
+
+    _legacyGetItemPrice(hrid, enhancementLevel, prices, mode) {
+        if (hrid === '/items/coin') return { price: 1, source: 'fixed' };
+        if (hrid.includes('trainee') && hrid.includes('charm')) return { price: 250000, source: 'vendor' };
+        const marketPrice = this._legacyGetBuyPrice(hrid, enhancementLevel, prices, mode);
+        if (enhancementLevel === 0) {
+            const craftingCost = this._legacyCraftingCost(hrid, prices, mode);
+            if (marketPrice > 0 && craftingCost > 0) {
+                return craftingCost < marketPrice ? { price: craftingCost, source: 'craft' } : { price: marketPrice, source: 'market' };
+            }
+            if (marketPrice > 0) return { price: marketPrice, source: 'market' };
+            if (craftingCost > 0) return { price: craftingCost, source: 'craft' };
+        } else if (marketPrice > 0) {
+            return { price: marketPrice, source: 'market' };
+        }
+        const vendor = this._legacyGetVendorPrice(hrid);
+        if (vendor > 0) return { price: vendor, source: 'vendor' };
+        return { price: 0, source: 'none' };
+    }
+
+    /**
+     * Legacy wrapper — calculateProfit
+     * Used by main.js profit calculation loop.
+     */
     calculateProfit(itemHrid, targetLevel, prices, mode = PriceMode.PESSIMISTIC) {
         const result = this.calculateEnhancementCost(itemHrid, targetLevel, prices, mode);
         if (!result) return null;
         
-        const sellPrice = this.getSellPrice(itemHrid, targetLevel, prices, mode);
+        const sellPrice = this._legacyGetSellPrice(itemHrid, targetLevel, prices, mode);
         if (sellPrice <= 0) return null;
         
         const marketFee = sellPrice * 0.02;
         const profit = sellPrice - result.totalCost;
         const profitAfterFee = profit - marketFee;
-        // ROI based on enhance cost only (mats + prots), not including base item
         const enhanceCost = result.matCost;
         const roi = enhanceCost > 0 ? (profit / enhanceCost) * 100 : 0;
         const roiAfterFee = enhanceCost > 0 ? (profitAfterFee / enhanceCost) * 100 : 0;
@@ -635,6 +664,21 @@ class EnhanceCalculator {
             protectPrice: result.protectPrice,
             mode,
         };
+    }
+
+    // Legacy sell price helper
+    _legacyGetSellPrice(hrid, enhancementLevel, prices, mode) {
+        if (hrid === '/items/coin') return 1;
+        const market = prices.market || {};
+        const itemMarket = market[hrid] || {};
+        const levelData = itemMarket[String(enhancementLevel)] || {};
+        const ask = levelData.a ?? -1;
+        const bid = levelData.b ?? -1;
+        if (ask === -1 && bid === -1) return 0;
+        if (mode === PriceMode.PESSIMISTIC || mode === 'pessimistic') return bid > 0 ? bid : 0;
+        if (mode === PriceMode.OPTIMISTIC || mode === 'optimistic') return ask > 0 ? ask : (bid > 0 ? bid : 0);
+        if (ask > 0 && bid > 0) return (ask + bid) / 2;
+        return bid > 0 ? bid : (ask > 0 ? ask : 0);
     }
 }
 
