@@ -376,6 +376,7 @@ function calculateAllProfits() {
                 matCost,
                 totalCost: sim.totalCost,
                 sellPrices,
+                xpPerDay,
                 totalXp: sim.totalXp,
                 actions: sim.actions,
                 timeHours: totalTimeHours,
@@ -389,7 +390,6 @@ function calculateAllProfits() {
         }
     }
     
-    results.sort((a, b) => b.profit - a.profit);
     allResults = results;
     
     const elapsed = performance.now() - startTime;
@@ -466,6 +466,7 @@ async function calculateAllProfitsAsync(runId, onChunkDone) {
                     matCost,
                     totalCost: sim.totalCost,
                     sellPrices,
+                    xpPerDay,
                     totalXp: sim.totalXp,
                     actions: sim.actions,
                     timeHours: totalTimeHours,
