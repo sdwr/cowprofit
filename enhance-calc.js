@@ -10,10 +10,14 @@
 // Node.js compatibility: require dependencies if not in browser
 if (typeof window === 'undefined') {
     if (typeof ItemResolver === 'undefined') {
-        var { ItemResolver } = require('./item-resolver');
+        const _ir = require('./item-resolver');
+        globalThis.ItemResolver = _ir.ItemResolver;
     }
     if (typeof PriceResolver === 'undefined') {
-        var { PriceResolver, BuyMode, SellMode } = require('./price-resolver');
+        const _pr = require('./price-resolver');
+        globalThis.PriceResolver = _pr.PriceResolver;
+        globalThis.BuyMode = _pr.BuyMode;
+        globalThis.SellMode = _pr.SellMode;
     }
 }
 
