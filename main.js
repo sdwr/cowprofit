@@ -348,23 +348,22 @@ function calculateAllProfits() {
             const sim = calculator.simulate(resolved, target, shopping.itemLevel);
             if (!sim) { dbgSkips.noSim++; continue; }
             
-            // Build sell price and profit like legacy calculateProfit
-            const sellPrice = resolved.sellPrice;
+            // Pre-cache all 5 sell modes
+            const sellModes = ['pessimistic', 'pessimistic+', 'midpoint', 'optimistic-', 'optimistic'];
+            const sellPrices = {};
+            for (const sm of sellModes) {
+                const sd = priceResolver.resolveSellPrice(hrid, target, prices.market, sm);
+                sellPrices[sm] = { price: sd.price, actualMode: sd.actualMode, bid: sd.bid, ask: sd.ask };
+            }
+            
+            // Use current mode for initial display + filtering
+            const sellPrice = sellPrices[modeConfig.sellMode].price;
             if (sellPrice <= 0) { dbgSkips.noSell++; continue; }
             
-            const marketFee = sellPrice * 0.02;
-            const profit = sellPrice - sim.totalCost;
-            const profitAfterFee = profit - marketFee;
             const matCost = sim.matCost;
-            const roi = matCost > 0 ? (profit / matCost) * 100 : 0;
-            const roiAfterFee = matCost > 0 ? (profitAfterFee / matCost) * 100 : 0;
             const totalTimeHours = sim.actions * sim.attemptTime / 3600;
             const totalTimeDays = totalTimeHours / 24;
-            const profitPerDay = totalTimeDays > 0 ? profit / totalTimeDays : 0;
-            const profitPerDayAfterFee = totalTimeDays > 0 ? profitAfterFee / totalTimeDays : 0;
             const xpPerDay = totalTimeDays > 0 ? sim.totalXp / totalTimeDays : 0;
-            
-            if (roi >= MAX_ROI) continue;
             
             results.push({
                 item_name: item.name,
@@ -376,15 +375,7 @@ function calculateAllProfits() {
                 baseSource: sim.baseSource,
                 matCost,
                 totalCost: sim.totalCost,
-                sellPrice,
-                marketFee,
-                profit,
-                profitAfterFee,
-                roi,
-                roiAfterFee,
-                profitPerDay,
-                profitPerDayAfterFee,
-                xpPerDay,
+                sellPrices,
                 totalXp: sim.totalXp,
                 actions: sim.actions,
                 timeHours: totalTimeHours,
@@ -393,7 +384,6 @@ function calculateAllProfits() {
                 protectAt: sim.protectAt,
                 protectHrid: sim.protectHrid,
                 protectPrice: sim.protectPrice,
-                // Store resolved price details for dot rendering
                 _resolvedPrices: resolved,
             });
         }
@@ -449,22 +439,21 @@ async function calculateAllProfitsAsync(runId, onChunkDone) {
                 const sim = calculator.simulate(resolved, target, shopping.itemLevel);
                 if (!sim) continue;
                 
-                const sellPrice = resolved.sellPrice;
+                // Pre-cache all 5 sell modes
+                const sellModes = ['pessimistic', 'pessimistic+', 'midpoint', 'optimistic-', 'optimistic'];
+                const sellPrices = {};
+                for (const sm of sellModes) {
+                    const sd = priceResolver.resolveSellPrice(hrid, target, prices.market, sm);
+                    sellPrices[sm] = { price: sd.price, actualMode: sd.actualMode, bid: sd.bid, ask: sd.ask };
+                }
+                
+                const sellPrice = sellPrices[modeConfig.sellMode].price;
                 if (sellPrice <= 0) continue;
                 
-                const marketFee = sellPrice * 0.02;
-                const profit = sellPrice - sim.totalCost;
-                const profitAfterFee = profit - marketFee;
                 const matCost = sim.matCost;
-                const roi = matCost > 0 ? (profit / matCost) * 100 : 0;
-                const roiAfterFee = matCost > 0 ? (profitAfterFee / matCost) * 100 : 0;
                 const totalTimeHours = sim.actions * sim.attemptTime / 3600;
                 const totalTimeDays = totalTimeHours / 24;
-                const profitPerDay = totalTimeDays > 0 ? profit / totalTimeDays : 0;
-                const profitPerDayAfterFee = totalTimeDays > 0 ? profitAfterFee / totalTimeDays : 0;
                 const xpPerDay = totalTimeDays > 0 ? sim.totalXp / totalTimeDays : 0;
-                
-                if (roi >= MAX_ROI) continue;
                 
                 tempResults.push({
                     item_name: item.name,
@@ -476,15 +465,7 @@ async function calculateAllProfitsAsync(runId, onChunkDone) {
                     baseSource: sim.baseSource,
                     matCost,
                     totalCost: sim.totalCost,
-                    sellPrice,
-                    marketFee,
-                    profit,
-                    profitAfterFee,
-                    roi,
-                    roiAfterFee,
-                    profitPerDay,
-                    profitPerDayAfterFee,
-                    xpPerDay,
+                    sellPrices,
                     totalXp: sim.totalXp,
                     actions: sim.actions,
                     timeHours: totalTimeHours,
@@ -2782,7 +2763,7 @@ function setCatMode(cat, mode) {
     if (cat === 'sell') priceConfig.sellMode = mode;
     syncPriceConfigButtons();
     expandedRows.clear();
-    onPriceModeChangeAsync();
+    renderTable();
 }
 
 async function onPriceModeChangeAsync() {
@@ -3725,10 +3706,11 @@ function renderDetailRow(r) {
     const priceInfo = getPriceAge(r.item_hrid, r.target_level);
     let priceHtml = '';
     
-    const sellActualMode = r._resolvedPrices?.sellActualMode || 'pessimistic';
+    const sp = r.sellPrices?.[priceConfig.sellMode] || {};
+    const sellActualMode = sp.actualMode || 'pessimistic';
     const sellDot = priceDotHtml(sellActualMode);
-    const sellBid = r._resolvedPrices?.sellBid || 0;
-    const sellAsk = r._resolvedPrices?.sellAsk || 0;
+    const sellBid = sp.bid || 0;
+    const sellAsk = sp.ask || 0;
     
     // Build label with actual tick amount
     let sellModeLabel = 'bid';
@@ -3745,14 +3727,13 @@ function renderDetailRow(r) {
     }
     
     // Resolve display prices with the current sell mode applied
-    const sellDetails = r._resolvedPrices || {};
-    const resolvedSellPrice = r.sellPrice; // already resolved by PriceResolver
+    const resolvedSellPrice = r.sellPrice;
     
     if (priceInfo && priceInfo.lastPrice && priceInfo.lastPrice !== priceInfo.price) {
         // Show price change - resolve both old and new with current mode
         const bidOld = priceInfo.lastPrice;
         const bidNew = priceInfo.price;
-        const askData = sellDetails.sellAsk || 0;
+        const askData = sellAsk;
         
         // Apply sell mode to both old and new bid prices for display
         const displayNew = resolvedSellPrice;
@@ -3854,25 +3835,31 @@ function renderTable() {
     // Filter by cost
     filtered = filtered.filter(r => costFilters[getCostBucket(r.totalCost)]);
     
-    const profitKey = showFee ? 'profitAfterFee' : 'profit';
-    const profitDayKey = showFee ? 'profitPerDayAfterFee' : 'profitPerDay';
-    const roiKey = showFee ? 'roiAfterFee' : 'roi';
-    
-    // Add computed fields
+    // Derive sell price + profit from cached sellPrices
+    const sellMode = priceConfig.sellMode;
     filtered = filtered.map(r => {
-        let profit = r[profitKey];
-        let profitDay = r[profitDayKey];
-        const roi = r[roiKey] || r.roi;
+        const sp = r.sellPrices?.[sellMode];
+        const sellPrice = sp ? sp.price : 0;
+        const profit = sellPrice - r.totalCost;
+        const marketFee = sellPrice * 0.02;
+        const profitAfterFee = profit - marketFee;
+        const roi = r.matCost > 0 ? (profit / r.matCost) * 100 : 0;
+        const roiAfterFee = r.matCost > 0 ? (profitAfterFee / r.matCost) * 100 : 0;
+        const profitPerDay = r.timeDays > 0 ? profit / r.timeDays : 0;
+        const profitPerDayAfterFee = r.timeDays > 0 ? profitAfterFee / r.timeDays : 0;
         
-        // Get price age for sorting
+        const _profit = showFee ? profitAfterFee : profit;
+        const _profit_day = showFee ? profitPerDayAfterFee : profitPerDay;
+        const _roi = showFee ? roiAfterFee : roi;
+        
         const priceInfo = getPriceAge(r.item_hrid, r.target_level);
         const _age = priceInfo ? priceInfo.age : Infinity;
-        
         const volData = getVolumeData(r.item_hrid, r.target_level);
         const _volume = volData ? volData.volume : 0;
         
-        return { ...r, _profit: profit, _profit_day: profitDay, _roi: roi, _age, _volume, _volData: volData };
-    });
+        return { ...r, sellPrice, marketFee, profit, profitAfterFee, roi, roiAfterFee,
+            profitPerDay, profitPerDayAfterFee, _profit, _profit_day, _roi, _age, _volume, _volData: volData };
+    }).filter(r => r.sellPrice > 0);
     
     // Sort
     const sortKeys = ['item_name', 'target_level', '_age', 'basePrice', 'matCost', 'sellPrice', '_volume', '_profit', '_roi', '_profit_day', 'timeDays', 'xpPerDay'];
@@ -3885,12 +3872,12 @@ function renderTable() {
         return sortAsc ? va - vb : vb - va;
     });
     
-    // Stats
-    const profitable = data.filter(r => r[profitKey] > MIN_PROFIT);
-    const bestProfit = profitable.length ? Math.max(...profitable.map(r => r[profitKey])) : 0;
-    const bestRoi = profitable.length ? Math.max(...profitable.map(r => r[roiKey] || r.roi)) : 0;
-    const bestProfitDay = profitable.length ? Math.max(...profitable.map(r => r[profitDayKey])) : 0;
-    const bestXpDay = data.length ? Math.max(...data.map(r => r.xpPerDay)) : 0;
+    // Stats (use derived fields from filtered set)
+    const profitable = filtered.filter(r => r._profit > MIN_PROFIT);
+    const bestProfit = profitable.length ? Math.max(...profitable.map(r => r._profit)) : 0;
+    const bestRoi = profitable.length ? Math.max(...profitable.map(r => r._roi)) : 0;
+    const bestProfitDay = profitable.length ? Math.max(...profitable.map(r => r._profit_day)) : 0;
+    const bestXpDay = filtered.length ? Math.max(...filtered.map(r => r.xpPerDay)) : 0;
     
     document.getElementById('stat-profitable').textContent = profitable.length;
     document.getElementById('stat-roi').textContent = bestRoi.toFixed(0) + '%';

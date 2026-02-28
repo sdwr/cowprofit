@@ -157,7 +157,7 @@ class PriceResolver {
     /**
      * Resolve a sell price for an item from market data.
      */
-    _resolveSellPrice(hrid, enhLevel, marketPrices, mode) {
+    resolveSellPrice(hrid, enhLevel, marketPrices, mode) {
         if (hrid === '/items/coin') {
             return { price: 1, mode, actualMode: mode, bid: 1, ask: 1 };
         }
@@ -396,7 +396,7 @@ class PriceResolver {
         }
 
         // Sell price
-        const sellDetail = this._resolveSellPrice(
+        const sellDetail = this.resolveSellPrice(
             shoppingList.itemHrid, shoppingList.targetLevel, marketPrices, sellMode
         );
 
