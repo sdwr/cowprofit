@@ -15,7 +15,7 @@ Find the most profitable item enhancements in [Milky Way Idle](https://www.milky
 - **Market fee toggle:** 2% fee on/off for comparison
 
 ### Price Tracking
-- **Price Age column:** Shows how long current sell price has lasted (proxy for market depth)
+- **Price Age column:** How long the current sell price has lasted (proxy for market depth)
 - **Direction arrows:** ↑↓ show last price movement
 - **Market update history:** Click header to see last 15 market updates
 
@@ -32,44 +32,76 @@ Click any item to expand:
 - Price change history
 
 ### Visual Indicators
-- **Profit bars:** Green bars show relative $/day vs top earner
-- **Red bars:** For negative profit items
+- **Profit bars:** Green/red bars showing relative $/day
 - **Sortable columns:** Click headers to sort
 
-## How It Works
+## Architecture
 
-### Architecture (v2 - Client-Side Calculations)
+All calculations run client-side in the browser. The only server-side component is a cron job that fetches market prices.
 
-The site now uses client-side JavaScript for all calculations:
-
+### Files
 ```
-prices.js      - Market prices (updated every 30 min via cron)
-game-data.js   - Static item/recipe data  
-enhance-calc.js - Markov chain math (runs in browser)
-main.js        - UI rendering and state
+index.html          — Main site
+main.js             — UI rendering and state management
+enhance-calc.js     — Markov chain enhancement calculations (runs in browser)
+game-data.js        — Static item/recipe data
+prices.js           — Market prices + 7-day history (auto-updated by cron)
+generate_prices.py  — Fetches market data, updates prices.js
 ```
 
 ### Data Flow
 ```
-MWI Market API → generate_prices.py → prices.js → GitHub Pages
-                                           ↓
-                              Browser loads prices.js + game-data.js
-                                           ↓
-                              enhance-calc.js computes profits client-side
+                    ┌─────────────────────────────────────────┐
+                    │            Cron (every 30 min)          │
+                    │                                         │
+  MWI Market API ──→ generate_prices.py                      │
+                    │   1. Read prices.js (previous history)  │
+  prices.js ───────→   2. Diff market vs previous prices     │
+  (from git pull)   │   3. Record changes, prune >7 days     │
+                    │   4. Write new prices.js                │
+                    │   5. git commit + push                  │
+                    └─────────────────────────────────────────┘
+                                       │
+                                       ▼
+                              GitHub Pages deploys
+                                       │
+                                       ▼
+                    ┌─────────────────────────────────────────┐
+                    │              Browser                    │
+                    │                                         │
+                    │  prices.js + game-data.js               │
+                    │       ↓                                 │
+                    │  enhance-calc.js computes profits       │
+                    │       ↓                                 │
+                    │  main.js renders UI                     │
+                    └─────────────────────────────────────────┘
 ```
 
-### Update Schedule
-- **Clawdbot cron:** Every 30 minutes (:05, :35) via Fly.io Sprite
-- Runs `generate_prices.py` to fetch market data and update `prices.js`
-- Commits and pushes to GitHub → Pages auto-deploys
-- **No GitHub Actions** — cron is managed by Clawdbot
+### prices.js Format
+```js
+window.PRICES = {
+  market: {                     // Current bid/ask prices
+    "/items/abyssal_essence": {
+      "0": { a: 235, b: 230 }
+    }
+  },
+  history: {                    // 7-day rolling price change log
+    "/items/abyssal_essence:0": {
+      b: [{ p: 230, t: 1772166311 }, ...],  // bid changes, newest first
+      a: [{ p: 235, t: 1772166311 }, ...]   // ask changes, newest first
+    }
+  },
+  ts: 1772166311,               // Market data timestamp
+  generated: 1772169981         // When prices.js was generated
+};
+```
 
-### Math
-Uses Markov chain calculation (same as [Enhancelator](https://doh-nuts.github.io/Enhancelator/)):
-- Expected attempts to reach target level
-- Material costs × attempts
-- Base item cost + protection scrolls
-- Compare total cost to market sell price
+History is self-contained in `prices.js` — no separate state files needed. A fresh `git clone` has everything required to run the next update.
+
+### Update Schedule
+- **Cron:** Every 30 minutes via Clawdbot + Fly.io Sprite
+- Runs `generate_prices.py` on the sprite, commits and pushes to GitHub
+- GitHub Pages auto-deploys on push
 
 ## Gear Assumptions (Hardcoded)
 
@@ -87,118 +119,23 @@ Uses Markov chain calculation (same as [Enhancelator](https://doh-nuts.github.io
 | Skill | Enhancing | Level 125 | Base level |
 | Teas | Ultra Enhancing, Blessed, Wisdom | — | +8 levels, double success, XP |
 
-## Project Structure
+## Enhancement Math
 
-```
-cowprofit/
-├── index.html            # Main site (v2 client-side)
-├── main.js               # UI rendering and state management
-├── enhance-calc.js       # Markov chain enhancement calculations  
-├── prices.js             # Market prices (auto-updated by cron)
-├── game-data.js          # Static item/recipe data
-├── generate_prices.py    # Fetches market data, generates prices.js
-├── cowprofit-inventory.user.js  # Tampermonkey userscript for inventory import
-├── index-v1.html         # Legacy server-side version (backup)
-├── main-v1.js            # Legacy JS (backup)
-├── generate_site.py      # Legacy: fetch data, calculate, generate HTML
-├── enhance_calc.py       # Enhancement math (Markov chains, cost calculation)
-├── price_history.json    # Tracks bid prices over time for age display
-├── index.html            # Generated static site (2MB+)
-├── data.json             # Cached market data snapshot
-└── init_client_info.json # Game item/recipe data (from Enhancelator)
-```
-
-### Key Files
-
-| File | Purpose |
-|------|---------|
-| `generate_site.py` | All-in-one: fetches market data, updates price history, calculates profits, generates HTML |
-| `enhance_calc.py` | `EnhancementCalculator` class with Markov chain math |
-| `price_history.json` | Tracks `{hrid}:{level}` → price, since timestamp, direction |
+Uses Markov chain calculation (same as [Enhancelator](https://doh-nuts.github.io/Enhancelator/)):
+- Expected attempts to reach target level
+- Material costs × attempts
+- Base item cost + protection scrolls
+- Compare total cost to market sell price
 
 ## Local Development
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run calculation (generates index.html)
-python generate_site.py
-
-# View locally
-open index.html
+pip install requests
+python generate_prices.py    # Fetches prices, writes prices.js
+open index.html              # View site locally
 ```
-
-## Deployment (Fly.io Sprite + GitHub Actions)
-
-### Automatic Updates
-- **GitHub Actions** runs every 30 minutes (`.github/workflows/update.yml`)
-- Wakes the Sprite, pulls latest code, runs `generate_site.py`, pushes to GitHub Pages
-- Requires `SPRITE_TOKEN` secret in repo settings
-
-### Manual Run
-```bash
-# SSH to sprite
-sprite console -s mwi-tracker
-
-# Manual run
-cd /home/sprite/cowprofit
-python3 generate_site.py
-```
-
-### Setup (if cloning)
-1. Create a Fly.io Sprite: `sprite create mwi-tracker`
-2. Get org token from https://fly.io/dashboard → Tokens
-3. Add `SPRITE_TOKEN` secret to GitHub repo settings
-4. Push to trigger first run
-
-### Troubleshooting
-
-**GitHub Actions failing at "Auth and Run Update":**
-- Check `SPRITE_TOKEN` secret is set and valid
-- Token may have expired — generate new one at Fly.io dashboard
-
-**Sprite exec hangs or returns no output:**
-- Use `bash -c "..."` wrapper for complex commands
-- Direct `python3 /path/to/script.py` may fail on module imports
-- ✅ Works: `sprite exec -s mwi-tracker -- bash -c "cd /home/sprite/cowprofit && python3 generate_site.py"`
-- ❌ Fails: `sprite exec -s mwi-tracker -- python3 /home/sprite/cowprofit/generate_site.py`
-
-**Module not found (requests, etc):**
-- Sprite uses pyenv — pip3 installs to correct location
-- But running python directly without bash may use different PATH
-- Always use `bash -c "cd /path && python3 script.py"` pattern
-
-**v2 site (client-side calcs):**
-- Branch: `client-side-calcs`
-- Uses `prices.js` + `game-data.js` instead of server-side calculation
-- Cron job updates `prices.js` every 30 min via separate workflow
-
-## Roadmap
-
-### Planned: Inventory Import
-- Import player inventory from game via companion userscript
-- Show materials already owned vs need to buy
-- Material % bar on each item (value-weighted % of mats owned)
-- Filter to affordable enhancements (2x cost buffer)
-- Shopping list with owned/total/need-to-buy counts
-
-### Technical: Userscript Data Bridge
-
-The companion userscript uses **Tampermonkey's cross-site storage** (`GM_setValue`/`GM_getValue`) to bridge data between the game and CowProfit:
-
-1. Script runs on `milkywayidle.com`, hooks WebSocket
-2. Captures `init_character_data` message (contains `characterItems` inventory + `gameCoins`)
-3. Stores data via `GM_setValue('cowprofit_inventory', data)`
-4. Same script also runs on `sdwr.github.io/cowprofit/*`
-5. On CowProfit, reads via `GM_getValue('cowprofit_inventory')` and injects into page
-
-This works because Tampermonkey storage belongs to the **extension**, not the websites — it acts as a secure bridge between domains without needing external services like TextDB.
-
-**Note:** TextDB (textdb.online) is used by some MWI tools for shareable links, but local-only import is simpler and doesn't depend on external services.
 
 ## Credits
 
 - Math: [Enhancelator](https://doh-nuts.github.io/Enhancelator/) by dohnuts, MangoFlavor, guch8017, AyajiLin, Trafalet
 - Market data: Milky Way Idle game API
-- Price history idea: Track bid prices to estimate market depth
