@@ -186,18 +186,27 @@ class PriceResolver {
                 price = validBid || 0;
                 break;
             case SellMode.PESSIMISTIC_PLUS:
-                if (isTight) {
+                if (!validBid) {
+                    price = 0;
+                    actualMode = SellMode.PESSIMISTIC;
+                } else if (isTight) {
                     price = validBid;
                     actualMode = SellMode.PESSIMISTIC;
-                } else if (validBid > 0) {
+                } else {
                     price = getNextPrice(validBid);
                 }
                 break;
             case SellMode.MIDPOINT:
-                if (validAsk > 0 && validBid > 0) {
+                if (validBid > 0 && validAsk > 0) {
                     price = (validAsk + validBid) / 2;
+                } else if (validBid > 0) {
+                    // No ask → fall back to pessimistic (bid)
+                    price = validBid;
+                    actualMode = SellMode.PESSIMISTIC;
                 } else {
-                    price = validBid || validAsk || 0;
+                    // No bid → can't estimate sell price
+                    price = 0;
+                    actualMode = SellMode.PESSIMISTIC;
                 }
                 break;
             case SellMode.OPTIMISTIC_MINUS:
@@ -206,12 +215,22 @@ class PriceResolver {
                     actualMode = SellMode.OPTIMISTIC;
                 } else if (validAsk > 0) {
                     price = getPrevPrice(validAsk);
+                } else if (validBid > 0) {
+                    price = validBid;
+                    actualMode = SellMode.PESSIMISTIC;
                 } else {
-                    price = validBid || 0;
+                    price = 0;
                 }
                 break;
             case SellMode.OPTIMISTIC:
-                price = validAsk || validBid || 0;
+                if (validAsk > 0) {
+                    price = validAsk;
+                } else if (validBid > 0) {
+                    price = validBid;
+                    actualMode = SellMode.PESSIMISTIC;
+                } else {
+                    price = 0;
+                }
                 break;
             default:
                 price = validBid || 0;
