@@ -7,6 +7,16 @@
  * This file contains only simulation + gear config.
  */
 
+// Node.js compatibility: require dependencies if not in browser
+if (typeof window === 'undefined') {
+    if (typeof ItemResolver === 'undefined') {
+        var { ItemResolver } = require('./item-resolver');
+    }
+    if (typeof PriceResolver === 'undefined') {
+        var { PriceResolver, BuyMode, SellMode } = require('./price-resolver');
+    }
+}
+
 // Default player config (same as Python USER_CONFIG)
 const DEFAULT_CONFIG = {
     enhancingLevel: 125,
