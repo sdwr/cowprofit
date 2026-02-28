@@ -417,6 +417,8 @@ class PriceResolver {
             protectActualMode,
             sellPrice: sellDetail.price,
             sellActualMode: sellDetail.actualMode,
+            sellBid: sellDetail.bid,
+            sellAsk: sellDetail.ask,
             priceDetails,
         };
     }

@@ -2742,6 +2742,45 @@ function priceDotHtml(actualMode) {
     return cls ? `<span class="price-dot ${cls}"></span>` : '';
 }
 
+// Build tooltip extra info showing the tick increment for sell modes
+function _sellModeTipExtra(mode, details) {
+    const bid = details?.sellBid || 0;
+    const ask = details?.sellAsk || 0;
+    if (mode === 'pessimistic+' && bid > 0) {
+        const step = getNextPrice(bid) - bid;
+        return ` (bid ${formatCoins(bid)} + ${formatCoins(step)})`;
+    }
+    if (mode === 'optimistic-' && ask > 0) {
+        const step = ask - getPrevPrice(ask);
+        return ` (ask ${formatCoins(ask)} - ${formatCoins(step)})`;
+    }
+    if (mode === 'midpoint' && bid > 0 && ask > 0) {
+        return ` (bid ${formatCoins(bid)} + ask ${formatCoins(ask)}) / 2`;
+    }
+    return '';
+}
+
+// Apply sell mode offset to a raw bid price (for showing historical price changes with mode applied)
+function _applySellModeToPrice(bid, ask, mode) {
+    if (!bid || bid <= 0) return 0;
+    switch (mode) {
+        case 'pessimistic': return bid;
+        case 'pessimistic+':
+            if (ask > 0 && ask <= getNextPrice(bid)) return bid; // tight spread fallback
+            return getNextPrice(bid);
+        case 'midpoint':
+            if (ask > 0 && bid > 0) return (bid + ask) / 2;
+            return bid; // fall back to pessimistic
+        case 'optimistic-':
+            if (!ask || ask <= 0) return bid;
+            if (ask <= getNextPrice(bid)) return ask; // tight spread fallback
+            return getPrevPrice(ask);
+        case 'optimistic':
+            return ask > 0 ? ask : bid;
+        default: return bid;
+    }
+}
+
 // Sync button active states with priceConfig
 function syncPriceConfigButtons() {
     // Clear all cat-btn active states
@@ -2752,23 +2791,22 @@ function syncPriceConfigButtons() {
         const btn = document.querySelector(`.cat-btn[data-cat="${cat}"][data-mode="${mode}"]`);
         if (btn) btn.classList.add('active');
     }
-    // Master pess highlight: active only when all pessimistic
+    // Master pess highlight: active when sell is pessimistic
     const masterBtn = document.getElementById('btn-master-pess');
     if (masterBtn) {
-        masterBtn.classList.toggle('active',
-            priceConfig.matMode === 'pessimistic' &&
-            priceConfig.protMode === 'pessimistic' &&
-            priceConfig.sellMode === 'pessimistic');
+        masterBtn.classList.toggle('active', priceConfig.sellMode === 'pessimistic');
     }
     // Update mode info
     const el = document.getElementById('mode-info');
     if (el) {
-        if (priceConfig.matMode === 'pessimistic' && priceConfig.protMode === 'pessimistic' && priceConfig.sellMode === 'pessimistic') {
-            el.textContent = 'Buy at Ask, Sell at Bid (safest estimate)';
-        } else {
-            const labels = { 'pessimistic': 'Pess', 'pessimistic+': 'Pess+', 'midpoint': 'Mid', 'optimistic-': 'Opt-', 'optimistic': 'Opt' };
-            el.textContent = `Mats: ${labels[priceConfig.matMode]} · Prots: ${labels[priceConfig.protMode]} · Sell: ${labels[priceConfig.sellMode]}`;
-        }
+        const sellLabels = {
+            'pessimistic': 'Sell at Bid (safest estimate)',
+            'pessimistic+': 'Sell at Bid + 1 tick',
+            'midpoint': 'Sell at Midpoint (Bid+Ask)/2',
+            'optimistic-': 'Sell at Ask - 1 tick',
+            'optimistic': 'Sell at Ask (most optimistic)',
+        };
+        el.textContent = sellLabels[priceConfig.sellMode] || '';
     }
 }
 
@@ -3729,19 +3767,42 @@ function renderDetailRow(r) {
     const priceInfo = getPriceAge(r.item_hrid, r.target_level);
     let priceHtml = '';
     
-    const sellDot = priceDotHtml(r._resolvedPrices?.sellActualMode);
+    const sellActualMode = r._resolvedPrices?.sellActualMode || 'pessimistic';
+    const sellDot = priceDotHtml(sellActualMode);
+    const sellModeLabels = {
+        'pessimistic': 'bid',
+        'pessimistic+': 'bid + 1 tick',
+        'midpoint': 'midpoint',
+        'optimistic-': 'ask - 1 tick',
+        'optimistic': 'ask',
+    };
+    const sellModeLabel = sellModeLabels[sellActualMode] || 'bid';
+    
+    // Resolve display prices with the current sell mode applied
+    const sellDetails = r._resolvedPrices || {};
+    const resolvedSellPrice = r.sellPrice; // already resolved by PriceResolver
+    
     if (priceInfo && priceInfo.lastPrice && priceInfo.lastPrice !== priceInfo.price) {
-        // Show price change
-        const pctChange = ((priceInfo.price - priceInfo.lastPrice) / priceInfo.lastPrice * 100).toFixed(1);
+        // Show price change - resolve both old and new with current mode
+        const bidOld = priceInfo.lastPrice;
+        const bidNew = priceInfo.price;
+        const askData = sellDetails.sellAsk || 0;
+        
+        // Apply sell mode to both old and new bid prices for display
+        const displayNew = resolvedSellPrice;
+        const displayOld = _applySellModeToPrice(bidOld, askData, sellActualMode);
+        
+        const pctChange = ((displayNew - displayOld) / displayOld * 100).toFixed(1);
         const pctClass = pctChange > 0 ? 'positive' : 'negative';
         priceHtml = `<div class="detail-line">
-            <span class="label">Sell price (bid)</span>
-            <span class="value ${pctClass} price-tip" data-tip="${r.item_name} +${r.target_level} bid @ ${_fmtTs(priceInfo.since)}">${formatCoins(priceInfo.lastPrice)} → ${formatCoins(priceInfo.price)}${sellDot} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
+            <span class="label">Sell price (${sellModeLabel})</span>
+            <span class="value ${pctClass} price-tip" data-tip="${r.item_name} +${r.target_level} ${sellModeLabel} @ ${_fmtTs(priceInfo.since)}">${formatCoins(displayOld)}${sellDot} → ${formatCoins(displayNew)}${sellDot} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
         </div>`;
     } else {
+        const sellTipExtra = _sellModeTipExtra(sellActualMode, sellDetails);
         priceHtml = `<div class="detail-line">
-            <span class="label">Sell price (+${r.target_level})</span>
-            <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} bid @ ${_fmtTs(prices.ts)}">${formatCoins(r.sellPrice)}${sellDot}</span>
+            <span class="label">Sell price (${sellModeLabel})</span>
+            <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} ${sellModeLabel}${sellTipExtra} @ ${_fmtTs(prices.ts)}">${formatCoins(resolvedSellPrice)}${sellDot}</span>
         </div>`;
     }
     
