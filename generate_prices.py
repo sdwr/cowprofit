@@ -201,6 +201,32 @@ def main():
     print(f"  {OUTPUT_FILE} ({size_kb:.1f} KB)")
     print(f"  {len(history)} items tracked, {bid_entries} bid + {ask_entries} ask history entries")
 
+    # Also update volume.js using the same market data
+    try:
+        from generate_volume import load_previous_state as load_vol_state
+        from generate_volume import update_volume, prune_volume, build_volume_js
+        from generate_volume import OUTPUT_FILE as VOL_OUTPUT
+
+        print("\nUpdating volume.js...")
+        vol_state = load_vol_state()
+        vol_state, vol_new, vol_count = update_volume(market_data, vol_state)
+        now_ts = int(datetime.now().timestamp())
+        vol_state['data'] = prune_volume(vol_state['data'], now_ts)
+        vol_js = build_volume_js(vol_state['data'], market_ts)
+        VOL_OUTPUT.write_text(vol_js, encoding='utf-8')
+
+        total_items = len(vol_state['data'])
+        total_entries = sum(len(v) for v in vol_state['data'].values())
+        vol_kb = len(vol_js) / 1024
+        print(f"  {VOL_OUTPUT} ({vol_kb:.1f} KB)")
+        print(f"  {total_items} items, {total_entries} entries")
+        if not vol_new:
+            print("  (no new data)")
+        else:
+            print(f"  {vol_count} items with trades")
+    except Exception as e:
+        print(f"  Volume update failed: {e}")
+
     return is_new_data
 
 
