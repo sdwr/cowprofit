@@ -20,27 +20,11 @@ let costFilters = { '100m': true, '500m': true, '1b': true, '2b': true, 'over2b'
 let allResults = [];
 
 // Price category config
-const PRICE_CONFIG_KEY = 'cowprofit_price_config';
 let priceConfig = {
     matMode: 'pessimistic',
     protMode: 'pessimistic',
     sellMode: 'pessimistic',
 };
-
-function loadPriceConfig() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(PRICE_CONFIG_KEY));
-        if (saved) {
-            priceConfig.matMode = saved.matMode || 'pessimistic';
-            priceConfig.protMode = saved.protMode || 'pessimistic';
-            priceConfig.sellMode = saved.sellMode || 'pessimistic';
-        }
-    } catch (e) {}
-}
-
-function savePriceConfig() {
-    localStorage.setItem(PRICE_CONFIG_KEY, JSON.stringify(priceConfig));
-}
 
 // Legacy compat — currentMode returns sellMode for code that still reads it
 let currentMode = 'pessimistic';
@@ -306,8 +290,7 @@ function init() {
     // Display version
     document.getElementById('version-tag').textContent = gameData.version + ' (v2)';
     
-    // Load saved price config and sync buttons
-    loadPriceConfig();
+    // Sync price config buttons (always starts pessimistic)
     syncPriceConfigButtons();
     
     // Calculate all profits
@@ -2742,20 +2725,20 @@ function priceDotHtml(actualMode) {
     return cls ? `<span class="price-dot ${cls}"></span>` : '';
 }
 
-// Build tooltip extra info showing the tick increment for sell modes
+// Build tooltip for sell price showing increment details
 function _sellModeTipExtra(mode, details) {
     const bid = details?.sellBid || 0;
     const ask = details?.sellAsk || 0;
     if (mode === 'pessimistic+' && bid > 0) {
         const step = getNextPrice(bid) - bid;
-        return ` (bid ${formatCoins(bid)} + ${formatCoins(step)})`;
+        return ` · bid + ${formatCoins(step)} (bid ${formatCoins(bid)})`;
     }
     if (mode === 'optimistic-' && ask > 0) {
         const step = ask - getPrevPrice(ask);
-        return ` (ask ${formatCoins(ask)} - ${formatCoins(step)})`;
+        return ` · ask - ${formatCoins(step)} (ask ${formatCoins(ask)})`;
     }
     if (mode === 'midpoint' && bid > 0 && ask > 0) {
-        return ` (bid ${formatCoins(bid)} + ask ${formatCoins(ask)}) / 2`;
+        return ` · (bid ${formatCoins(bid)} + ask ${formatCoins(ask)}) / 2`;
     }
     return '';
 }
@@ -2791,40 +2774,14 @@ function syncPriceConfigButtons() {
         const btn = document.querySelector(`.cat-btn[data-cat="${cat}"][data-mode="${mode}"]`);
         if (btn) btn.classList.add('active');
     }
-    // Master pess highlight: active when sell is pessimistic
-    const masterBtn = document.getElementById('btn-master-pess');
-    if (masterBtn) {
-        masterBtn.classList.toggle('active', priceConfig.sellMode === 'pessimistic');
-    }
+
     // Update mode info
     const el = document.getElementById('mode-info');
-    if (el) {
-        const sellLabels = {
-            'pessimistic': 'Sell at Bid (safest estimate)',
-            'pessimistic+': 'Sell at Bid + 1 tick',
-            'midpoint': 'Sell at Midpoint (Bid+Ask)/2',
-            'optimistic-': 'Sell at Ask - 1 tick',
-            'optimistic': 'Sell at Ask (most optimistic)',
-        };
-        el.textContent = sellLabels[priceConfig.sellMode] || '';
-    }
+    if (el) el.textContent = '';
 }
 
 function setCatMode(cat, mode) {
-    if (cat === 'mat') priceConfig.matMode = mode;
-    else if (cat === 'prot') priceConfig.protMode = mode;
-    else if (cat === 'sell') priceConfig.sellMode = mode;
-    savePriceConfig();
-    syncPriceConfigButtons();
-    expandedRows.clear();
-    onPriceModeChangeAsync();
-}
-
-function masterPessimistic() {
-    priceConfig.matMode = 'pessimistic';
-    priceConfig.protMode = 'pessimistic';
-    priceConfig.sellMode = 'pessimistic';
-    savePriceConfig();
+    if (cat === 'sell') priceConfig.sellMode = mode;
     syncPriceConfigButtons();
     expandedRows.clear();
     onPriceModeChangeAsync();
@@ -3772,14 +3729,22 @@ function renderDetailRow(r) {
     
     const sellActualMode = r._resolvedPrices?.sellActualMode || 'pessimistic';
     const sellDot = priceDotHtml(sellActualMode);
-    const sellModeLabels = {
-        'pessimistic': 'bid',
-        'pessimistic+': 'bid + 1 tick',
-        'midpoint': 'midpoint',
-        'optimistic-': 'ask - 1 tick',
-        'optimistic': 'ask',
-    };
-    const sellModeLabel = sellModeLabels[sellActualMode] || 'bid';
+    const sellBid = r._resolvedPrices?.sellBid || 0;
+    const sellAsk = r._resolvedPrices?.sellAsk || 0;
+    
+    // Build label with actual tick amount
+    let sellModeLabel = 'bid';
+    if (sellActualMode === 'pessimistic+' && sellBid > 0) {
+        const step = getNextPrice(sellBid) - sellBid;
+        sellModeLabel = `bid + ${formatCoins(step)}`;
+    } else if (sellActualMode === 'midpoint') {
+        sellModeLabel = 'midpoint';
+    } else if (sellActualMode === 'optimistic-' && sellAsk > 0) {
+        const step = sellAsk - getPrevPrice(sellAsk);
+        sellModeLabel = `ask - ${formatCoins(step)}`;
+    } else if (sellActualMode === 'optimistic') {
+        sellModeLabel = 'ask';
+    }
     
     // Resolve display prices with the current sell mode applied
     const sellDetails = r._resolvedPrices || {};

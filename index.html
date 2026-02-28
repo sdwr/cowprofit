@@ -1287,17 +1287,23 @@
 
         /* Category button groups */
         .cat-group {
-            border-left: 1px solid rgba(255,255,255,0.15);
-            padding-left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         .cat-btn {
             padding: 4px 10px !important;
             font-size: 0.8rem !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
         }
-        .master-pess {
-            font-weight: bold;
-            padding: 6px 18px !important;
-        }
+        .cat-btn.sell-pess-plus { border-color: #ff8c00 !important; color: #ff8c00; }
+        .cat-btn.sell-pess-plus.active { background: #ff8c00 !important; color: #fff; }
+        .cat-btn.sell-mid { border-color: #ffdd00 !important; color: #ffdd00; }
+        .cat-btn.sell-mid.active { background: #ffdd00 !important; color: #1a1a2e; }
+        .cat-btn.sell-opt-minus { border-color: #90ee90 !important; color: #90ee90; }
+        .cat-btn.sell-opt-minus.active { background: #90ee90 !important; color: #1a1a2e; }
+        .cat-btn.sell-opt { border-color: #00cc00 !important; color: #00cc00; }
+        .cat-btn.sell-opt.active { background: #00cc00 !important; color: #1a1a2e; }
     </style>
 </head>
 <body>
@@ -1324,16 +1330,13 @@
         </div>
         
         <div class="controls">
-            <div class="control-group">
-                <button class="mode-btn master-pess active" onclick="masterPessimistic()" id="btn-master-pess">Pessimistic</button>
-            </div>
             <div class="control-group cat-group">
-                <span class="control-label">Sell:</span>
-                <button class="mode-btn cat-btn active" onclick="setCatMode('sell','pessimistic')" data-cat="sell" data-mode="pessimistic">Bid</button>
-                <button class="mode-btn cat-btn" onclick="setCatMode('sell','pessimistic+')" data-cat="sell" data-mode="pessimistic+">Bid+1</button>
-                <button class="mode-btn cat-btn" onclick="setCatMode('sell','midpoint')" data-cat="sell" data-mode="midpoint">Mid</button>
-                <button class="mode-btn cat-btn" onclick="setCatMode('sell','optimistic-')" data-cat="sell" data-mode="optimistic-">Ask-1</button>
-                <button class="mode-btn cat-btn" onclick="setCatMode('sell','optimistic')" data-cat="sell" data-mode="optimistic">Ask</button>
+                <span class="control-label">Sell at:</span>
+                <button class="mode-btn cat-btn sell-pess active" onclick="setCatMode('sell','pessimistic')" data-cat="sell" data-mode="pessimistic">Bid</button>
+                <button class="mode-btn cat-btn sell-pess-plus" onclick="setCatMode('sell','pessimistic+')" data-cat="sell" data-mode="pessimistic+">Bid+1</button>
+                <button class="mode-btn cat-btn sell-mid" onclick="setCatMode('sell','midpoint')" data-cat="sell" data-mode="midpoint">Mid</button>
+                <button class="mode-btn cat-btn sell-opt-minus" onclick="setCatMode('sell','optimistic-')" data-cat="sell" data-mode="optimistic-">Ask-1</button>
+                <button class="mode-btn cat-btn sell-opt" onclick="setCatMode('sell','optimistic')" data-cat="sell" data-mode="optimistic">Ask</button>
             </div>
             <div class="control-group">
                 <button class="mode-btn active" onclick="toggleFee()" id="btn-fee">-2% Fee</button>
