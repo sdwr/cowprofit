@@ -346,14 +346,31 @@ class PriceResolver {
 
         for (const mat of shoppingList.materials) {
             const detail = this._resolveBuyPrice(mat.hrid, 0, marketPrices, matMode);
-            matPrices.push([mat.count, detail.price, {
+            let price = detail.price;
+            let source = 'market';
+            // Vendor/craft fallback for materials with no market price
+            if (price <= 0) {
+                const itemDef = this.items[mat.hrid];
+                if (itemDef?.sellPrice > 0) {
+                    price = itemDef.sellPrice;
+                    source = 'vendor';
+                } else {
+                    const craftCost = this._getCraftingCost(mat.hrid, marketPrices, artisanMult);
+                    if (craftCost > 0) {
+                        price = craftCost;
+                        source = 'craft';
+                    }
+                }
+            }
+            matPrices.push([mat.count, price, {
                 hrid: mat.hrid,
                 mode: matMode,
                 actualMode: detail.actualMode,
                 bid: detail.bid,
                 ask: detail.ask,
+                source,
             }]);
-            priceDetails.set(mat.hrid, detail);
+            priceDetails.set(mat.hrid, { ...detail, price, source });
         }
 
         // Base item — always pessimistic with craft fallback
