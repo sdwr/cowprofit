@@ -1280,6 +1280,12 @@
             margin-left: 3px;
             vertical-align: middle;
         }
+        .price-diff { font-size: 0.8em; opacity: 0.7; margin-left: 4px; }
+        .diff-up { color: #4ade80; }
+        .diff-down { color: #f87171; }
+        .vol-low { color: #6b7280; }
+        .vol-med { color: #d1d5db; }
+        .vol-high { color: #ffffff; }
         .price-dot-pess-plus { background: #ff8c00; }
         .price-dot-midpoint { background: #ffdd00; }
         .price-dot-opt-minus { background: #90ee90; }
@@ -1405,12 +1411,13 @@
                     <th onclick="sortTable(2, 'num')" class="number" title="Time since sell price changed">Age<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(3, 'num')" class="number">Base Cost<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(4, 'num')" class="number hide-mobile">Enhance Cost<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(5, 'num')" class="number" style="text-align:center">Sell Price<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(6, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(7, 'num')" class="number" title="Return on Investment based on enhance cost only (mats + prots)">ROI <span class="tooltip-icon">?</span><span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(8, 'num')" class="number" style="text-align:center">$/day<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(9, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(10, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(5, 'num')" class="number" style="text-align:center">Sell Price (24h Avg)<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(6, 'num')" class="number">Vol (24h)<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(7, 'num')" class="number">Profit<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(8, 'num')" class="number" title="Return on Investment based on enhance cost only (mats + prots)">ROI <span class="tooltip-icon">?</span><span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(9, 'num')" class="number" style="text-align:center">$/day<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(10, 'num')" class="number hide-mobile">Days<span class="sort-arrow">&#9650;</span></th>
+                    <th onclick="sortTable(11, 'num')" class="number hide-mobile">XP/day<span class="sort-arrow">&#9650;</span></th>
                 </tr>
             </thead>
             <tbody id="table-body">
