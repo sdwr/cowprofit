@@ -2725,23 +2725,6 @@ function priceDotHtml(actualMode) {
     return cls ? `<span class="price-dot ${cls}"></span>` : '';
 }
 
-// Build tooltip for sell price showing increment details
-function _sellModeTipExtra(mode, details) {
-    const bid = details?.sellBid || 0;
-    const ask = details?.sellAsk || 0;
-    if (mode === 'pessimistic+' && bid > 0) {
-        const step = getNextPrice(bid) - bid;
-        return ` · bid + ${formatCoins(step)} (bid ${formatCoins(bid)})`;
-    }
-    if (mode === 'optimistic-' && ask > 0) {
-        const step = ask - getPrevPrice(ask);
-        return ` · ask - ${formatCoins(step)} (ask ${formatCoins(ask)})`;
-    }
-    if (mode === 'midpoint' && bid > 0 && ask > 0) {
-        return ` · (bid ${formatCoins(bid)} + ask ${formatCoins(ask)}) / 2`;
-    }
-    return '';
-}
 
 // Apply sell mode offset to a raw bid price (for showing historical price changes with mode applied)
 function _applySellModeToPrice(bid, ask, mode) {
@@ -3764,13 +3747,12 @@ function renderDetailRow(r) {
         const pctClass = pctChange > 0 ? 'positive' : 'negative';
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (${sellModeLabel})</span>
-            <span class="value ${pctClass} price-tip" data-tip="${r.item_name} +${r.target_level} ${sellModeLabel} @ ${_fmtTs(priceInfo.since)}">${formatCoins(displayOld)}${sellDot} → ${formatCoins(displayNew)}${sellDot} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
+            <span class="value ${pctClass} price-tip" data-tip="${r.item_name} +${r.target_level} ${sellActualMode === 'pessimistic' ? 'bid' : 'ask'} @ ${_fmtTs(priceInfo.since)}">${formatCoins(displayOld)}${sellDot} → ${formatCoins(displayNew)}${sellDot} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
         </div>`;
     } else {
-        const sellTipExtra = _sellModeTipExtra(sellActualMode, sellDetails);
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (${sellModeLabel})</span>
-            <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} ${sellModeLabel}${sellTipExtra} @ ${_fmtTs(prices.ts)}">${formatCoins(resolvedSellPrice)}${sellDot}</span>
+            <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} ${sellActualMode === 'pessimistic' ? 'bid' : 'ask'} @ ${_fmtTs(prices.ts)}">${formatCoins(resolvedSellPrice)}${sellDot}</span>
         </div>`;
     }
     
@@ -3939,7 +3921,6 @@ function renderTable() {
             <td class="number">${ageStr}${ageArrow}</td>
             <td class="number"><span class="price-source ${sourceClass}"></span>${formatCoins(r.basePrice)}</td>
             <td class="number hide-mobile">${formatCoins(r.matCost)}</td>
-            <td class="number hide-mobile">${formatCoins(r.totalCost)}</td>
             <td class="number cost-${getCostBucket(r.totalCost)}" style="text-align:center">${formatCoins(r.sellPrice)}</td>
             <td class="number ${profitClass}">${formatCoins(profit)}</td>
             <td class="number ${profitClass}">${roi.toFixed(1)}%</td>
@@ -3950,7 +3931,7 @@ function renderTable() {
         
         // Detail row
         html += `<tr class="detail-row ${isExpanded ? 'visible' : ''}">
-            <td colspan="12">
+            <td colspan="11">
                 ${renderDetailRow(r)}
             </td>
         </tr>`;
