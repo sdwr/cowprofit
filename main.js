@@ -760,9 +760,9 @@ function readGearFromInputs() {
         artisanTea: checked('gear-tea-artisan'),
         charmTier: selVal('gear-charm-tier', 'advanced'),
         charmLevel: val('gear-charm-level', 6),
-        // Keep buffs from defaults
-        enhancingBuffLevel: DEFAULT_CONFIG.enhancingBuffLevel,
-        experienceBuffLevel: DEFAULT_CONFIG.experienceBuffLevel,
+        // Global buffs (0 = disabled)
+        enhancingBuffLevel: checked('gear-enhancing-buff-on') ? val('gear-enhancing-buff-level', 20) : 0,
+        experienceBuffLevel: checked('gear-experience-buff-on') ? val('gear-experience-buff-level', 20) : 0,
     };
 }
 
@@ -848,6 +848,11 @@ function renderGearPanel() {
             <div class="gear-row"><span class="label">Tier</span>${selectOpts('gear-charm-tier', charmTiers.map(t => [t, t.charAt(0).toUpperCase() + t.slice(1)]), c.charmTier)}</div>
             <div class="gear-row"><span class="label">Level</span>${numInput('gear-charm-level', c.charmLevel, 0, 20)}</div>
         </div>
+        <div class="gear-section">
+            <h5>📈 Global Buffs</h5>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-enhancing-buff-on"${c.enhancingBuffLevel ? ' checked' : ''}><span class="label">Enhancing</span>${numInput('gear-enhancing-buff-level', c.enhancingBuffLevel || 20, 1, 20)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-experience-buff-on"${c.experienceBuffLevel ? ' checked' : ''}><span class="label">Experience</span>${numInput('gear-experience-buff-level', c.experienceBuffLevel || 20, 1, 20)}</div>
+        </div>
     `;
 
     // Attach change listeners
@@ -861,6 +866,8 @@ function renderGearPanel() {
         ['gear-bot-on', 'gear-bot'],
         ['gear-neck-on', 'gear-neck'],
         ['gear-guzzling-on', 'gear-guzzling'],
+        ['gear-enhancing-buff-on', 'gear-enhancing-buff-level'],
+        ['gear-experience-buff-on', 'gear-experience-buff-level'],
     ];
     for (const [cbId, inputId] of gearToggles) {
         const cb = document.getElementById(cbId);

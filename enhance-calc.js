@@ -17,7 +17,7 @@ const DEFAULT_CONFIG = {
     charmLevel: 6,
     charmTier: 'advanced',
     
-    // Buffs
+    // Buffs (0 = disabled, 1-20 = level)
     enhancingBuffLevel: 20,
     experienceBuffLevel: 20,
     
@@ -153,7 +153,7 @@ class EnhanceCalculator {
         else if (this.config.teaSuperEnhancing) teaSpeed = 4 * guzzling;
         else if (this.config.teaUltraEnhancing) teaSpeed = 6 * guzzling;
         
-        // Gear speed bonuses
+        // Gear speed bonuses (_getNoncombatStat returns 0 if unequipped)
         let itemBonus = 0;
         if (this.config.enchantedGlovesLevel) {
             itemBonus += this._getNoncombatStat('/items/enchanted_gloves', 'enhancingSpeed') * 100 * this.enhanceBonus[this.config.enchantedGlovesLevel];
@@ -196,7 +196,16 @@ class EnhanceCalculator {
             xpBonus += 0.12 * guzzling;
         }
         
-        // Enhancer bottoms XP bonus
+        // Enhancer tool XP bonus (1x scaling)
+        if (this.config.enhancerLevel && this.config.enhancer) {
+            const enhancerHrid = `/items/${this.config.enhancer}`;
+            const base = this._getNoncombatStat(enhancerHrid, 'enhancingExperience');
+            if (base) {
+                xpBonus += base * this.enhanceBonus[this.config.enhancerLevel];
+            }
+        }
+        
+        // Enhancer bottoms XP bonus (1x scaling)
         if (this.config.enhancerBotLevel) {
             const base = this._getNoncombatStat('/items/enhancers_bottoms', 'enhancingExperience');
             xpBonus += base * this.enhanceBonus[this.config.enhancerBotLevel];
@@ -206,6 +215,15 @@ class EnhanceCalculator {
         if (this.config.philoNeckLevel) {
             const base = this._getNoncombatStat('/items/philosophers_necklace', 'skillingExperience');
             xpBonus += base * (((this.enhanceBonus[this.config.philoNeckLevel] - 1) * 5) + 1);
+        }
+        
+        // Enhancing charm XP bonus (5x scaling, like philosopher's necklace)
+        if (this.config.charmLevel && this.config.charmTier && this.config.charmTier !== 'none') {
+            const charmHrid = `/items/${this.config.charmTier}_enhancing_charm`;
+            const base = this._getNoncombatStat(charmHrid, 'enhancingExperience');
+            if (base) {
+                xpBonus += base * (((this.enhanceBonus[this.config.charmLevel] - 1) * 5) + 1);
+            }
         }
         
         // Experience buff
