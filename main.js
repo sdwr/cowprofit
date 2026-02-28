@@ -3698,11 +3698,11 @@ function renderDetailRow(r) {
         const lineTotal = m.count * m.price;
         matsPerAttempt += lineTotal;
         const dot = m.name !== 'Coins' ? priceDotHtml(m.actualMode) : '';
-        const tip = m.name !== 'Coins' ? `${m.name} ${formatCoins(m.price)} ask @ ${_fmtTs(prices.ts)}` : '';
+        const mTip = m.name !== 'Coins' ? _priceTip(m, {showPrice: true}) : '';
         matsHtml += `<div class="mat-row">
             <span class="mat-name">${m.name}</span>
-            <span class="mat-count">${m.count.toFixed(0)}x @ ${formatCoins(m.price)}${dot}</span>
-            <span class="mat-price${tip ? ' price-tip' : ''}" ${tip ? `data-tip="${tip}"` : ''}>${formatCoins(lineTotal)}</span>
+            <span class="mat-count${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>${m.count.toFixed(0)}x @ ${formatCoins(m.price)}${dot}</span>
+            <span class="mat-price">${formatCoins(lineTotal)}</span>
         </div>`;
     }
     const totalEnhanceCost = matsPerAttempt * r.actions;
