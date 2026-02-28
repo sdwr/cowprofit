@@ -1271,6 +1271,33 @@
         .recalc-indicator.active {
             display: inline;
         }
+        /* Price dots */
+        .price-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-left: 3px;
+            vertical-align: middle;
+        }
+        .price-dot-pess-plus { background: #ff8c00; }
+        .price-dot-midpoint { background: #ffdd00; }
+        .price-dot-opt-minus { background: #90ee90; }
+        .price-dot-optimistic { background: #00cc00; }
+
+        /* Category button groups */
+        .cat-group {
+            border-left: 1px solid rgba(255,255,255,0.15);
+            padding-left: 12px;
+        }
+        .cat-btn {
+            padding: 4px 10px !important;
+            font-size: 0.8rem !important;
+        }
+        .master-pess {
+            font-weight: bold;
+            padding: 6px 18px !important;
+        }
     </style>
 </head>
 <body>
@@ -1298,16 +1325,33 @@
         
         <div class="controls">
             <div class="control-group">
-                <span class="control-label">Price:</span>
-                <button class="mode-btn active" onclick="setMode('pessimistic')" id="btn-pessimistic">Pessimistic</button>
-                <button class="mode-btn" onclick="setMode('midpoint')" id="btn-midpoint">Midpoint</button>
-                <button class="mode-btn" onclick="setMode('optimistic')" id="btn-optimistic">Optimistic</button>
+                <button class="mode-btn master-pess active" onclick="masterPessimistic()" id="btn-master-pess">Pessimistic</button>
+            </div>
+            <div class="control-group cat-group">
+                <span class="control-label">Mats:</span>
+                <button class="mode-btn cat-btn active" onclick="setCatMode('mat','pessimistic')" data-cat="mat" data-mode="pessimistic">Pess</button>
+                <button class="mode-btn cat-btn" onclick="setCatMode('mat','pessimistic+')" data-cat="mat" data-mode="pessimistic+">Pess+</button>
+                <button class="mode-btn cat-btn" onclick="setCatMode('mat','optimistic-')" data-cat="mat" data-mode="optimistic-">Opt-</button>
+                <button class="mode-btn cat-btn" onclick="setCatMode('mat','optimistic')" data-cat="mat" data-mode="optimistic">Opt</button>
+            </div>
+            <div class="control-group cat-group">
+                <span class="control-label">Prots:</span>
+                <button class="mode-btn cat-btn active" onclick="setCatMode('prot','pessimistic')" data-cat="prot" data-mode="pessimistic">Pess</button>
+                <button class="mode-btn cat-btn" onclick="setCatMode('prot','optimistic')" data-cat="prot" data-mode="optimistic">Opt</button>
+            </div>
+            <div class="control-group cat-group">
+                <span class="control-label">Sell:</span>
+                <button class="mode-btn cat-btn active" onclick="setCatMode('sell','pessimistic')" data-cat="sell" data-mode="pessimistic">Pess</button>
+                <button class="mode-btn cat-btn" onclick="setCatMode('sell','pessimistic+')" data-cat="sell" data-mode="pessimistic+">Pess+</button>
+                <button class="mode-btn cat-btn" onclick="setCatMode('sell','midpoint')" data-cat="sell" data-mode="midpoint">Mid</button>
+                <button class="mode-btn cat-btn" onclick="setCatMode('sell','optimistic-')" data-cat="sell" data-mode="optimistic-">Opt-</button>
+                <button class="mode-btn cat-btn" onclick="setCatMode('sell','optimistic')" data-cat="sell" data-mode="optimistic">Opt</button>
             </div>
             <div class="control-group">
                 <button class="mode-btn active" onclick="toggleFee()" id="btn-fee">-2% Fee</button>
             </div>
         </div>
-        <p class="mode-info" id="mode-info">Buy at Ask, Sell at Bid (safest estimate)</p>
+        <p class="mode-info" id="mode-info"></p>
         <p class="mode-info" id="status" style="color: #eeb357;">Loading...</p>
         
         <div class="legend">

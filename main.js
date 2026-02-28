@@ -11,14 +11,39 @@ const gameData = window.GAME_DATA_STATIC || {};
 
 // State
 let calculator = null;
-let currentMode = 'pessimistic';
 let currentLevel = 'all';
 let sortCol = 9;
 let sortAsc = false;
 let showFee = true;
 let expandedRows = new Set();
 let costFilters = { '100m': true, '500m': true, '1b': true, '2b': true, 'over2b': true };
-let allResults = { pessimistic: [], midpoint: [], optimistic: [] };
+let allResults = [];
+
+// Price category config
+const PRICE_CONFIG_KEY = 'cowprofit_price_config';
+let priceConfig = {
+    matMode: 'pessimistic',
+    protMode: 'pessimistic',
+    sellMode: 'pessimistic',
+};
+
+function loadPriceConfig() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(PRICE_CONFIG_KEY));
+        if (saved) {
+            priceConfig.matMode = saved.matMode || 'pessimistic';
+            priceConfig.protMode = saved.protMode || 'pessimistic';
+            priceConfig.sellMode = saved.sellMode || 'pessimistic';
+        }
+    } catch (e) {}
+}
+
+function savePriceConfig() {
+    localStorage.setItem(PRICE_CONFIG_KEY, JSON.stringify(priceConfig));
+}
+
+// Legacy compat — currentMode returns sellMode for code that still reads it
+let currentMode = 'pessimistic';
 let gearOpen = false;
 let historyOpen = false;
 let lootHistoryOpen = false;
@@ -59,8 +84,8 @@ function calculateMatPercent(r) {
     let totalValue = 0;
     let ownedValue = 0;
     
-    // Get materials for this item
-    const materials = getMaterialDetails(r.item_hrid, 1, currentMode);
+    // Get materials for this item (use resolved prices if available)
+    const materials = r._resolvedPrices ? getMaterialDetailsFromResolved(r) : getMaterialDetails(r.item_hrid, 1, 'pessimistic');
     
     // Enhancement materials (per attempt * actions)
     for (const m of materials) {
@@ -281,6 +306,7 @@ const TARGET_LEVELS = [8, 10, 12, 14];
 const MIN_PROFIT = 1_000_000;
 const MAX_ROI = 1000;
 
+// Legacy modeInfo kept for reference
 const modeInfo = {
     'pessimistic': 'Buy at Ask, Sell at Bid (safest estimate)',
     'midpoint': 'Buy/Sell at midpoint of Ask and Bid',
@@ -310,6 +336,10 @@ function init() {
     // Display version
     document.getElementById('version-tag').textContent = gameData.version + ' (v2)';
     
+    // Load saved price config and sync buttons
+    loadPriceConfig();
+    syncPriceConfigButtons();
+    
     // Calculate all profits
     calculateAllProfits();
     
@@ -327,38 +357,84 @@ function calculateAllProfits() {
     console.log('[CowProfit v2] Calculating profits...');
     const startTime = performance.now();
     
-    const modes = [PriceMode.PESSIMISTIC, PriceMode.MIDPOINT, PriceMode.OPTIMISTIC];
-    const modeNames = ['pessimistic', 'midpoint', 'optimistic'];
+    const itemResolver = new ItemResolver(gameData);
+    const priceResolver = new PriceResolver(gameData, typeof PRICE_TIERS !== 'undefined' ? PRICE_TIERS : []);
+    const artisanMult = calculator.getArtisanTeaMultiplier();
+    const modeConfig = { matMode: priceConfig.matMode, protMode: priceConfig.protMode, sellMode: priceConfig.sellMode };
     
-    for (let i = 0; i < modes.length; i++) {
-        const mode = modes[i];
-        const modeName = modeNames[i];
-        const results = [];
+    const results = [];
+    
+    for (const [hrid, item] of Object.entries(gameData.items)) {
+        if (!item.enhancementCosts) continue;
+        const name = item.name?.toLowerCase() || '';
+        if (['cheese_', 'verdant_', 'wooden_', 'rough_'].some(s => name.includes(s))) continue;
         
-        for (const [hrid, item] of Object.entries(gameData.items)) {
-            if (!item.enhancementCosts) continue;
+        for (const target of TARGET_LEVELS) {
+            const shopping = itemResolver.resolve(hrid, target);
+            if (!shopping) continue;
             
-            // Skip junk
-            const name = item.name?.toLowerCase() || '';
-            if (['cheese_', 'verdant_', 'wooden_', 'rough_'].some(s => name.includes(s))) continue;
+            const resolved = priceResolver.resolve(shopping, prices.market, modeConfig, artisanMult);
+            if (resolved.protectPrice <= 0 && resolved.protectHrid === null) continue;
             
-            for (const target of TARGET_LEVELS) {
-                const result = calculator.calculateProfit(hrid, target, prices, mode);
-                if (result && result.sellPrice > 0 && result.roi < MAX_ROI) {
-                    result.item_name = item.name;
-                    result.item_hrid = hrid;
-                    result.target_level = target;
-                    results.push(result);
-                }
-            }
+            const sim = calculator.simulate(resolved, target, shopping.itemLevel);
+            if (!sim) continue;
+            
+            // Build sell price and profit like legacy calculateProfit
+            const sellPrice = resolved.sellPrice;
+            if (sellPrice <= 0) continue;
+            
+            const marketFee = sellPrice * 0.02;
+            const profit = sellPrice - sim.totalCost;
+            const profitAfterFee = profit - marketFee;
+            const matCost = sim.matCost;
+            const roi = matCost > 0 ? (profit / matCost) * 100 : 0;
+            const roiAfterFee = matCost > 0 ? (profitAfterFee / matCost) * 100 : 0;
+            const totalTimeHours = sim.actions * sim.attemptTime / 3600;
+            const totalTimeDays = totalTimeHours / 24;
+            const profitPerDay = totalTimeDays > 0 ? profit / totalTimeDays : 0;
+            const profitPerDayAfterFee = totalTimeDays > 0 ? profitAfterFee / totalTimeDays : 0;
+            const xpPerDay = totalTimeDays > 0 ? sim.totalXp / totalTimeDays : 0;
+            
+            if (roi >= MAX_ROI) continue;
+            
+            results.push({
+                item_name: item.name,
+                item_hrid: hrid,
+                target_level: target,
+                itemHrid: hrid,
+                targetLevel: target,
+                basePrice: sim.basePrice,
+                baseSource: sim.baseSource,
+                matCost,
+                totalCost: sim.totalCost,
+                sellPrice,
+                marketFee,
+                profit,
+                profitAfterFee,
+                roi,
+                roiAfterFee,
+                profitPerDay,
+                profitPerDayAfterFee,
+                xpPerDay,
+                totalXp: sim.totalXp,
+                actions: sim.actions,
+                timeHours: totalTimeHours,
+                timeDays: totalTimeDays,
+                protectCount: sim.protectCount,
+                protectAt: sim.protectAt,
+                protectHrid: sim.protectHrid,
+                protectPrice: sim.protectPrice,
+                // Store resolved price details for dot rendering
+                _resolvedPrices: resolved,
+            });
         }
-        
-        results.sort((a, b) => b.profit - a.profit);
-        allResults[modeName] = results;
     }
     
+    results.sort((a, b) => b.profit - a.profit);
+    allResults = results;
+    
     const elapsed = performance.now() - startTime;
-    console.log(`[CowProfit v2] Calculated ${allResults.pessimistic.length} items in ${elapsed.toFixed(0)}ms`);
+    console.log(`[CowProfit v2] Calculated ${results.length} items in ${elapsed.toFixed(0)}ms`);
 }
 
 // Build the list of enhanceable items (cached for chunked recalc)
@@ -375,16 +451,17 @@ function getEnhanceableItems() {
     return _enhanceableItems;
 }
 
-// Async chunked version for gear changes
+// Async chunked version for gear/mode changes
 async function calculateAllProfitsAsync(runId, onChunkDone) {
     const CHUNK_SIZE = 30;
     const items = getEnhanceableItems();
-    const modes = [PriceMode.PESSIMISTIC, PriceMode.MIDPOINT, PriceMode.OPTIMISTIC];
-    const modeNames = ['pessimistic', 'midpoint', 'optimistic'];
-    const tempResults = { pessimistic: [], midpoint: [], optimistic: [] };
+    const itemResolver = new ItemResolver(gameData);
+    const priceResolver = new PriceResolver(gameData, typeof PRICE_TIERS !== 'undefined' ? PRICE_TIERS : []);
+    const artisanMult = calculator.getArtisanTeaMultiplier();
+    const modeConfig = { matMode: priceConfig.matMode, protMode: priceConfig.protMode, sellMode: priceConfig.sellMode };
+    const tempResults = [];
     
     for (let ci = 0; ci < items.length; ci += CHUNK_SIZE) {
-        // Check abort
         if (recalcController.runId !== runId) {
             console.log(`[CowProfit] Recalc ${runId} aborted`);
             return null;
@@ -393,35 +470,72 @@ async function calculateAllProfitsAsync(runId, onChunkDone) {
         const chunk = items.slice(ci, ci + CHUNK_SIZE);
         
         for (const { hrid, item } of chunk) {
-            for (let mi = 0; mi < modes.length; mi++) {
-                const mode = modes[mi];
-                const modeName = modeNames[mi];
-                for (const target of TARGET_LEVELS) {
-                    const result = calculator.calculateProfit(hrid, target, prices, mode);
-                    if (result && result.sellPrice > 0 && result.roi < MAX_ROI) {
-                        result.item_name = item.name;
-                        result.item_hrid = hrid;
-                        result.target_level = target;
-                        tempResults[modeName].push(result);
-                    }
-                }
+            for (const target of TARGET_LEVELS) {
+                const shopping = itemResolver.resolve(hrid, target);
+                if (!shopping) continue;
+                
+                const resolved = priceResolver.resolve(shopping, prices.market, modeConfig, artisanMult);
+                if (resolved.protectPrice <= 0 && resolved.protectHrid === null) continue;
+                
+                const sim = calculator.simulate(resolved, target, shopping.itemLevel);
+                if (!sim) continue;
+                
+                const sellPrice = resolved.sellPrice;
+                if (sellPrice <= 0) continue;
+                
+                const marketFee = sellPrice * 0.02;
+                const profit = sellPrice - sim.totalCost;
+                const profitAfterFee = profit - marketFee;
+                const matCost = sim.matCost;
+                const roi = matCost > 0 ? (profit / matCost) * 100 : 0;
+                const roiAfterFee = matCost > 0 ? (profitAfterFee / matCost) * 100 : 0;
+                const totalTimeHours = sim.actions * sim.attemptTime / 3600;
+                const totalTimeDays = totalTimeHours / 24;
+                const profitPerDay = totalTimeDays > 0 ? profit / totalTimeDays : 0;
+                const profitPerDayAfterFee = totalTimeDays > 0 ? profitAfterFee / totalTimeDays : 0;
+                const xpPerDay = totalTimeDays > 0 ? sim.totalXp / totalTimeDays : 0;
+                
+                if (roi >= MAX_ROI) continue;
+                
+                tempResults.push({
+                    item_name: item.name,
+                    item_hrid: hrid,
+                    target_level: target,
+                    itemHrid: hrid,
+                    targetLevel: target,
+                    basePrice: sim.basePrice,
+                    baseSource: sim.baseSource,
+                    matCost,
+                    totalCost: sim.totalCost,
+                    sellPrice,
+                    marketFee,
+                    profit,
+                    profitAfterFee,
+                    roi,
+                    roiAfterFee,
+                    profitPerDay,
+                    profitPerDayAfterFee,
+                    xpPerDay,
+                    totalXp: sim.totalXp,
+                    actions: sim.actions,
+                    timeHours: totalTimeHours,
+                    timeDays: totalTimeDays,
+                    protectCount: sim.protectCount,
+                    protectAt: sim.protectAt,
+                    protectHrid: sim.protectHrid,
+                    protectPrice: sim.protectPrice,
+                    _resolvedPrices: resolved,
+                });
             }
         }
         
         if (onChunkDone) onChunkDone(ci + chunk.length, items.length);
-        
-        // Yield to event loop
         await new Promise(r => setTimeout(r, 0));
     }
     
-    // Final abort check
     if (recalcController.runId !== runId) return null;
     
-    // Sort all
-    for (const modeName of modeNames) {
-        tempResults[modeName].sort((a, b) => b.profit - a.profit);
-    }
-    
+    tempResults.sort((a, b) => b.profit - a.profit);
     return tempResults;
 }
 
@@ -2643,13 +2757,112 @@ function getCostBucket(totalCost) {
 }
 
 // Controls
-function setMode(mode) {
-    currentMode = mode;
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-' + mode).classList.add('active');
-    document.getElementById('mode-info').textContent = modeInfo[mode];
+// Price dot helper
+function priceDotHtml(actualMode) {
+    if (!actualMode || actualMode === 'pessimistic') return '';
+    const cls = {
+        'pessimistic+': 'price-dot-pess-plus',
+        'midpoint': 'price-dot-midpoint',
+        'optimistic-': 'price-dot-opt-minus',
+        'optimistic': 'price-dot-optimistic',
+    }[actualMode];
+    return cls ? `<span class="price-dot ${cls}"></span>` : '';
+}
+
+// Sync button active states with priceConfig
+function syncPriceConfigButtons() {
+    // Clear all cat-btn active states
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    // Set active for each category
+    const mapping = { mat: priceConfig.matMode, prot: priceConfig.protMode, sell: priceConfig.sellMode };
+    for (const [cat, mode] of Object.entries(mapping)) {
+        const btn = document.querySelector(`.cat-btn[data-cat="${cat}"][data-mode="${mode}"]`);
+        if (btn) btn.classList.add('active');
+    }
+    // Master pess highlight: active only when all pessimistic
+    const masterBtn = document.getElementById('btn-master-pess');
+    if (masterBtn) {
+        masterBtn.classList.toggle('active',
+            priceConfig.matMode === 'pessimistic' &&
+            priceConfig.protMode === 'pessimistic' &&
+            priceConfig.sellMode === 'pessimistic');
+    }
+    // Update mode info
+    const el = document.getElementById('mode-info');
+    if (el) {
+        if (priceConfig.matMode === 'pessimistic' && priceConfig.protMode === 'pessimistic' && priceConfig.sellMode === 'pessimistic') {
+            el.textContent = 'Buy at Ask, Sell at Bid (safest estimate)';
+        } else {
+            const labels = { 'pessimistic': 'Pess', 'pessimistic+': 'Pess+', 'midpoint': 'Mid', 'optimistic-': 'Opt-', 'optimistic': 'Opt' };
+            el.textContent = `Mats: ${labels[priceConfig.matMode]} · Prots: ${labels[priceConfig.protMode]} · Sell: ${labels[priceConfig.sellMode]}`;
+        }
+    }
+}
+
+function setCatMode(cat, mode) {
+    if (cat === 'mat') priceConfig.matMode = mode;
+    else if (cat === 'prot') priceConfig.protMode = mode;
+    else if (cat === 'sell') priceConfig.sellMode = mode;
+    savePriceConfig();
+    syncPriceConfigButtons();
     expandedRows.clear();
+    onPriceModeChangeAsync();
+}
+
+function masterPessimistic() {
+    priceConfig.matMode = 'pessimistic';
+    priceConfig.protMode = 'pessimistic';
+    priceConfig.sellMode = 'pessimistic';
+    savePriceConfig();
+    syncPriceConfigButtons();
+    expandedRows.clear();
+    onPriceModeChangeAsync();
+}
+
+async function onPriceModeChangeAsync() {
+    const runId = ++recalcController.runId;
+    recalcController.inProgress = true;
+    applySkeletonState();
+    
+    const result = await calculateAllProfitsAsync(runId);
+    if (!result) return;
+    
+    const tbody = document.getElementById('table-body');
+    const oldRows = Array.from(tbody.querySelectorAll('tr.data-row'));
+    const firstRects = new Map();
+    oldRows.forEach(row => {
+        const rowId = row.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+        if (rowId) firstRects.set(rowId, row.getBoundingClientRect());
+    });
+    
+    allResults = result;
     renderTable();
+    
+    // FLIP animation
+    const newRows = Array.from(tbody.querySelectorAll('tr.data-row'));
+    newRows.forEach(row => {
+        const rowId = row.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+        if (!rowId || !firstRects.has(rowId)) return;
+        const first = firstRects.get(rowId);
+        const last = row.getBoundingClientRect();
+        const deltaY = first.top - last.top;
+        if (Math.abs(deltaY) < 1) return;
+        row.style.transform = `translateY(${deltaY}px)`;
+        row.style.transition = 'none';
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                row.classList.add('flip-animate');
+                row.style.transform = '';
+                row.addEventListener('transitionend', () => {
+                    row.classList.remove('flip-animate');
+                    row.style.transition = '';
+                }, { once: true });
+            });
+        });
+    });
+    
+    recalcController.inProgress = false;
+    if (lootHistoryOpen) renderLootHistoryPanel();
 }
 
 function filterLevel(level) {
@@ -3344,7 +3557,7 @@ function formatWithCommas(num) {
 }
 
 // Shopping list for detail row - 3 column layout with progress bars
-function renderShoppingList(r, materials, mode) {
+function renderShoppingList(r, materials) {
     let rows = '';
     let totalCost = 0;
     let totalOwned = 0;
@@ -3364,13 +3577,14 @@ function renderShoppingList(r, materials, mode) {
         totalNeed += total;
         
         const mTip = _priceTip(m, {showPrice: true});
+        const matDot = priceDotHtml(m.actualMode);
         rows += `<div class="shop-row">
             <span class="shop-name">${m.name}</span>
             <span class="shop-qty">
                 <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
                 <span class="shop-qty-text"><span class="shop-need-num">${formatWithCommas(need)}</span> <span class="shop-total-num">/ ${formatWithCommas(total)}</span></span>
             </span>
-            <span class="shop-price${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>${formatCoins(m.price)}</span>
+            <span class="shop-price${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>${formatCoins(m.price)}${matDot}</span>
         </div>`;
     }
     
@@ -3387,13 +3601,14 @@ function renderShoppingList(r, materials, mode) {
         totalOwned += owned;
         totalNeed += total;
         
+        const protDot = priceDotHtml(r._resolvedPrices?.protectActualMode);
         rows += `<div class="shop-row prot-row">
             <span class="shop-name">${protName}</span>
             <span class="shop-qty">
                 <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
                 <span class="shop-qty-text"><span class="shop-need-num">${formatWithCommas(need)}</span> <span class="shop-total-num">/ ${formatWithCommas(total)}</span></span>
             </span>
-            <span class="shop-price price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
+            <span class="shop-price price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}${protDot}</span>
         </div>`;
     }
     
@@ -3422,12 +3637,36 @@ function renderShoppingList(r, materials, mode) {
     </div>`;
 }
 
+// Build material details from resolved prices
+function getMaterialDetailsFromResolved(r) {
+    const resolved = r._resolvedPrices;
+    if (!resolved || !resolved.matPrices) return getMaterialDetails(r.item_hrid, 1, 'pessimistic');
+    
+    const materials = [];
+    for (const [count, price, detail] of resolved.matPrices) {
+        const hrid = detail?.hrid;
+        if (hrid === '/items/coin') {
+            materials.push({ hrid, name: 'Coins', count, price: 1, total: count, actualMode: null });
+        } else {
+            const matItem = gameData.items[hrid];
+            const matName = matItem?.name || (hrid || '').split('/').pop().replace(/_/g, ' ');
+            materials.push({
+                hrid,
+                name: matName,
+                count,
+                price,
+                total: count * price,
+                actualMode: detail?.actualMode || priceConfig.matMode,
+            });
+        }
+    }
+    return materials;
+}
+
 // Render detail row
 function renderDetailRow(r) {
-    const mode = currentMode;
-    
-    // Get enhancement materials (NO artisan tea - these are for enhancing, not crafting)
-    const materials = getMaterialDetails(r.item_hrid, 1, mode); // per attempt, actions=1
+    // Get enhancement materials from resolved prices
+    const materials = getMaterialDetailsFromResolved(r);
     
     // Materials HTML (per attempt, no artisan tea adjustments here)
     let matsHtml = '';
@@ -3435,11 +3674,11 @@ function renderDetailRow(r) {
     for (const m of materials) {
         const lineTotal = m.count * m.price;
         matsPerAttempt += lineTotal;
-        const tip = _priceTip(m, {showPrice: true});
+        const dot = m.name !== 'Coins' ? priceDotHtml(m.actualMode) : '';
         matsHtml += `<div class="mat-row">
             <span class="mat-name">${m.name}</span>
-            <span class="mat-count">${m.count.toFixed(m.name === 'Coins' ? 0 : 0)}x @ ${formatCoins(m.price)}</span>
-            <span class="mat-price${tip ? ' price-tip' : ''}" ${tip ? `data-tip="${tip}"` : ''}>${formatCoins(lineTotal)}</span>
+            <span class="mat-count">${m.count.toFixed(0)}x @ ${formatCoins(m.price)}${dot}</span>
+            <span class="mat-price">${formatCoins(lineTotal)}</span>
         </div>`;
     }
     const totalEnhanceCost = matsPerAttempt * r.actions;
@@ -3451,9 +3690,9 @@ function renderDetailRow(r) {
     // Strip "Protection" prefix for display
     protName = protName.replace(/^Protection /, '');
     
-    // Base item section - check for craft alternative
-    const marketPrice = getBuyPrice(r.item_hrid, 0, mode);
-    const craftData = getCraftingMaterials(r.item_hrid, mode); // WITH artisan tea
+    // Base item section - check for craft alternative (always pessimistic for base item)
+    const marketPrice = getBuyPrice(r.item_hrid, 0, 'pessimistic');
+    const craftData = getCraftingMaterials(r.item_hrid, 'pessimistic'); // WITH artisan tea
     
     let baseItemHtml = '';
     if (r.baseSource === 'craft' && craftData) {
@@ -3507,18 +3746,19 @@ function renderDetailRow(r) {
     const priceInfo = getPriceAge(r.item_hrid, r.target_level);
     let priceHtml = '';
     
+    const sellDot = priceDotHtml(r._resolvedPrices?.sellActualMode);
     if (priceInfo && priceInfo.lastPrice && priceInfo.lastPrice !== priceInfo.price) {
         // Show price change
         const pctChange = ((priceInfo.price - priceInfo.lastPrice) / priceInfo.lastPrice * 100).toFixed(1);
         const pctClass = pctChange > 0 ? 'positive' : 'negative';
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (bid)</span>
-            <span class="value ${pctClass} price-tip" data-tip="${r.item_name} +${r.target_level} bid @ ${_fmtTs(priceInfo.since)}">${formatCoins(priceInfo.lastPrice)} → ${formatCoins(priceInfo.price)} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
+            <span class="value ${pctClass} price-tip" data-tip="${r.item_name} +${r.target_level} bid @ ${_fmtTs(priceInfo.since)}">${formatCoins(priceInfo.lastPrice)} → ${formatCoins(priceInfo.price)}${sellDot} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
         </div>`;
     } else {
         priceHtml = `<div class="detail-line">
             <span class="label">Sell price (+${r.target_level})</span>
-            <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} bid @ ${_fmtTs(prices.ts)}">${formatCoins(r.sellPrice)}</span>
+            <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} bid @ ${_fmtTs(prices.ts)}">${formatCoins(r.sellPrice)}${sellDot}</span>
         </div>`;
     }
     
@@ -3537,7 +3777,7 @@ function renderDetailRow(r) {
             ${baseItemHtml}
         </div>
         
-        ${renderShoppingList(r, materials, mode)}
+        ${renderShoppingList(r, materials)}
         
         <div class="detail-section enhance-panel">
             <div class="enhance-header">
@@ -3547,7 +3787,7 @@ function renderDetailRow(r) {
                 <span class="protect-badge">Prot @ ${r.protectAt}</span>
                 <span class="protect-count">${r.protectCount.toFixed(1)}</span>
                 <span class="protect-name">${protName}</span>
-                <span class="protect-price price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
+                <span class="protect-price price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}${priceDotHtml(r._resolvedPrices?.protectActualMode)}</span>
             </div>
             <div class="enhance-mats">
                 <div class="enhance-mats-label">Cost per click:</div>
@@ -3579,11 +3819,11 @@ function renderDetailRow(r) {
             </div>
             <div class="detail-line">
                 <span class="label">Materials (${r.actions.toFixed(0)} × ${formatCoins(matsPerAttempt)})</span>
-                <span class="value price-tip" data-tip="${_multiPriceTip(materials)}">${formatCoins(totalEnhanceCost)}</span>
+                <span class="value price-tip" data-tip="${_multiPriceTip(materials)}">${formatCoins(totalEnhanceCost)}${priceDotHtml(priceConfig.matMode)}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Protection (${r.protectCount.toFixed(1)} × ${formatCoins(r.protectPrice)})</span>
-                <span class="value price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(totalProtCost)}</span>
+                <span class="value price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(totalProtCost)}${priceDotHtml(r._resolvedPrices?.protectActualMode)}</span>
             </div>
             <div class="mat-row total-row">
                 <span class="mat-name">Total Cost</span>
@@ -3596,7 +3836,7 @@ function renderDetailRow(r) {
 
 // Main render
 function renderTable() {
-    const data = allResults[currentMode] || [];
+    const data = allResults || [];
     
     // Filter by level
     let filtered = currentLevel === 'all' ? data : 
