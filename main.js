@@ -333,6 +333,7 @@ function calculateAllProfits() {
     const modeConfig = { matMode: priceConfig.matMode, protMode: priceConfig.protMode, sellMode: priceConfig.sellMode };
     
     const results = [];
+    let dbgSkips = { noShop: 0, noProt: 0, noSim: 0, noSell: 0 };
     
     for (const [hrid, item] of Object.entries(gameData.items)) {
         if (!item.enhancementCosts) continue;
@@ -341,17 +342,17 @@ function calculateAllProfits() {
         
         for (const target of TARGET_LEVELS) {
             const shopping = itemResolver.resolve(hrid, target);
-            if (!shopping) continue;
+            if (!shopping) { dbgSkips.noShop++; continue; }
             
             const resolved = priceResolver.resolve(shopping, prices.market, modeConfig, artisanMult);
-            if (resolved.protectPrice <= 0 && resolved.protectHrid === null) continue;
+            if (resolved.protectPrice <= 0 && resolved.protectHrid === null) { dbgSkips.noProt++; continue; }
             
             const sim = calculator.simulate(resolved, target, shopping.itemLevel);
-            if (!sim) continue;
+            if (!sim) { dbgSkips.noSim++; continue; }
             
             // Build sell price and profit like legacy calculateProfit
             const sellPrice = resolved.sellPrice;
-            if (sellPrice <= 0) continue;
+            if (sellPrice <= 0) { dbgSkips.noSell++; continue; }
             
             const marketFee = sellPrice * 0.02;
             const profit = sellPrice - sim.totalCost;
@@ -404,7 +405,7 @@ function calculateAllProfits() {
     allResults = results;
     
     const elapsed = performance.now() - startTime;
-    console.log(`[CowProfit v2] Calculated ${results.length} items in ${elapsed.toFixed(0)}ms`);
+    console.log(`[CowProfit v2] Calculated ${results.length} items in ${elapsed.toFixed(0)}ms`, dbgSkips);
 }
 
 // Build the list of enhanceable items (cached for chunked recalc)
