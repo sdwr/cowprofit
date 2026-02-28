@@ -101,8 +101,7 @@ class PriceResolver {
             return { price: 1, mode, actualMode: mode, bid: 1, ask: 1 };
         }
 
-        const market = marketPrices.market || {};
-        const itemMarket = market[hrid] || {};
+        const itemMarket = marketPrices[hrid] || {};
         const levelData = itemMarket[String(enhLevel)] || {};
 
         const ask = levelData.a ?? -1;
@@ -163,8 +162,7 @@ class PriceResolver {
             return { price: 1, mode, actualMode: mode, bid: 1, ask: 1 };
         }
 
-        const market = marketPrices.market || {};
-        const itemMarket = market[hrid] || {};
+        const itemMarket = marketPrices[hrid] || {};
         const levelData = itemMarket[String(enhLevel)] || {};
 
         const ask = levelData.a ?? -1;
