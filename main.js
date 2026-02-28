@@ -12,7 +12,7 @@ const gameData = window.GAME_DATA_STATIC || {};
 // State
 let calculator = null;
 let currentLevel = 'all';
-let sortCol = 10;
+let sortCol = 9;
 let sortAsc = false;
 let showFee = true;
 let expandedRows = new Set();
@@ -3875,7 +3875,7 @@ function renderTable() {
     });
     
     // Sort
-    const sortKeys = ['item_name', 'target_level', '_age', 'basePrice', 'matCost', 'totalCost', 'sellPrice', '_volume', '_profit', '_roi', '_profit_day', 'timeDays', 'xpPerDay'];
+    const sortKeys = ['item_name', 'target_level', '_age', 'basePrice', 'matCost', 'sellPrice', '_volume', '_profit', '_roi', '_profit_day', 'timeDays', 'xpPerDay'];
     filtered.sort((a, b) => {
         let va = a[sortKeys[sortCol]];
         let vb = b[sortKeys[sortCol]];
@@ -3939,15 +3939,14 @@ function renderTable() {
             <td class="number">${ageStr}${ageArrow}</td>
             <td class="number"><span class="price-source ${sourceClass}"></span>${formatCoins(r.basePrice)}</td>
             <td class="number hide-mobile">${formatCoins(r.matCost)}</td>
-            <td class="number cost-${getCostBucket(r.totalCost)}" style="text-align:center">${formatCoins(r.sellPrice)}${(() => {
+            <td class="number cost-${getCostBucket(r.totalCost)}"><div class="sell-price-cell"><span>${formatCoins(r.sellPrice)}</span>${(() => {
                 if (!r._volData) return '';
                 const diff = r.sellPrice - r._volData.avgPrice;
                 if (Math.abs(diff) < 1) return '';
-                const cls = diff > 0 ? 'diff-up' : 'diff-down';
                 const arrow = diff > 0 ? '↑' : '↓';
-                return `<span class="price-diff ${cls}">(${arrow} ${formatCoins(Math.abs(diff))})</span>`;
-            })()}</td>
-            <td class="number ${r._volData ? (r._volData.volume > 20 ? 'vol-high' : r._volData.volume >= 5 ? 'vol-med' : 'vol-low') : ''}">${r._volData ? r._volData.volume : '-'}</td>
+                return `<span class="price-diff">${arrow}${formatCoins(Math.abs(diff))}</span>`;
+            })()}</div></td>
+            <td class="number">${r._volData ? r._volData.volume.toLocaleString() : '-'}</td>
             <td class="number ${profitClass}">${formatCoins(profit)}</td>
             <td class="number ${profitClass}">${roi.toFixed(1)}%</td>
             <td class="number profit-bar-cell ${profitClass}"><div class="profit-bar ${barClass}" style="width:${barWidth.toFixed(1)}%"></div><span class="profit-bar-value">${formatCoins(profitDay)}</span></td>
