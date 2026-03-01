@@ -3452,6 +3452,10 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
     const itemName = item?.name || itemHrid.split('/').pop().replace(/_/g, ' ');
     const artisanMult = calculator?.getArtisanTeaMultiplier() || 1;
     
+    // Use PriceResolver for consistent min(market, craft) pricing
+    const pr = new PriceResolver(gameData, typeof PRICE_TIERS !== 'undefined' ? PRICE_TIERS : []);
+    const marketPrices = lootTs ? buildPricesAtTime(lootTs, _collectCraftHrids(itemHrid)).market : prices.market;
+    
     const materials = [];
     let total = 0;
     
@@ -3459,8 +3463,9 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
     for (const input of recipe.inputs) {
         const matItem = gameData.items[input.item];
         const matName = matItem?.name || input.item.split('/').pop().replace(/_/g, ' ');
-        const detail = lootTs ? getBuyPriceAtTimeDetailed(input.item, 0, lootTs, mode) : null;
-        const price = detail ? detail.price : getBuyPrice(input.item, 0, mode);
+        const resolved = pr._getItemPrice(input.item, 0, marketPrices, artisanMult);
+        const price = resolved.price;
+        const source = resolved.source;
         // Apply artisan tea to crafting inputs
         const adjustedCount = input.count * artisanMult;
         const lineTotal = adjustedCount * price;
@@ -3471,11 +3476,11 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
             count: adjustedCount,
             price: price,
             total: lineTotal,
-            source: detail ? detail.source : 'market',
-            sourceIcon: detail ? detail.sourceIcon : '💰',
-            side: detail ? detail.side : undefined,
-            fallback: detail ? detail.fallback : false,
-            ts: detail ? detail.ts : (prices.ts || null)
+            source: source,
+            sourceIcon: source === 'craft' ? '🔨' : '💰',
+            side: undefined,
+            fallback: false,
+            ts: prices.ts || null
         });
     }
     
@@ -3486,8 +3491,9 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
         baseItemHrid = recipe.upgrade;
         const baseItem = gameData.items[baseItemHrid];
         baseItemName = baseItem?.name || baseItemHrid.split('/').pop().replace(/_/g, ' ');
-        const detail = lootTs ? getBuyPriceAtTimeDetailed(baseItemHrid, 0, lootTs, mode) : null;
-        const basePrice = detail ? detail.price : getBuyPrice(baseItemHrid, 0, mode);
+        const resolved = pr._getItemPrice(baseItemHrid, 0, marketPrices, artisanMult);
+        const basePrice = resolved.price;
+        const source = resolved.source;
         total += basePrice;
         materials.push({
             hrid: baseItemHrid,
@@ -3495,15 +3501,37 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
             count: 1,
             price: basePrice,
             total: basePrice,
-            source: detail ? detail.source : 'market',
-            sourceIcon: detail ? detail.sourceIcon : '💰',
-            side: detail ? detail.side : undefined,
-            fallback: detail ? detail.fallback : false,
-            ts: detail ? detail.ts : (prices.ts || null)
+            source: source,
+            sourceIcon: source === 'craft' ? '🔨' : '💰',
+            side: undefined,
+            fallback: false,
+            ts: prices.ts || null
         });
     }
     
     return { itemName, materials, total, baseItemHrid, baseItemName };
+}
+
+// Collect all item HRIDs needed for crafting an item (for buildPricesAtTime)
+function _collectCraftHrids(itemHrid, depth = 0) {
+    if (depth > 10) return [];
+    const hrids = [itemHrid];
+    const recipe = gameData.recipes[itemHrid];
+    if (!recipe) return hrids;
+    for (const input of (recipe.inputs || [])) {
+        hrids.push(input.item);
+        // Recurse into craftable inputs
+        if (gameData.recipes[input.item]) {
+            hrids.push(..._collectCraftHrids(input.item, depth + 1));
+        }
+    }
+    if (recipe.upgrade) {
+        hrids.push(recipe.upgrade);
+        if (gameData.recipes[recipe.upgrade]) {
+            hrids.push(..._collectCraftHrids(recipe.upgrade, depth + 1));
+        }
+    }
+    return [...new Set(hrids)];
 }
 
 // Format number with commas
