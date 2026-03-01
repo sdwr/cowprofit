@@ -1,23 +1,27 @@
-# DISABLED - v2 uses client-side calculations with prices.js updated via Clawdbot cron
-# name: Update MWI Prices
-# 
-# on:
-#   schedule:
-#     - cron: '*/30 * * * *'  # Every 30 minutes
-#   workflow_dispatch:  # Manual trigger
-# 
-# jobs:
-#   update:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Install Sprite CLI
-#         run: |
-#           curl -fsSL https://sprites.dev/install.sh | bash
-#           echo "$HOME/.local/bin" >> $GITHUB_PATH
-#           
-#       - name: Auth and Run Update
-#         env:
-#           SPRITE_TOKEN: ${{ secrets.SPRITE_TOKEN }}
-#         run: |
-#           sprite auth setup --token "$SPRITE_TOKEN"
-#           sprite exec -s mwi-tracker -- bash -c 'cd /home/sprite/cowprofit && git pull origin main && python3 generate_site.py'
+name: Update MWI Prices
+
+on:
+  schedule:
+    - cron: '5,35 * * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install requests
+
+      - run: python generate_prices.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "Price Bot"
+          git config user.email "bot@github.com"
+          git add prices.js volume.js
+          git diff --cached --quiet || (git commit -m "prices $(date -u +%Y-%m-%dT%H:%M)" && git push)
