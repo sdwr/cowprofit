@@ -20,11 +20,14 @@ jobs:
 
       - run: pip install requests
 
+      - name: Update game data (if new version available)
+        run: python extract_game_data.py --check
+
       - run: python generate_prices.py
 
       - name: Commit and push
         run: |
           git config user.name "Price Bot"
           git config user.email "bot@github.com"
-          git add prices.js volume.js
+          git add prices.js volume.js game-data.js init_client_info.json
           git diff --cached --quiet || (git commit -m "prices $(date -u +%Y-%m-%dT%H:%M)" && git push)

@@ -9,7 +9,7 @@ import json
 import requests
 from pathlib import Path
 
-ENHANCELATOR_URL = 'https://doh-nuts.github.io/Enhancelator/init_client_info.json'
+ENHANCELATOR_URL = 'https://raw.githubusercontent.com/bierilu/MWIData/main/init_client_info.json'
 LOCAL_FILE = Path(__file__).parent / 'init_client_info.json'
 OUTPUT_FILE = Path(__file__).parent / 'game-data.js'
 
@@ -174,4 +174,34 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    import sys
+    if '--check' in sys.argv:
+        # Only update if remote version is newer
+        print("Checking for game data updates...")
+        if LOCAL_FILE.exists():
+            with open(LOCAL_FILE, 'r', encoding='utf-8') as f:
+                local = json.load(f)
+            local_version = local.get('gameVersion', '')
+            print(f"  Local version: {local_version}")
+            
+            # Fetch just enough to check version
+            resp = requests.get(ENHANCELATOR_URL, stream=True)
+            resp.raise_for_status()
+            remote_data = resp.json()
+            remote_version = remote_data.get('gameVersion', '')
+            print(f"  Remote version: {remote_version}")
+            
+            if remote_version == local_version:
+                print("  Up to date, skipping.")
+                sys.exit(0)
+            
+            print(f"  New version found! Updating...")
+            with open(LOCAL_FILE, 'w', encoding='utf-8') as f:
+                json.dump(remote_data, f)
+        else:
+            print("  No local file, downloading...")
+            download_game_data()
+        
+        main()
+    else:
+        main()
