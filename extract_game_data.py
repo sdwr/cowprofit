@@ -177,30 +177,34 @@ if __name__ == '__main__':
     import sys
     if '--check' in sys.argv:
         # Only update if remote version is newer
+        # Check version from game-data.js (init_client_info.json may be gitignored)
         print("Checking for game data updates...")
-        if LOCAL_FILE.exists():
-            with open(LOCAL_FILE, 'r', encoding='utf-8') as f:
-                local = json.load(f)
-            local_version = local.get('gameVersion', '')
-            print(f"  Local version: {local_version}")
-            
-            # Fetch just enough to check version
-            resp = requests.get(ENHANCELATOR_URL, stream=True)
-            resp.raise_for_status()
-            remote_data = resp.json()
-            remote_version = remote_data.get('gameVersion', '')
-            print(f"  Remote version: {remote_version}")
-            
-            if remote_version == local_version:
-                print("  Up to date, skipping.")
-                sys.exit(0)
-            
-            print(f"  New version found! Updating...")
-            with open(LOCAL_FILE, 'w', encoding='utf-8') as f:
-                json.dump(remote_data, f)
-        else:
-            print("  No local file, downloading...")
-            download_game_data()
+        local_version = ''
+        if OUTPUT_FILE.exists():
+            raw = OUTPUT_FILE.read_text(encoding='utf-8')
+            prefix = 'window.GAME_DATA_STATIC = '
+            if raw.startswith(prefix):
+                try:
+                    obj = json.loads(raw[len(prefix):-1])
+                    local_version = obj.get('version', '')
+                except (json.JSONDecodeError, ValueError):
+                    pass
+        print(f"  Local version: {local_version or '(none)'}")
+        
+        # Check remote version
+        resp = requests.get(ENHANCELATOR_URL)
+        resp.raise_for_status()
+        remote_data = resp.json()
+        remote_version = remote_data.get('gameVersion', '')
+        print(f"  Remote version: {remote_version}")
+        
+        if remote_version == local_version:
+            print("  Up to date, skipping.")
+            sys.exit(0)
+        
+        print(f"  New version found! Updating...")
+        with open(LOCAL_FILE, 'w', encoding='utf-8') as f:
+            json.dump(remote_data, f)
         
         main()
     else:

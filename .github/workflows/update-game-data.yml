@@ -1,8 +1,8 @@
-name: Update MWI Prices
+name: Update Game Data
 
 on:
   schedule:
-    - cron: '5,35 * * * *'
+    - cron: '0 6 * * 0'  # Weekly, Sunday 6am UTC
   workflow_dispatch:
 
 permissions:
@@ -20,11 +20,12 @@ jobs:
 
       - run: pip install requests
 
-      - run: python generate_prices.py
+      - name: Check for new game version
+        run: python extract_game_data.py --check
 
       - name: Commit and push
         run: |
           git config user.name "Price Bot"
           git config user.email "bot@github.com"
-          git add prices.js volume.js
-          git diff --cached --quiet || (git commit -m "prices $(date -u +%Y-%m-%dT%H:%M)" && git push)
+          git add game-data.js
+          git diff --cached --quiet || (git commit -m "game data $(python -c "import json;d=json.loads(open('game-data.js').read()[27:-1]);print(d['version'])")" && git push)
