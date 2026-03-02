@@ -3648,6 +3648,10 @@ function getMaterialDetailsFromResolved(r) {
             });
         }
     }
+    // coinCost is separated from matPrices by ItemResolver — add it back for display
+    if (resolved.coinCost > 0) {
+        materials.push({ hrid: '/items/coin', name: 'Coins', count: resolved.coinCost, price: 1, total: resolved.coinCost, actualMode: null });
+    }
     return materials;
 }
 
