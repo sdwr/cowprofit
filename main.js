@@ -11,7 +11,7 @@ const gameData = window.GAME_DATA_STATIC || {};
 
 // State
 let calculator = null;
-let currentLevel = 'all';
+let currentLevels = new Set(['all']);
 let sortCol = 9;
 let sortAsc = false;
 let showFee = true;
@@ -2781,9 +2781,29 @@ async function onPriceModeChangeAsync() {
 }
 
 function filterLevel(level) {
-    currentLevel = level;
-    document.querySelectorAll('.level-filter').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+    if (level === 'all') {
+        currentLevels.clear();
+        currentLevels.add('all');
+    } else {
+        currentLevels.delete('all');
+        if (currentLevels.has(level)) {
+            currentLevels.delete(level);
+        } else {
+            currentLevels.add(level);
+        }
+
+        if (currentLevels.size === 0) {
+            currentLevels.add('all');
+        }
+    }
+
+    // Update active classes on buttons
+    document.querySelectorAll('.level-filter').forEach(b => {
+        const btnLevel = b.textContent.replace('+', '').toLowerCase();
+        const value = btnLevel === 'all' ? 'all' : parseInt(btnLevel);
+        b.classList.toggle('active', currentLevels.has(value));
+    });
+
     renderTable();
 }
 
@@ -3635,8 +3655,9 @@ function renderDetailRow(r) {
         matsPerAttempt += lineTotal;
         const dot = m.name !== 'Coins' ? priceDotHtml(m.actualMode) : '';
         const mTip = m.name !== 'Coins' ? _priceTip(m, { showPrice: true }) : '';
+        const craftIcon = (m.source === 'craft' || m.source === 'craft cost') ? ' 🔨' : '';
         matsHtml += `<div class="mat-row">
-            <span class="mat-name">${m.name}</span>
+            <span class="mat-name">${m.name}${craftIcon}</span>
             <span class="mat-count${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>${m.count.toFixed(0)}x @ ${formatCoins(m.price)}${dot}</span>
             <span class="mat-price">${formatCoins(lineTotal)}</span>
         </div>`;
@@ -3659,11 +3680,12 @@ function renderDetailRow(r) {
         // Craft is cheaper - show breakdown (base item now included in materials)
         const craftMatsHtml = craftData.materials.map(m => {
             const mTip = _priceTip(m, { showPrice: true });
+            const subCraftIcon = (m.source === 'craft' || m.source === 'craft cost') ? ' 🔨' : '';
             return `
             <div class="mat-row">
                 <span class="mat-name">${m.name}</span>
                 <span class="mat-count">${m.count.toFixed(2)}x @ ${formatCoins(m.price)}</span>
-                <span class="mat-price${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>${formatCoins(m.total)}</span>
+                <span class="mat-price${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>${formatCoins(m.total)}${subCraftIcon}</span>
             </div>`;
         }).join('');
 
@@ -3675,7 +3697,7 @@ function renderDetailRow(r) {
             </div>
             <div class="detail-line">
                 <span class="label">Craft price</span>
-                <span class="value price-tip" data-tip="${craftSummaryTip}">${formatCoins(r.basePrice)}</span>
+                <span class="value price-tip" data-tip="${craftSummaryTip}">${formatCoins(r.basePrice)} 🔨</span>
             </div>
             <div class="craft-breakdown">
                 ${craftMatsHtml}
@@ -3805,7 +3827,7 @@ function renderDetailRow(r) {
             <h4>💰 Cost Summary</h4>
             <div class="detail-line">
                 <span class="label">Base item</span>
-                <span class="value price-tip" data-tip="${r.item_name} ${r.baseSource === 'craft' ? 'craft' : 'ask'} @ ${_fmtTs(prices.ts)}">${formatCoins(r.basePrice)}</span>
+                <span class="value price-tip" data-tip="${r.item_name} ${r.baseSource === 'craft' ? 'craft' : 'ask'} @ ${_fmtTs(prices.ts)}">${formatCoins(r.basePrice)}${r.baseSource === 'craft' ? ' 🔨' : ''}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Materials (${r.actions.toFixed(0)} × ${formatCoins(matsPerAttempt)})</span>
@@ -3829,8 +3851,8 @@ function renderTable() {
     const data = allResults || [];
 
     // Filter by level
-    let filtered = currentLevel === 'all' ? data :
-        data.filter(r => r.target_level == currentLevel);
+    let filtered = currentLevels.has('all') ? data :
+        data.filter(r => currentLevels.has(Number(r.target_level)));
 
     // Filter by cost
     filtered = filtered.filter(r => costFilters[getCostBucket(r.totalCost)]);
@@ -3901,7 +3923,7 @@ function renderTable() {
         const profitDay = r._profit_day;
         const roi = r._roi;
         const profitClass = profit > 0 ? 'positive' : profit < 0 ? 'negative' : 'neutral';
-        const sourceClass = r.baseSource === 'market' ? 'source-market' : r.baseSource === 'craft' ? 'source-craft' : 'source-vendor';
+        const craftIcon = r.baseSource === 'craft' ? ' 🔨' : '<span style="visibility: hidden;"> 🔨</span>';
 
         // Get price age
         const priceInfo = getPriceAge(r.item_hrid, r.target_level);
@@ -3926,7 +3948,7 @@ function renderTable() {
             <td class="item-name"><div class="mat-pct-bar" style="${matBarStyle}"></div><span class="expand-icon">▶</span>${r.item_name}</td>
             <td><span class="level-badge">+${r.target_level}</span></td>
             <td class="number">${ageStr}${ageArrow}</td>
-            <td class="number"><span class="price-source ${sourceClass}"></span>${formatCoins(r.basePrice)}</td>
+            <td class="number">${formatCoins(r.basePrice)}${craftIcon}</td>
             <td class="number hide-mobile col-center">${formatCoins(r.matCost)}</td>
             <td class="number cost-${getCostBucket(r.totalCost)}"><div class="sell-price-cell"><span>${formatCoins(r.sellPrice)}</span>${(() => {
                 if (!r._volData) return '';

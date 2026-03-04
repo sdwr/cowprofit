@@ -425,7 +425,7 @@
             border-collapse: collapse;
             background: rgba(255, 255, 255, 0.03);
             border-radius: 12px;
-            overflow: hidden;
+            overflow: visible;
         }
 
         th {
@@ -464,7 +464,7 @@
             color: #888;
             font-size: 0.6rem;
             margin-left: 3px;
-            cursor: help;
+            cursor: default;
         }
 
         td {
@@ -1631,6 +1631,30 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
         }
 
+        .header-tip {
+            position: relative;
+            cursor: default;
+            z-index: 10;
+        }
+
+        .header-tip:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid rgba(238, 179, 87, 0.6);
+            color: #e8e8e8;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            white-space: pre;
+            z-index: 9999;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
         @media (max-width: 1000px) {
             table {
                 font-size: 0.65rem;
@@ -1836,11 +1860,7 @@
         <p class="mode-info" id="mode-info"></p>
         <p class="mode-info" id="status" style="color: #eeb357;">Loading...</p>
 
-        <div class="legend">
-            <div class="legend-item"><span class="price-source source-market"></span> Market</div>
-            <div class="legend-item"><span class="price-source source-craft"></span> Craft</div>
-            <div class="legend-item"><span class="price-source source-vendor"></span> Vendor</div>
-        </div>
+        <p class="mode-info" id="status" style="color: #eeb357;">Loading...</p>
 
         <div class="stats">
             <div class="stat">
@@ -1866,23 +1886,35 @@
         </div>
 
         <div class="filters">
-            <span class="filter-label">Level:</span>
-            <button class="filter-btn level-filter active" onclick="filterLevel('all')">All</button>
-            <button class="filter-btn level-filter" onclick="filterLevel(8)">+8</button>
-            <button class="filter-btn level-filter" onclick="filterLevel(10)">+10</button>
-            <button class="filter-btn level-filter" onclick="filterLevel(12)">+12</button>
-            <button class="filter-btn level-filter" onclick="filterLevel(14)">+14</button>
-            <span class="filter-divider">|</span>
-            <span class="filter-label">Cost:</span>
-            <button class="filter-btn cost-filter active" data-cost="100m"
-                onclick="toggleCostFilter('100m')">&lt;100M</button>
-            <button class="filter-btn cost-filter active" data-cost="500m"
-                onclick="toggleCostFilter('500m')">100-500M</button>
-            <button class="filter-btn cost-filter active" data-cost="1b"
-                onclick="toggleCostFilter('1b')">500M-1B</button>
-            <button class="filter-btn cost-filter active" data-cost="2b" onclick="toggleCostFilter('2b')">1-2B</button>
-            <button class="filter-btn cost-filter active" data-cost="over2b"
-                onclick="toggleCostFilter('over2b')">&gt;2B</button>
+            <span class="filter-label" style="align-self: center;">Level:</span>
+            <div class="level-filters-grid"
+                style="display: grid; grid-template-columns: auto auto auto auto; gap: 4px; align-items: center;">
+                <button class="filter-btn level-filter active" onclick="filterLevel('all')"
+                    style="grid-row: span 2; height: 100%;">All</button>
+                <button class="filter-btn level-filter" onclick="filterLevel(5)">+5</button>
+                <button class="filter-btn level-filter" onclick="filterLevel(7)">+7</button>
+                <button class="filter-btn level-filter" onclick="filterLevel(8)">+8</button>
+                <!-- Row 2 implicitly created by grid due to 4 columns -->
+                <button class="filter-btn level-filter" onclick="filterLevel(10)">+10</button>
+                <button class="filter-btn level-filter" onclick="filterLevel(12)">+12</button>
+                <button class="filter-btn level-filter" onclick="filterLevel(14)">+14</button>
+            </div>
+
+            <span class="filter-divider" style="align-self: center; margin: 0 8px;">|</span>
+
+            <span class="filter-label" style="align-self: center;">Cost:</span>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <button class="filter-btn cost-filter active" data-cost="100m"
+                    onclick="toggleCostFilter('100m')">&lt;100M</button>
+                <button class="filter-btn cost-filter active" data-cost="500m"
+                    onclick="toggleCostFilter('500m')">100-500M</button>
+                <button class="filter-btn cost-filter active" data-cost="1b"
+                    onclick="toggleCostFilter('1b')">500M-1B</button>
+                <button class="filter-btn cost-filter active" data-cost="2b"
+                    onclick="toggleCostFilter('2b')">1-2B</button>
+                <button class="filter-btn cost-filter active" data-cost="over2b"
+                    onclick="toggleCostFilter('over2b')">&gt;2B</button>
+            </div>
         </div>
 
         <table id="results">
@@ -1890,7 +1922,8 @@
                 <tr>
                     <th onclick="sortTable(0, 'str')">Item<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(1, 'num')">Lvl<span class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(2, 'num')" class="number" title="Time since sell price changed">Age<span
+                    <th onclick="sortTable(2, 'num')" class="number header-tip"
+                        data-tip="Time since sell price changed">Age<span class="tooltip-icon">?</span><span
                             class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(3, 'num')" class="number">Base Cost<span class="sort-arrow">&#9650;</span>
                     </th>
@@ -1902,8 +1935,8 @@
                             class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(7, 'num')" class="number col-center">Profit<span
                             class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(8, 'num')" class="number col-center"
-                        title="Return on Investment based on enhance cost only (mats + prots)">ROI <span
+                    <th onclick="sortTable(8, 'num')" class="number col-center header-tip"
+                        data-tip="Return on Investment based on enhance cost only (mats + prots)">ROI <span
                             class="tooltip-icon">?</span><span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(9, 'num')" class="number" style="text-align:center">$/day<span
                             class="sort-arrow">&#9650;</span></th>
