@@ -343,6 +343,11 @@ function calculateAllProfits() {
             if (!shopping) { dbgSkips.noShop++; continue; }
             
             const resolved = priceResolver.resolve(shopping, prices.market, modeConfig, artisanMult);
+            
+            // Flag items with missing prices (null = unknown)
+            const hasNullMatPrice = resolved.matPrices.some(([, price]) => price === null);
+            const priceMissing = resolved.basePrice === null || hasNullMatPrice;
+            
             if (resolved.protectPrice <= 0 && resolved.protectHrid === null) { dbgSkips.noProt++; continue; }
             
             const sim = calculator.simulate(resolved, target, shopping.itemLevel);
@@ -385,6 +390,7 @@ function calculateAllProfits() {
                 protectAt: sim.protectAt,
                 protectHrid: sim.protectHrid,
                 protectPrice: sim.protectPrice,
+                priceMissing,
                 _resolvedPrices: resolved,
             });
         }
@@ -1350,7 +1356,7 @@ function computeSessionDisplay(session, finalLevelOverride) {
 
     // Check for price errors
     const hasPriceErrors = enhanceProfit.matPriceMissing || enhanceProfit.protPriceMissing ||
-        (isSuccess && salePrice === 0);
+        enhanceProfit.revenuePriceMissing || (isSuccess && salePrice === 0);
 
     // Determine sold status (only for successful sessions, default true)
     const isSold = !isSuccess ? true : (override.isSold !== undefined ? override.isSold : true);
@@ -3325,6 +3331,9 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
             bundle.mats[costHrid] = detail;
         }
     }
+    if (enhanceCosts.filter(c => (c.item || c.itemHrid || c.hrid) !== '/items/coin').length === 0) {
+        bundle.matPriceMissing = true;
+    }
     
     // --- Protection (cheapest option) ---
     const mirrorDetail = getBuyPriceAtTimeDetailed('/items/mirror_of_protection', 0, lootTs, mode);
@@ -3897,6 +3906,9 @@ function renderTable() {
     // Sort
     const sortKeys = ['item_name', 'target_level', '_age', 'basePrice', 'matCost', 'sellPrice', '_volume', '_profit', '_roi', '_profit_day', 'timeDays', 'xpPerDay'];
     filtered.sort((a, b) => {
+        // Items with missing prices always sort to bottom
+        if (a.priceMissing !== b.priceMissing) return a.priceMissing ? 1 : -1;
+        
         let va = a[sortKeys[sortCol]];
         let vb = b[sortKeys[sortCol]];
         if (typeof va === 'string') {
@@ -3953,12 +3965,13 @@ function renderTable() {
             barClass = 'negative';
         }
         
-        html += `<tr class="data-row ${isExpanded ? 'expanded' : ''}" onclick="toggleRow('${rowId}')" data-level="${r.target_level}" data-matpct="${matPct !== null ? matPct : -1}">
+        const missing = r.priceMissing;
+        html += `<tr class="data-row ${isExpanded ? 'expanded' : ''}${missing ? ' price-missing' : ''}" onclick="toggleRow('${rowId}')" data-level="${r.target_level}" data-matpct="${matPct !== null ? matPct : -1}">
             <td class="item-name"><div class="mat-pct-bar" style="${matBarStyle}"></div><span class="expand-icon">▶</span>${r.item_name}</td>
             <td><span class="level-badge">+${r.target_level}</span></td>
             <td class="number">${ageStr}${ageArrow}</td>
-            <td class="number"><span class="price-source ${sourceClass}"></span>${formatCoins(r.basePrice)}</td>
-            <td class="number hide-mobile col-center">${formatCoins(r.matCost)}</td>
+            <td class="number"><span class="price-source ${sourceClass}"></span>${missing ? '—' : formatCoins(r.basePrice)}</td>
+            <td class="number hide-mobile col-center">${missing ? '—' : formatCoins(r.matCost)}</td>
             <td class="number cost-${getCostBucket(r.totalCost)}"><div class="sell-price-cell"><span>${formatCoins(r.sellPrice)}</span>${(() => {
                 if (!r._volData) return '';
                 const diff = r.sellPrice - r._volData.avgPrice;
@@ -3967,9 +3980,9 @@ function renderTable() {
                 return `<span class="price-diff">${arrow}${formatCoins(Math.abs(diff))}</span>`;
             })()}</div></td>
             <td class="number col-center">${r._volData ? r._volData.volume.toLocaleString() : '-'}</td>
-            <td class="number col-center ${profitClass}">${formatCoins(profit)}</td>
-            <td class="number col-center ${profitClass}">${roi.toFixed(1)}%</td>
-            <td class="number profit-bar-cell ${profitClass}"><div class="profit-bar ${barClass}" style="width:${barWidth.toFixed(1)}%"></div><span class="profit-bar-value">${formatCoins(profitDay)}</span></td>
+            <td class="number col-center ${profitClass}">${missing ? '—' : formatCoins(profit)}</td>
+            <td class="number col-center ${profitClass}">${missing ? '—' : roi.toFixed(1) + '%'}</td>
+            <td class="number profit-bar-cell ${profitClass}">${missing ? '<span class="profit-bar-value">—</span>' : `<div class="profit-bar ${barClass}" style="width:${barWidth.toFixed(1)}%"></div><span class="profit-bar-value">${formatCoins(profitDay)}</span>`}</td>
             <td class="number hide-mobile">${r.timeDays.toFixed(2)}</td>
             <td class="number hide-mobile">${formatXP(r.xpPerDay)}</td>
         </tr>`;

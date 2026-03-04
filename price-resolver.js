@@ -252,19 +252,19 @@ class PriceResolver {
      * Calculate crafting cost recursively. Always pessimistic (ask).
      */
     _getCraftingCost(hrid, marketPrices, artisanMult, depth = 0) {
-        if (depth > 10) return 0;
+        if (depth > 10) return null;
         if (hrid === '/items/coin') return 1;
 
         const item = this.items[hrid];
-        if (!item) return 0;
+        if (!item) return null;
 
         const category = item.category || '';
         if (category !== '/item_categories/equipment' && hrid !== '/items/philosophers_mirror') {
-            return 0;
+            return null;
         }
 
         const recipe = this.recipes[hrid];
-        if (!recipe) return 0;
+        if (!recipe) return null;
 
         let cost = 0;
 
@@ -272,22 +272,22 @@ class PriceResolver {
             const count = input.count * artisanMult;
             let inputPrice = this._resolveBuyPrice(input.item, 0, marketPrices, BuyMode.PESSIMISTIC).price;
             if (inputPrice <= 0) {
-                inputPrice = this._getCraftingCost(input.item, marketPrices, artisanMult, depth + 1);
+                const craftCost = this._getCraftingCost(input.item, marketPrices, artisanMult, depth + 1);
+                if (craftCost === null) return null;
+                inputPrice = craftCost;
             }
-            if (inputPrice <= 0) {
-                inputPrice = this._getVendorPrice(input.item);
-            }
+            if (inputPrice <= 0) return null;
             cost += count * inputPrice;
         }
 
         if (recipe.upgrade) {
             let upgradePrice = this._resolveBuyPrice(recipe.upgrade, 0, marketPrices, BuyMode.PESSIMISTIC).price;
             if (upgradePrice <= 0) {
-                upgradePrice = this._getCraftingCost(recipe.upgrade, marketPrices, artisanMult, depth + 1);
+                const craftCost = this._getCraftingCost(recipe.upgrade, marketPrices, artisanMult, depth + 1);
+                if (craftCost === null) return null;
+                upgradePrice = craftCost;
             }
-            if (upgradePrice <= 0) {
-                upgradePrice = this._getVendorPrice(recipe.upgrade);
-            }
+            if (upgradePrice <= 0) return null;
             cost += upgradePrice;
         }
 
@@ -309,23 +309,20 @@ class PriceResolver {
         if (enhLevel === 0) {
             const craftingCost = this._getCraftingCost(hrid, marketPrices, artisanMult);
 
-            if (marketPrice > 0 && craftingCost > 0) {
+            if (marketPrice > 0 && craftingCost !== null && craftingCost > 0) {
                 return craftingCost < marketPrice
                     ? { price: craftingCost, source: 'craft' }
                     : { price: marketPrice, source: 'market' };
             } else if (marketPrice > 0) {
                 return { price: marketPrice, source: 'market' };
-            } else if (craftingCost > 0) {
+            } else if (craftingCost !== null && craftingCost > 0) {
                 return { price: craftingCost, source: 'craft' };
             }
         } else if (marketPrice > 0) {
             return { price: marketPrice, source: 'market' };
         }
 
-        const vendor = this._getVendorPrice(hrid);
-        if (vendor > 0) return { price: vendor, source: 'vendor' };
-
-        return { price: 0, source: 'none' };
+        return { price: null, source: 'none' };
     }
 
     /**
@@ -348,18 +345,12 @@ class PriceResolver {
             const detail = this._resolveBuyPrice(mat.hrid, 0, marketPrices, matMode);
             let price = detail.price;
             let source = 'market';
-            // Vendor/craft fallback for materials with no market price
+            // Craft fallback for materials with no market price
             if (price <= 0) {
-                const itemDef = this.items[mat.hrid];
-                if (itemDef?.sellPrice > 0) {
-                    price = itemDef.sellPrice;
-                    source = 'vendor';
-                } else {
-                    const craftCost = this._getCraftingCost(mat.hrid, marketPrices, artisanMult);
-                    if (craftCost > 0) {
-                        price = craftCost;
-                        source = 'craft';
-                    }
+                const craftCost = this._getCraftingCost(mat.hrid, marketPrices, artisanMult);
+                if (craftCost !== null && craftCost > 0) {
+                    price = craftCost;
+                    source = 'craft';
                 }
             }
             matPrices.push([mat.count, price, {
@@ -390,13 +381,11 @@ class PriceResolver {
             } else {
                 const detail = this._resolveBuyPrice(opt.hrid, 0, marketPrices, protMode);
                 price = detail.price;
-                // Craft/vendor fallback
+                // Craft fallback only
                 if (price <= 0) {
                     const craftCost = this._getCraftingCost(opt.hrid, marketPrices, artisanMult);
-                    if (craftCost > 0) {
+                    if (craftCost !== null && craftCost > 0) {
                         price = craftCost;
-                    } else {
-                        price = this._getVendorPrice(opt.hrid);
                     }
                 }
                 priceDetails.set(opt.hrid + ':prot', { ...detail, price });
