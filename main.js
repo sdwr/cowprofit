@@ -64,13 +64,13 @@ function getCoins() {
 
 function calculateMatPercent(r) {
     if (!hasInventory()) return null;
-    
+
     let totalValue = 0;
     let ownedValue = 0;
-    
+
     // Get materials for this item (use resolved prices if available)
     const materials = r._resolvedPrices ? getMaterialDetailsFromResolved(r) : getMaterialDetails(r.item_hrid, 1, 'pessimistic');
-    
+
     // Enhancement materials (per attempt * actions)
     for (const m of materials) {
         if (m.name === 'Coins') continue;
@@ -80,7 +80,7 @@ function calculateMatPercent(r) {
         totalValue += needed * price;
         ownedValue += owned * price;
     }
-    
+
     // Protection items
     if (r.protectHrid && r.protectCount > 0) {
         const needed = Math.ceil(r.protectCount);
@@ -89,13 +89,13 @@ function calculateMatPercent(r) {
         totalValue += needed * price;
         ownedValue += owned * price;
     }
-    
+
     if (totalValue === 0) return 100;
     return (ownedValue / totalValue) * 100;
 }
 
 // Listen for inventory data from userscript
-window.addEventListener('cowprofit-inventory-loaded', function(e) {
+window.addEventListener('cowprofit-inventory-loaded', function (e) {
     console.log('[CowProfit v2] Inventory event received:', e.detail);
     inventoryData = e.detail;
     console.log('[CowProfit v2] hasInventory():', hasInventory());
@@ -103,7 +103,7 @@ window.addEventListener('cowprofit-inventory-loaded', function(e) {
 });
 
 // Listen for loot history from userscript
-window.addEventListener('cowprofit-loot-loaded', function(e) {
+window.addEventListener('cowprofit-loot-loaded', function (e) {
     console.log('[CowProfit v2] Loot history received:', e.detail?.length, 'entries');
     // Real data replaces mock data immediately
     usingMockData = false;
@@ -111,7 +111,7 @@ window.addEventListener('cowprofit-loot-loaded', function(e) {
     lootHistoryData = e.detail || [];
     // Sort by startTime descending (most recent first)
     lootHistoryData.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
-    console.log('[CowProfit v2] Loot sessions loaded:', lootHistoryData.map(s => 
+    console.log('[CowProfit v2] Loot sessions loaded:', lootHistoryData.map(s =>
         `${s.actionHrid?.split('/').pop()} @ ${s.startTime} (${s.actionCount} actions)`
     ).slice(0, 5));
     // Run migration if needed, then auto-group new sessions
@@ -285,69 +285,69 @@ const modeInfo = {
 // Initialize calculator and compute all results
 function init() {
     console.log('[CowProfit v2] Initializing...');
-    
+
     if (!gameData.items) {
         console.error('Game data not loaded!');
         document.getElementById('status').textContent = 'Error: game-data.js not loaded';
         return;
     }
-    
+
     if (!prices.market) {
         console.error('Prices not loaded!');
         document.getElementById('status').textContent = 'Error: prices.js not loaded';
         return;
     }
-    
+
     const savedGearConfig = loadGearConfig();
     calculator = new EnhanceCalculator(gameData, savedGearConfig);
     console.log(`[CowProfit v2] Calculator ready. ${Object.keys(gameData.items).length} items loaded.`);
-    
+
     // Display version
     document.getElementById('version-tag').textContent = gameData.version + ' (v2)';
-    
+
     // Sync price config buttons (always starts pessimistic)
     syncPriceConfigButtons();
-    
+
     // Calculate all profits
     calculateAllProfits();
-    
+
     // Update timestamps
     updateTimes();
     setInterval(updateTimes, 60000);
-    
+
     // Render
     renderTable();
-    
+
     document.getElementById('status').textContent = '';
 }
 
 function calculateAllProfits() {
     console.log('[CowProfit v2] Calculating profits...');
     const startTime = performance.now();
-    
+
     const itemResolver = new ItemResolver(gameData);
     const priceResolver = new PriceResolver(gameData, typeof PRICE_TIERS !== 'undefined' ? PRICE_TIERS : []);
     const artisanMult = calculator.getArtisanTeaMultiplier();
     const modeConfig = { matMode: priceConfig.matMode, protMode: priceConfig.protMode, sellMode: priceConfig.sellMode };
-    
+
     const results = [];
     let dbgSkips = { noShop: 0, noProt: 0, noSim: 0, noSell: 0 };
-    
+
     for (const [hrid, item] of Object.entries(gameData.items)) {
         if (!item.enhancementCosts) continue;
         const name = item.name?.toLowerCase() || '';
         if (['cheese_', 'verdant_', 'wooden_', 'rough_'].some(s => name.includes(s))) continue;
-        
+
         for (const target of TARGET_LEVELS) {
             const shopping = itemResolver.resolve(hrid, target);
             if (!shopping) { dbgSkips.noShop++; continue; }
-            
+
             const resolved = priceResolver.resolve(shopping, prices.market, modeConfig, artisanMult);
             if (resolved.protectPrice <= 0 && resolved.protectHrid === null) { dbgSkips.noProt++; continue; }
-            
+
             const sim = calculator.simulate(resolved, target, shopping.itemLevel);
             if (!sim) { dbgSkips.noSim++; continue; }
-            
+
             // Pre-cache all 5 sell modes
             const sellModes = ['pessimistic', 'pessimistic+', 'midpoint', 'optimistic-', 'optimistic'];
             const sellPrices = {};
@@ -355,16 +355,16 @@ function calculateAllProfits() {
                 const sd = priceResolver.resolveSellPrice(hrid, target, prices.market, sm);
                 sellPrices[sm] = { price: sd.price, actualMode: sd.actualMode, bid: sd.bid, ask: sd.ask };
             }
-            
+
             // Use current mode for initial display + filtering
             const sellPrice = sellPrices[modeConfig.sellMode].price;
             if (sellPrice <= 0) { dbgSkips.noSell++; continue; }
-            
+
             const matCost = sim.matCost;
             const totalTimeHours = sim.actions * sim.attemptTime / 3600;
             const totalTimeDays = totalTimeHours / 24;
             const xpPerDay = totalTimeDays > 0 ? sim.totalXp / totalTimeDays : 0;
-            
+
             results.push({
                 item_name: item.name,
                 item_hrid: hrid,
@@ -389,9 +389,9 @@ function calculateAllProfits() {
             });
         }
     }
-    
+
     allResults = results;
-    
+
     const elapsed = performance.now() - startTime;
     console.log(`[CowProfit v2] Calculated ${results.length} items in ${elapsed.toFixed(0)}ms`, dbgSkips);
 }
@@ -419,26 +419,26 @@ async function calculateAllProfitsAsync(runId, onChunkDone) {
     const artisanMult = calculator.getArtisanTeaMultiplier();
     const modeConfig = { matMode: priceConfig.matMode, protMode: priceConfig.protMode, sellMode: priceConfig.sellMode };
     const tempResults = [];
-    
+
     for (let ci = 0; ci < items.length; ci += CHUNK_SIZE) {
         if (recalcController.runId !== runId) {
             console.log(`[CowProfit] Recalc ${runId} aborted`);
             return null;
         }
-        
+
         const chunk = items.slice(ci, ci + CHUNK_SIZE);
-        
+
         for (const { hrid, item } of chunk) {
             for (const target of TARGET_LEVELS) {
                 const shopping = itemResolver.resolve(hrid, target);
                 if (!shopping) continue;
-                
+
                 const resolved = priceResolver.resolve(shopping, prices.market, modeConfig, artisanMult);
                 if (resolved.protectPrice <= 0 && resolved.protectHrid === null) continue;
-                
+
                 const sim = calculator.simulate(resolved, target, shopping.itemLevel);
                 if (!sim) continue;
-                
+
                 // Pre-cache all 5 sell modes
                 const sellModes = ['pessimistic', 'pessimistic+', 'midpoint', 'optimistic-', 'optimistic'];
                 const sellPrices = {};
@@ -446,15 +446,15 @@ async function calculateAllProfitsAsync(runId, onChunkDone) {
                     const sd = priceResolver.resolveSellPrice(hrid, target, prices.market, sm);
                     sellPrices[sm] = { price: sd.price, actualMode: sd.actualMode, bid: sd.bid, ask: sd.ask };
                 }
-                
+
                 const sellPrice = sellPrices[modeConfig.sellMode].price;
                 if (sellPrice <= 0) continue;
-                
+
                 const matCost = sim.matCost;
                 const totalTimeHours = sim.actions * sim.attemptTime / 3600;
                 const totalTimeDays = totalTimeHours / 24;
                 const xpPerDay = totalTimeDays > 0 ? sim.totalXp / totalTimeDays : 0;
-                
+
                 tempResults.push({
                     item_name: item.name,
                     item_hrid: hrid,
@@ -479,13 +479,13 @@ async function calculateAllProfitsAsync(runId, onChunkDone) {
                 });
             }
         }
-        
+
         if (onChunkDone) onChunkDone(ci + chunk.length, items.length);
         await new Promise(r => setTimeout(r, 0));
     }
-    
+
     if (recalcController.runId !== runId) return null;
-    
+
     tempResults.sort((a, b) => b.profit - a.profit);
     return tempResults;
 }
@@ -515,38 +515,38 @@ function removeSkeletonState() {
 function flipSortAnimation(tbody) {
     const rows = Array.from(tbody.querySelectorAll('tr.data-row'));
     if (rows.length === 0) return;
-    
+
     // FIRST: record current positions
     const firstRects = new Map();
     rows.forEach(row => {
         firstRects.set(row, row.getBoundingClientRect());
     });
-    
+
     // LAST: re-render table (caller does this), then read new positions
     // This function is called AFTER innerHTML is set, so we read new positions
     const newRows = Array.from(tbody.querySelectorAll('tr.data-row'));
-    
+
     newRows.forEach(row => {
         const rowId = row.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
         if (!rowId) return;
-        
+
         // Find matching old row by rowId
         const oldRow = rows.find(r => {
             const oid = r.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
             return oid === rowId;
         });
         if (!oldRow || !firstRects.has(oldRow)) return;
-        
+
         const first = firstRects.get(oldRow);
         const last = row.getBoundingClientRect();
         const deltaY = first.top - last.top;
-        
+
         if (Math.abs(deltaY) < 1) return;
-        
+
         // INVERT
         row.style.transform = `translateY(${deltaY}px)`;
         row.style.transition = 'none';
-        
+
         // PLAY
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
@@ -567,20 +567,20 @@ async function onGearChangeAsync() {
     saveGearConfig(c);
     calculator = new EnhanceCalculator(gameData, c);
     updateGearComputedStats();
-    
+
     // Abort any in-flight recalc
     const runId = ++recalcController.runId;
     recalcController.inProgress = true;
-    
+
     // Apply skeleton state to current rows
     applySkeletonState();
-    
+
     const result = await calculateAllProfitsAsync(runId, (done, total) => {
         // Could update a progress indicator here
     });
-    
+
     if (!result) return; // Aborted
-    
+
     // Capture pre-sort positions
     const tbody = document.getElementById('table-body');
     const oldRows = Array.from(tbody.querySelectorAll('tr.data-row'));
@@ -589,26 +589,26 @@ async function onGearChangeAsync() {
         const rowId = row.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
         if (rowId) firstRects.set(rowId, row.getBoundingClientRect());
     });
-    
+
     // Apply results and re-render
     allResults = result;
     renderTable();
-    
+
     // FLIP animation
     const newRows = Array.from(tbody.querySelectorAll('tr.data-row'));
     newRows.forEach(row => {
         const rowId = row.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
         if (!rowId || !firstRects.has(rowId)) return;
-        
+
         const first = firstRects.get(rowId);
         const last = row.getBoundingClientRect();
         const deltaY = first.top - last.top;
-        
+
         if (Math.abs(deltaY) < 1) return;
-        
+
         row.style.transform = `translateY(${deltaY}px)`;
         row.style.transition = 'none';
-        
+
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 row.classList.add('flip-animate');
@@ -620,7 +620,7 @@ async function onGearChangeAsync() {
             });
         });
     });
-    
+
     recalcController.inProgress = false;
     if (lootHistoryOpen) renderLootHistoryPanel();
 }
@@ -628,15 +628,15 @@ async function onGearChangeAsync() {
 // Formatting helpers
 function formatCoins(value) {
     if (value === 0 || value === null || value === undefined) return '-';
-    if (Math.abs(value) >= 1e9) return (value/1e9).toFixed(2) + 'B';
-    if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(2) + 'M';
-    if (Math.abs(value) >= 1e3) return (value/1e3).toFixed(2) + 'K';
+    if (Math.abs(value) >= 1e9) return (value / 1e9).toFixed(2) + 'B';
+    if (Math.abs(value) >= 1e6) return (value / 1e6).toFixed(2) + 'M';
+    if (Math.abs(value) >= 1e3) return (value / 1e3).toFixed(2) + 'K';
     return value.toFixed(0);
 }
 
 function formatXP(value) {
-    if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(1) + 'M';
-    if (Math.abs(value) >= 1e3) return (value/1e3).toFixed(1) + 'K';
+    if (Math.abs(value) >= 1e6) return (value / 1e6).toFixed(1) + 'M';
+    if (Math.abs(value) >= 1e3) return (value / 1e3).toFixed(1) + 'K';
     return value.toFixed(0);
 }
 
@@ -654,7 +654,7 @@ function updateTimes() {
     const marketEl = document.getElementById('time-market');
     checkEl.textContent = formatTimeAgo(prices.generated);
     marketEl.textContent = formatTimeAgo(prices.ts);
-    
+
     // Stale data warning — yellow highlight on "Last check" if > 1 hour ago
     const now = Math.floor(Date.now() / 1000);
     const age = now - (prices.generated || 0);
@@ -709,11 +709,11 @@ function renderHistoryPanel() {
     // Get unique market update timestamps from history
     const historyData = prices.history || {};
     const timestamps = new Set();
-    
+
     for (const entryData of Object.values(historyData)) {
         // Handle both old format (flat array) and new format ({b: [...], a: [...]})
-        const lists = Array.isArray(entryData) 
-            ? [entryData] 
+        const lists = Array.isArray(entryData)
+            ? [entryData]
             : [entryData.b || [], entryData.a || []];
         for (const list of lists) {
             for (const e of list) {
@@ -721,17 +721,17 @@ function renderHistoryPanel() {
             }
         }
     }
-    
+
     // Sort descending, take last 10
     const sorted = [...timestamps].sort((a, b) => b - a).slice(0, 10);
-    
+
     const entries = sorted.map(ts => `
         <div class="history-entry">
             <span class="time">${new Date(ts * 1000).toLocaleString()}</span>
             <span class="ago">${formatTimeAgo(ts)}</span>
         </div>
     `).join('');
-    
+
     document.getElementById('history-panel').innerHTML = `
         <h5>Market Update History</h5>
         ${entries || '<div class="history-entry">No history yet</div>'}
@@ -763,7 +763,7 @@ function loadGearConfig() {
     try {
         const saved = JSON.parse(localStorage.getItem(GEAR_CONFIG_KEY));
         if (saved) return { ...DEFAULT_CONFIG, ...saved };
-    } catch (e) {}
+    } catch (e) { }
     return { ...DEFAULT_CONFIG };
 }
 
@@ -838,7 +838,7 @@ function renderGearPanel() {
         document.getElementById('gear-panel').innerHTML = '<div style="padding:10px;color:#888;">Calculator not loaded</div>';
         return;
     }
-    
+
     if (gearPanelRendered) {
         updateGearComputedStats();
         return;
@@ -861,7 +861,7 @@ function renderGearPanel() {
 
     const numInput = (id, value, min, max) =>
         `<input type="number" class="gear-input" id="${id}" value="${value}" min="${min}" max="${max}">`;
-    
+
     const selectOpts = (id, options, selected) =>
         `<select class="gear-select" id="${id}">${options.map(([v, l]) =>
             `<option value="${v}"${v === selected ? ' selected' : ''}>${l}</option>`
@@ -923,7 +923,7 @@ function renderGearPanel() {
     // Attach change listeners
     document.getElementById('gear-panel').addEventListener('input', onGearChange);
     document.getElementById('gear-panel').addEventListener('change', onGearChange);
-    
+
     // Disable level inputs when gear unchecked
     const gearToggles = [
         ['gear-gloves-on', 'gear-gloves'],
@@ -966,7 +966,7 @@ function toggleLootHistory(e) {
     document.getElementById('history-panel').classList.remove('visible');
     document.getElementById('gear-arrow').innerHTML = '&#9660;';
     document.getElementById('history-arrow').innerHTML = '&#9660;';
-    
+
     const panel = document.getElementById('loot-history-panel');
     panel.classList.toggle('visible', lootHistoryOpen);
     document.getElementById('loot-history-arrow').innerHTML = lootHistoryOpen ? '&#9650;' : '&#9660;';
@@ -1434,16 +1434,16 @@ function renderCardBody(d, isSubCard) {
 
     // Build tooltips from PriceBundle
     const pb = ep.priceBundle;
-    const matItems = pb ? Object.entries(pb.mats).map(([h, d]) => ({...d, name: h.split('/').pop().replace(/_/g,' ')})) : [];
+    const matItems = pb ? Object.entries(pb.mats).map(([h, d]) => ({ ...d, name: h.split('/').pop().replace(/_/g, ' ') })) : [];
     const matTip = _multiPriceTip(matItems);
     const protHrid = pb?.prot?.hrid;
-    const protName = protHrid ? (gameData.items[protHrid]?.name || protHrid.split('/').pop().replace(/_/g,' ')) : 'prot';
-    const protTip = pb && pb.prot.source ? _priceTip({...pb.prot, name: protName}) : (protName ? protName : '');
+    const protName = protHrid ? (gameData.items[protHrid]?.name || protHrid.split('/').pop().replace(/_/g, ' ')) : 'prot';
+    const protTip = pb && pb.prot.source ? _priceTip({ ...pb.prot, name: protName }) : (protName ? protName : '');
     const baseName = ep.itemName || 'base';
-    const baseTip = pb ? (pb.baseItem._craftTip 
+    const baseTip = pb ? (pb.baseItem._craftTip
         ? `${_shortName(baseName, 12)} ${formatCoins(pb.baseItem.price)} craft${pb.baseItem.fallback ? ' ⚠️' : ''}&#10;${pb.baseItem._craftTip}`
-        : _priceTip({...pb.baseItem, name: baseName})) : '';
-    
+        : _priceTip({ ...pb.baseItem, name: baseName })) : '';
+
     let matCostStr = ep.matPriceMissing ? '⚠️ no price' : (ep.totalMatCost > 0 ? formatCoins(ep.totalMatCost) : '-');
     let protStr = '-';
     if (displayProts > 0) {
@@ -1456,7 +1456,7 @@ function renderCardBody(d, isSubCard) {
     let costsHtml = `<div class="loot-costs">
         <span class="price-tip" data-tip="${matTip}">Mats: ${matCostStr}</span>
         <span class="price-tip" data-tip="${protTip}">Prot: ${protStr}</span>
-        <span class="price-tip" data-tip="${pb ? _multiPriceTip([{...pb.teas.ultra, name:'ultra'}, {...pb.teas.blessed, name:'blessed'}, {...pb.teas.wisdom, name:'wisdom'}]) : ''}">Teas: ${teaStr}</span>
+        <span class="price-tip" data-tip="${pb ? _multiPriceTip([{ ...pb.teas.ultra, name: 'ultra' }, { ...pb.teas.blessed, name: 'blessed' }, { ...pb.teas.wisdom, name: 'wisdom' }]) : ''}">Teas: ${teaStr}</span>
         ${d.isSuccess && !isSubCard ? `<span class="price-tip" data-tip="${baseTip}">Base: ${ep.baseItemSourceIcon || ''} ${formatCoins(d.baseItemCost)}</span>` : ''}
     </div>`;
 
@@ -1467,8 +1467,8 @@ function renderCardBody(d, isSubCard) {
             ? `${estIcon} ${formatCoins(d.estimatedSale)}` : '⚠️ no price';
         const saleFormatted = d.salePrice > 0 ? formatCoins(d.salePrice) : '0';
         const feeStr = d.fee > 0 ? `-${formatCoins(d.fee)}` : '-';
-        const estTip = pb ? _priceTip(pb.estimatedSale, {showPrice: true}) : '';
-        const revTip = pb ? _priceTip(pb.sellRevenue, {showPrice: true}) : '';
+        const estTip = pb ? _priceTip(pb.estimatedSale, { showPrice: true }) : '';
+        const revTip = pb ? _priceTip(pb.sellRevenue, { showPrice: true }) : '';
 
         saleHtml = `<div class="loot-sale">
             <span class="price-tip" data-tip="${estTip}">Est: ${estSaleStr}</span>
@@ -1880,11 +1880,6 @@ function renderLootHistoryPanel() {
         return fi.sessionKey === key;
     }
 
-    // Helper: determine handle placement based on adjacency in filteredItems
-    function getHandlePlacement(ri, neighborRi) {
-        return Math.abs(ri - neighborRi) === 1 ? 'floating' : 'on-card';
-    }
-
     // Handle visibility helper: find nearest same-item neighbor
     function findNeighbors(key, itemName, direction) {
         const arr = itemSessionMap[itemName];
@@ -2026,15 +2021,11 @@ function renderLootHistoryPanel() {
     }
 
     // Helper to render a group/manual handle
-    function renderHandle(sourceKey, targetKey, placement, direction) {
+    function renderHandle(sourceKey, targetKey, direction) {
         const escapedSource = sourceKey.replace(/'/g, "\\'");
         const escapedTarget = targetKey.replace(/'/g, "\\'");
         const dirClass = direction === 'up' ? 'handle-up' : 'handle-down';
-        if (placement === 'floating') {
-            return `<div class="group-handle-floating ${dirClass}" onclick="manualGroupSession('${escapedSource}', '${escapedTarget}', event)" title="Group sessions">⇕</div>`;
-        } else {
-            return `<div class="group-handle-attached ${dirClass}" onclick="manualGroupSession('${escapedSource}', '${escapedTarget}', event)" title="Group sessions">⇕ group</div>`;
-        }
+        return `<div class="group-handle-attached ${dirClass}" onclick="manualGroupSession('${escapedSource}', '${escapedTarget}', event)" title="Group sessions">⇕ group</div>`;
     }
 
     // Helper: get the connectable edge key and item name for a filteredItem's top/bottom
@@ -2054,17 +2045,6 @@ function renderLootHistoryPanel() {
     for (let ri = 0; ri < filteredItems.length; ri++) {
         const item = filteredItems[ri];
 
-        // Compute floating handle between this item and previous item (any type combo)
-        let floatingHandle = '';
-        if (allFiltersOn && ri > 0) {
-            const prevItem = filteredItems[ri - 1];
-            const curTop = getEdgeInfo(item, 'top');
-            const prevBottom = getEdgeInfo(prevItem, 'bottom');
-            if (curTop.itemName === prevBottom.itemName && canConnect(curTop.key, prevBottom.key)) {
-                floatingHandle = renderHandle(curTop.key, prevBottom.key, 'floating', 'up');
-            }
-        }
-
         if (item.type === 'group') {
             const topData = displayData[item.topKey];
             const subDatas = item.subKeys.map(k => displayData[k]);
@@ -2074,23 +2054,18 @@ function renderLootHistoryPanel() {
             for (const sd of subDatas) groupProfit += sd.profit;
             const groupProfitClass = groupProfit > 0 ? 'positive' : (groupProfit < 0 ? 'negative' : 'neutral');
 
-            // Floating handle goes before the group div
-            entriesHtml += floatingHandle;
+            entriesHtml += `<div class="group-card-wrapper">`;
 
-            let groupHtml = '<div class="session-group">';
-
-            // Top edge: outward group handle (only non-adjacent / on-card)
+            // Top edge: outward group handle
             if (allFiltersOn) {
                 const topItemName = topData.enhanceProfit?.itemName;
                 const neighbor = topItemName ? findNeighbors(item.topKey, topItemName, 'up') : null;
                 if (neighbor && canConnect(item.topKey, neighbor.key)) {
-                    const placement = getHandlePlacement(ri, neighbor.ri);
-                    if (placement === 'on-card') {
-                        groupHtml += renderHandle(item.topKey, neighbor.key, 'on-card', 'up');
-                    }
-                    // floating case handled above
+                    entriesHtml += renderHandle(item.topKey, neighbor.key, 'up');
                 }
             }
+
+            let groupHtml = '<div class="session-group">';
 
             // Top card with ungroup handle
             groupHtml += `<div class="group-card-wrapper">`;
@@ -2110,21 +2085,6 @@ function renderLootHistoryPanel() {
                 groupHtml += `</div>`;
             }
 
-            // Bottom edge: outward group handle (only non-adjacent / on-card)
-            if (allFiltersOn) {
-                const bottomKey = item.memberKeys[0];
-                const bottomData = displayData[bottomKey];
-                const bottomItemName = bottomData?.enhanceProfit?.itemName;
-                const neighbor = bottomItemName ? findNeighbors(bottomKey, bottomItemName, 'down') : null;
-                if (neighbor && canConnect(bottomKey, neighbor.key)) {
-                    const placement = getHandlePlacement(ri, neighbor.ri);
-                    if (placement === 'on-card') {
-                        groupHtml += renderHandle(bottomKey, neighbor.key, 'on-card', 'down');
-                    }
-                    // floating case handled by next item's iteration
-                }
-            }
-
             // Group summary
             groupHtml += `<div class="group-summary">
                 <span>${item.memberKeys.length} sessions</span>
@@ -2133,6 +2093,19 @@ function renderLootHistoryPanel() {
 
             groupHtml += '</div>';
             entriesHtml += groupHtml;
+
+            // Bottom edge: outward group handle
+            if (allFiltersOn) {
+                const bottomKey = item.memberKeys[0];
+                const bottomData = displayData[bottomKey];
+                const bottomItemName = bottomData?.enhanceProfit?.itemName;
+                const neighbor = bottomItemName ? findNeighbors(bottomKey, bottomItemName, 'down') : null;
+                if (neighbor && canConnect(bottomKey, neighbor.key)) {
+                    entriesHtml += renderHandle(bottomKey, neighbor.key, 'down');
+                }
+            }
+
+            entriesHtml += `</div>`;
         } else {
             // Standalone card
             const d = displayData[item.sessionKey];
@@ -2144,25 +2117,19 @@ function renderLootHistoryPanel() {
             if (allFiltersOn) {
                 const upNeighbor = findNeighbors(d.sessionKey, myItem, 'up');
                 if (upNeighbor && canConnect(d.sessionKey, upNeighbor.key)) {
-                    const placement = getHandlePlacement(ri, upNeighbor.ri);
-                    if (placement === 'on-card') {
-                        handleAbove = renderHandle(d.sessionKey, upNeighbor.key, 'on-card', 'up');
-                    }
-                    // floating case handled above
+                    handleAbove = renderHandle(d.sessionKey, upNeighbor.key, 'up');
                 }
                 const downNeighbor = findNeighbors(d.sessionKey, myItem, 'down');
                 if (downNeighbor && canConnect(d.sessionKey, downNeighbor.key)) {
-                    const placement = getHandlePlacement(ri, downNeighbor.ri);
-                    if (placement === 'on-card') {
-                        handleBelow = renderHandle(d.sessionKey, downNeighbor.key, 'on-card', 'down');
-                    }
-                    // floating case handled by next item's iteration
+                    handleBelow = renderHandle(d.sessionKey, downNeighbor.key, 'down');
                 }
             }
 
-            entriesHtml += floatingHandle + handleAbove;
+            entriesHtml += `<div class="group-card-wrapper">`;
+            entriesHtml += handleAbove;
             entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
             entriesHtml += handleBelow;
+            entriesHtml += `</div>`;
         }
     }
 
@@ -2313,11 +2280,11 @@ function calculateLootSessionValue(session) {
     let bidValue = 0;
     let askValue = 0;
     let dropCount = 0;
-    
+
     for (const [hrid, count] of Object.entries(drops)) {
         if (count <= 0) continue;
         dropCount += count;
-        
+
         // Parse enhanced items: /items/item_hrid::N means +N enhancement
         let itemHrid = hrid;
         let level = 0;
@@ -2326,22 +2293,22 @@ function calculateLootSessionValue(session) {
             itemHrid = parts[0];
             level = parseInt(parts[1]) || 0;
         }
-        
+
         // Look up prices
         const itemPrices = prices.market?.[itemHrid]?.[String(level)] || {};
         const bid = itemPrices.b || 0;
         const ask = itemPrices.a || 0;
-        
+
         bidValue += bid * count;
         askValue += ask * count;
     }
-    
+
     // Calculate $/hour
     const durationMs = new Date(session.endTime) - new Date(session.startTime);
     const hours = durationMs / 3600000;
     const bidPerHour = hours > 0 ? bidValue / hours : 0;
     const askPerHour = hours > 0 ? askValue / hours : 0;
-    
+
     return { bidValue, askValue, dropCount, bidPerHour, askPerHour };
 }
 
@@ -2356,14 +2323,14 @@ function calculateEnhanceSessionProfit(session) {
     if (!session.actionHrid?.includes('enhance')) {
         return null; // Not an enhance session
     }
-    
+
     const drops = session.drops || {};
     const actionCount = session.actionCount || 0;
-    
+
     // Parse primary item to get the item being enhanced and its current level
     let itemHrid = null;
     let currentLevel = 0;
-    
+
     // Parse primaryItemHash to get item and current level
     // Format: "charId::/item_locations/inventory::/items/{item_hrid}::{level}"
     if (session.primaryItemHash) {
@@ -2373,12 +2340,12 @@ function calculateEnhanceSessionProfit(session) {
             currentLevel = parseInt(match[2]) || 0;
         }
     }
-    
+
     if (!itemHrid) {
         // Try to detect from drops - find the enhanced item (not essences/crates)
         for (const dropKey of Object.keys(drops)) {
-            if (dropKey.includes('::') && 
-                !dropKey.includes('essence') && 
+            if (dropKey.includes('::') &&
+                !dropKey.includes('essence') &&
                 !dropKey.includes('crate') &&
                 !dropKey.includes('fragment')) {
                 itemHrid = dropKey.split('::')[0];
@@ -2386,12 +2353,12 @@ function calculateEnhanceSessionProfit(session) {
             }
         }
     }
-    
+
     if (!itemHrid) return null;
-    
+
     // Get item data for material costs - try both gameData.items and direct lookup
     let itemData = gameData.items?.[itemHrid];
-    
+
     // Also try without leading slash if needed
     if (!itemData && itemHrid.startsWith('/items/')) {
         const shortHrid = itemHrid.substring(7); // Remove '/items/'
@@ -2402,7 +2369,7 @@ function calculateEnhanceSessionProfit(session) {
             }
         }
     }
-    
+
     // Parse drops into level distribution
     const levelDrops = {};
     let totalItems = 0;
@@ -2412,12 +2379,12 @@ function calculateEnhanceSessionProfit(session) {
         levelDrops[level] = (levelDrops[level] || 0) + count;
         totalItems += count;
     }
-    
+
     if (totalItems === 0) return null;
-    
+
     // Get loot timestamp for historical price lookup (moved up for use in mat/prot pricing)
     const lootTs = session.startTime ? Math.floor(new Date(session.startTime).getTime() / 1000) : Math.floor(Date.now() / 1000);
-    
+
     // Get optimal protection level from calculator (instead of hardcoding 8)
     // The calculator finds the most cost-effective prot level for this item
     let protLevel = 8; // fallback
@@ -2432,7 +2399,7 @@ function calculateEnhanceSessionProfit(session) {
             const shopping = itemResolver.resolve(itemHrid, targetForProt);
             if (shopping) {
                 const histMarket = buildPricesAtTime(lootTs, allHridsForCalc).market;
-                const resolved = priceResolver.resolve(shopping, histMarket, {matMode:'pessimistic', protMode:'pessimistic', sellMode:'pessimistic'}, calculator.getArtisanTeaMultiplier());
+                const resolved = priceResolver.resolve(shopping, histMarket, { matMode: 'pessimistic', protMode: 'pessimistic', sellMode: 'pessimistic' }, calculator.getArtisanTeaMultiplier());
                 const sim = calculator.simulate(resolved, targetForProt, shopping.itemLevel);
                 if (sim && sim.protectAt) protLevel = sim.protectAt;
             }
@@ -2440,11 +2407,11 @@ function calculateEnhanceSessionProfit(session) {
             console.warn('[Loot] Failed to get optimal prot level, using 8:', e);
         }
     }
-    
+
     // Calculate protection used via cascade method (pass startLevel for accurate counting)
     const protResult = calculateProtectionFromDrops(levelDrops, protLevel, currentLevel);
     const protsUsed = protResult.protCount;
-    
+
     // --- Determine success/result for PriceBundle resolution ---
     // Find highest level from any drops
     let highestLevel = 0;
@@ -2458,14 +2425,14 @@ function calculateEnhanceSessionProfit(session) {
     }
     const isSuccessful = resultLevel >= 10 && (levelDrops[resultLevel] || 0) === 1;
     const saleLevelForEstimate = isSuccessful ? resultLevel : (highestTargetLevel || 10);
-    
+
     // Resolve all prices via PriceBundle (single source of truth for prices)
     const pb = resolveSessionPrices(session, itemHrid, itemData, lootTs, 'pessimistic', {
         saleLevelForEstimate,
         resultLevel: isSuccessful ? resultLevel : 0,
         isSuccessful
     });
-    
+
     // Extract prices from bundle
     const matPrices = {};
     for (const [hrid, detail] of Object.entries(pb.mats)) {
@@ -2475,7 +2442,7 @@ function calculateEnhanceSessionProfit(session) {
     const protPrice = pb.prot.price;
     const protHrid = pb.prot.hrid;
     const protPriceMissing = pb.protPriceMissing && protsUsed > 0;
-    
+
     // Compute matCostPerAction from bundle prices
     let matCostPerAction = 0;
     const enhanceCostsForCalc = itemData?.enhancementCosts || [];
@@ -2485,45 +2452,45 @@ function calculateEnhanceSessionProfit(session) {
         const price = matPrices[costHrid] || 0;
         matCostPerAction += costCount * price;
     }
-    
+
     const totalMatCost = actionCount * matCostPerAction;
     const totalProtCost = protsUsed * protPrice;
-    
+
     // Revenue and base item cost from PriceBundle
     let revenue = 0;
     let revenueBreakdown = {};
     const revenuePriceMissing = pb.revenuePriceMissing;
-    
+
     if (isSuccessful) {
         revenue = pb.sellRevenue.price;
         revenueBreakdown[resultLevel] = { count: 1, sellPrice: revenue, value: revenue };
     }
-    
+
     const baseItemCost = pb.baseItem.price;
     const baseItemSource = pb.baseItem.source;
     const baseItemSourceIcon = pb.baseItem.sourceIcon;
-    
+
     const totalCost = totalMatCost + totalProtCost + (isSuccessful ? baseItemCost : 0);
-    
+
     // Estimated sale from PriceBundle
     const estimatedSale = pb.estimatedSale.price;
     const estimatedSaleSource = pb.estimatedSale.source;
     const estimatedSaleSourceIcon = pb.estimatedSale.sourceIcon;
     const estimatedSaleLevel = pb.estimatedSale.level;
-    
+
     // Fee is 2% of sale price (will be recalculated with actual sale in render)
     const fee = Math.floor(revenue * 0.02);
     const netSale = revenue - fee;
     const profit = netSale - totalCost;
-    
+
     // Calculate per hour
     const durationMs = new Date(session.endTime) - new Date(session.startTime);
     const hours = durationMs / 3600000;
     const profitPerHour = hours > 0.01 ? profit / hours : 0;
-    
+
     // Get item name
     const itemName = itemData?.name || itemHrid.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    
+
     // Debug logging for protection calculation
     console.log(`[Enhance] ${itemName}:`, {
         levelDrops,
@@ -2539,14 +2506,14 @@ function calculateEnhanceSessionProfit(session) {
         netSale,
         profit
     });
-    
+
     // Tea prices from PriceBundle
     const sessionTeaPrices = {
         ultraEnhancing: pb.teas.ultra.price,
         blessed: pb.teas.blessed.price,
         wisdom: pb.teas.wisdom.price
     };
-    
+
     return {
         itemHrid,
         itemName,
@@ -2599,14 +2566,14 @@ function calculateEnhanceSessionProfit(session) {
 function calculateProtectionFromDrops(levelDrops, protLevel, startLevel = 0, finalLevelOverride) {
     const levels = Object.keys(levelDrops).map(Number).sort((a, b) => b - a);
     if (levels.length === 0) return { protCount: 0 };
-    
+
     const maxLevel = Math.max(...levels, startLevel || 0);
     const finalLevel = finalLevelOverride !== undefined ? finalLevelOverride : maxLevel;
-    
+
     const successes = {};
     const failures = {};
     const attempts = {};
-    
+
     // Calculate attempts at each level
     // attempts[L] = drops landing at L + (started here?) - (ended here?)
     for (let L = 0; L <= maxLevel; L++) {
@@ -2614,12 +2581,12 @@ function calculateProtectionFromDrops(levelDrops, protLevel, startLevel = 0, fin
         if (L === startLevel) attempts[L] += 1;
         if (L === finalLevel) attempts[L] -= 1;
     }
-    
+
     // Work top-down from maxLevel
     // At maxLevel: no levels above, so all attempts are failures
     successes[maxLevel] = 0;
     failures[maxLevel] = Math.max(0, attempts[maxLevel]);
-    
+
     for (let L = maxLevel - 1; L >= 0; L--) {
         // successes[L] = drops at L+1 minus failures landing at L+1 from above
         let failuresLandingAtLPlus1 = 0;
@@ -2628,17 +2595,17 @@ function calculateProtectionFromDrops(levelDrops, protLevel, startLevel = 0, fin
         }
         successes[L] = (levelDrops[L + 1] || 0) - failuresLandingAtLPlus1;
         if (successes[L] < 0) successes[L] = 0; // clamp (data anomaly, e.g. blessed tea)
-        
+
         failures[L] = attempts[L] - successes[L];
         if (failures[L] < 0) failures[L] = 0;
     }
-    
+
     // Sum failures at levels >= prot = protections used
     let protCount = 0;
     for (let L = protLevel; L <= maxLevel; L++) {
         protCount += failures[L];
     }
-    
+
     return { protCount: Math.round(protCount), successes, failures };
 }
 
@@ -2674,7 +2641,7 @@ function formatLootTime(isoTime) {
     const now = new Date();
     const diffMs = now - date;
     const diffHours = diffMs / 3600000;
-    
+
     if (diffHours < 24) {
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else if (diffHours < 168) { // 7 days
@@ -2771,10 +2738,10 @@ async function onPriceModeChangeAsync() {
     const runId = ++recalcController.runId;
     recalcController.inProgress = true;
     applySkeletonState();
-    
+
     const result = await calculateAllProfitsAsync(runId);
     if (!result) return;
-    
+
     const tbody = document.getElementById('table-body');
     const oldRows = Array.from(tbody.querySelectorAll('tr.data-row'));
     const firstRects = new Map();
@@ -2782,10 +2749,10 @@ async function onPriceModeChangeAsync() {
         const rowId = row.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
         if (rowId) firstRects.set(rowId, row.getBoundingClientRect());
     });
-    
+
     allResults = result;
     renderTable();
-    
+
     // FLIP animation
     const newRows = Array.from(tbody.querySelectorAll('tr.data-row'));
     newRows.forEach(row => {
@@ -2808,7 +2775,7 @@ async function onPriceModeChangeAsync() {
             });
         });
     });
-    
+
     recalcController.inProgress = false;
     if (lootHistoryOpen) renderLootHistoryPanel();
 }
@@ -2907,12 +2874,12 @@ function _priceTip(detail, opts) {
     if (opts.showName === undefined) opts.showName = true;
     if (opts.showPrice === undefined) opts.showPrice = true;
     const nameLen = opts.nameLen || 12;
-    
+
     const src = detail.source;
     if (src === 'fixed') return '';
-    
+
     let parts = [];
-    
+
     // Name + price prefix
     if (opts.showName && detail.name) {
         parts.push(_shortName(detail.name, nameLen));
@@ -2920,7 +2887,7 @@ function _priceTip(detail, opts) {
     if (opts.showPrice && detail.price) {
         parts.push(formatCoins(detail.price));
     }
-    
+
     // Source label
     if (src === 'market') {
         const side = detail.side || 'ask';
@@ -2938,18 +2905,18 @@ function _priceTip(detail, opts) {
     } else {
         parts.push(src);
     }
-    
+
     // Timestamp
     const ts = detail.ts || (typeof prices !== 'undefined' ? prices.ts : null);
     if (ts) {
         parts.push('@ ' + _fmtTs(ts));
     }
-    
+
     // Fallback warning
     if (detail.fallback) {
         parts.push('⚠️');
     }
-    
+
     return parts.join(' ');
 }
 
@@ -2979,12 +2946,12 @@ function _multiPriceTip(items, opts) {
 function getHistoryList(key, side) {
     const entry = prices.history?.[key];
     if (!entry) return [];
-    
+
     // Old format: flat array of {p, t} — these were bid prices
     if (Array.isArray(entry)) {
         return side === 'bid' ? entry : [];
     }
-    
+
     // New format: {b: [...], a: [...]}
     return (side === 'bid' ? entry.b : entry.a) || [];
 }
@@ -2995,23 +2962,23 @@ function getHistoryList(key, side) {
  */
 function findHistoricalPrice(histList, lootTs) {
     if (!histList || histList.length === 0) return null;
-    
+
     const newestTs = histList[0].t;
     const oldestTs = histList[histList.length - 1].t;
-    
+
     if (lootTs >= newestTs) {
         return { entry: histList[0], label: 'history (newest)' };
     }
     if (lootTs <= oldestTs) {
         return { entry: histList[histList.length - 1], label: 'history (oldest)' };
     }
-    
+
     for (const e of histList) {
         if (e.t <= lootTs) {
             const diffHours = (lootTs - e.t) / 3600;
-            const diffLabel = diffHours < 1 ? `${Math.round(diffHours * 60)}m` : 
-                              diffHours < 24 ? `${diffHours.toFixed(1)}h` : 
-                              `${(diffHours / 24).toFixed(1)}d`;
+            const diffLabel = diffHours < 1 ? `${Math.round(diffHours * 60)}m` :
+                diffHours < 24 ? `${diffHours.toFixed(1)}h` :
+                    `${(diffHours / 24).toFixed(1)}d`;
             return { entry: e, label: `history (-${diffLabel})` };
         }
     }
@@ -3034,18 +3001,18 @@ function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
         const p = getBuyPrice(hrid, level, mode);
         return { price: p, source: 'market', side, fallback: false, sourceIcon: '💰', ts: prices.ts || null };
     }
-    
+
     const key = `${hrid}:${level}`;
-    
+
     // Determine which history list to use based on mode
     // Pessimistic = ask (worst case buy price), Optimistic = bid (best case buy price)
     const primarySide = (mode === 'optimistic') ? 'bid' : 'ask';
     const fallbackSide = (mode === 'optimistic') ? 'ask' : 'bid';
-    
+
     // Try primary side first
     const primaryList = getHistoryList(key, primarySide);
     const primaryResult = findHistoricalPrice(primaryList, lootTs);
-    
+
     if (primaryResult) {
         if (mode === 'midpoint') {
             const bidList = getHistoryList(key, 'bid');
@@ -3059,7 +3026,7 @@ function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
         }
         return { price: primaryResult.entry.p, source: 'history', side: primarySide, fallback: false, sourceIcon: '📈', ts: primaryResult.entry.t };
     }
-    
+
     // Primary side history empty — prefer current market over wrong-side history
     // (e.g. no ask history yet, use current market ask instead of historical bid)
     const currentMarket = getBuyPrice(hrid, level, mode);
@@ -3067,14 +3034,14 @@ function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
         const side = (mode === 'optimistic') ? 'bid' : 'ask';
         return { price: currentMarket, source: 'market', side, fallback: false, sourceIcon: '💰', ts: prices.ts || null };
     }
-    
+
     // No current market — fall back to wrong-side history as last resort
     const fallbackList = getHistoryList(key, fallbackSide);
     const fallbackResult = findHistoricalPrice(fallbackList, lootTs);
     if (fallbackResult) {
         return { price: fallbackResult.entry.p, source: 'history', side: fallbackSide, fallback: true, sourceIcon: '📈', ts: fallbackResult.entry.t };
     }
-    
+
     return { price: 0, source: 'unknown', side: null, fallback: true, sourceIcon: '❓', ts: null };
 }
 
@@ -3099,7 +3066,7 @@ function buildPricesAtTime(lootTs, itemHrids) {
 function getMaterialDetails(itemHrid, actions, mode, lootTs) {
     const item = gameData.items[itemHrid];
     if (!item || !item.enhancementCosts) return [];
-    
+
     const materials = [];
     for (const cost of item.enhancementCosts) {
         if (cost.item === '/items/coin') {
@@ -3138,11 +3105,11 @@ function getPriceAge(itemHrid, level) {
     // Age is based on bid (sell) price — how long the current sell price has lasted
     const bidList = getHistoryList(key, 'bid');
     if (!bidList || bidList.length === 0) return null;
-    
+
     const currentEntry = bidList[0];
     const now = Math.floor(Date.now() / 1000);
     const age = now - currentEntry.t;
-    
+
     let direction = null;
     let lastPrice = null;
     if (bidList.length > 1) {
@@ -3150,7 +3117,7 @@ function getPriceAge(itemHrid, level) {
         if (currentEntry.p > lastPrice) direction = 'up';
         else if (currentEntry.p < lastPrice) direction = 'down';
     }
-    
+
     return { age, direction, price: currentEntry.p, lastPrice, since: currentEntry.t };
 }
 
@@ -3174,26 +3141,26 @@ function estimatePrice(itemHrid, level, lootTs, mode = 'pessimistic') {
     const key = `${itemHrid}:${level}`;
     // estimatePrice values items = what you can sell for → use bid history
     const bidList = getHistoryList(key, 'bid');
-    
+
     // 1. Check bid history - find most recent entry BEFORE loot timestamp
     const result = findHistoricalPrice(bidList, lootTs);
     if (result) {
         const icon = result.label.includes('oldest') ? '📜' : '📈';
         return { price: result.entry.p, source: result.label, sourceIcon: icon, side: 'bid', ts: result.entry.t };
     }
-    
+
     // 2. Fall back to cost to create (NO market bid fallback)
     // - Level 0: crafting cost with artisan tea (🔨)
     // - Level N: base item (history or craft) + enhancement mats/prots (🪄)
     const craftCost = calculateCostToCreate(itemHrid, level, lootTs, mode);
     if (craftCost > 0) {
-        return { 
-            price: craftCost, 
-            source: level > 0 ? 'enhance cost' : 'craft cost', 
-            sourceIcon: level > 0 ? '🪄' : '🔨' 
+        return {
+            price: craftCost,
+            source: level > 0 ? 'enhance cost' : 'craft cost',
+            sourceIcon: level > 0 ? '🪄' : '🔨'
         };
     }
-    
+
     return { price: 0, source: 'unknown', sourceIcon: '❓' };
 }
 
@@ -3214,12 +3181,12 @@ function calculateCostToCreate(itemHrid, level, lootTs, mode = 'pessimistic') {
         const craftMats = getCraftingMaterials(itemHrid, mode, lootTs);
         return craftMats?.total || 0;
     }
-    
+
     // Enhanced item: base item + enhancement costs from +0 to +level
     // Get base item cost - checks history first, falls back to craft cost
     const baseEstimate = estimatePrice(itemHrid, 0, lootTs, mode);
     const baseCost = baseEstimate.price;
-    
+
     // Use calculator if available
     if (calculator) {
         try {
@@ -3228,9 +3195,9 @@ function calculateCostToCreate(itemHrid, level, lootTs, mode = 'pessimistic') {
             const protHrids = item?.protectionItems || [];
             const allHrids = [itemHrid, '/items/mirror_of_protection', ...matHrids, ...protHrids];
             const modeMap = {
-                'pessimistic': {matMode:'pessimistic', protMode:'pessimistic', sellMode:'pessimistic'},
-                'midpoint': {matMode:'pessimistic', protMode:'pessimistic', sellMode:'midpoint'},
-                'optimistic': {matMode:'optimistic', protMode:'optimistic', sellMode:'optimistic'},
+                'pessimistic': { matMode: 'pessimistic', protMode: 'pessimistic', sellMode: 'pessimistic' },
+                'midpoint': { matMode: 'pessimistic', protMode: 'pessimistic', sellMode: 'midpoint' },
+                'optimistic': { matMode: 'optimistic', protMode: 'optimistic', sellMode: 'optimistic' },
             };
             const modes = modeMap[mode] || modeMap['pessimistic'];
             const itemResolver = new ItemResolver(gameData);
@@ -3248,7 +3215,7 @@ function calculateCostToCreate(itemHrid, level, lootTs, mode = 'pessimistic') {
             console.warn('Failed to calculate enhancement cost:', e);
         }
     }
-    
+
     // Fallback: rough estimate (base item only)
     return baseCost;
 }
@@ -3275,7 +3242,7 @@ function calculateCostToCreate(itemHrid, level, lootTs, mode = 'pessimistic') {
  */
 function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = {}) {
     const sessionKey = session.startTime;
-    
+
     // Check cache — only use if new bundle format
     const cached = getCachedSessionPrices(sessionKey);
     if (cached && cached._bundleVersion === 1 && cached.dataHash === getSessionHash(session)) {
@@ -3291,7 +3258,7 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
         cacheSessionPrices(sessionKey, bundle);
         return bundle;
     }
-    
+
     // === Build fresh PriceBundle ===
     const bundle = {
         _bundleVersion: 1,
@@ -3312,7 +3279,7 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
         revenuePriceMissing: false,
         dataHash: getSessionHash(session)
     };
-    
+
     // --- Materials ---
     const enhanceCosts = itemData?.enhancementCosts || [];
     for (const cost of enhanceCosts) {
@@ -3325,11 +3292,11 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
             bundle.mats[costHrid] = detail;
         }
     }
-    
+
     // --- Protection (cheapest option) ---
     const mirrorDetail = getBuyPriceAtTimeDetailed('/items/mirror_of_protection', 0, lootTs, mode);
     const baseItemDetailForProt = getBuyPriceAtTimeDetailed(itemHrid, 0, lootTs, mode);
-    
+
     let bestProt = { price: Infinity, source: null, sourceIcon: null, ts: null, hrid: null };
     if (mirrorDetail.price > 0 && mirrorDetail.price < bestProt.price) {
         bestProt = { ...mirrorDetail, hrid: '/items/mirror_of_protection' };
@@ -3349,7 +3316,7 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
         bundle.protPriceMissing = true; // only matters if prots are actually used
     }
     bundle.prot = bestProt;
-    
+
     // --- Teas ---
     const teaUltra = getBuyPriceAtTimeDetailed('/items/ultra_enhancing_tea', 0, lootTs, mode);
     const teaBlessed = getBuyPriceAtTimeDetailed('/items/blessed_tea', 0, lootTs, mode);
@@ -3357,18 +3324,18 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
     bundle.teas.ultra = teaUltra;
     bundle.teas.blessed = teaBlessed;
     bundle.teas.wisdom = teaWisdom;
-    
+
     // --- Base Item (cheapest of: market ask, craft cost from bid prices) ---
     // Never use raw bid price — base item is something you BUY or CRAFT
     const baseMarket = getBuyPriceAtTimeDetailed(itemHrid, 0, lootTs, mode);
     const baseCraft = getCraftingMaterials(itemHrid, mode, lootTs);
     const baseCraftPrice = baseCraft?.total || 0;
-    
+
     let baseItem;
     const baseItemName = gameData.items[itemHrid]?.name || itemHrid.split('/').pop().replace(/_/g, ' ');
     // Only trust market price if it's a real ask (not a bid fallback)
     const marketIsRealAsk = baseMarket.price > 0 && !baseMarket.fallback;
-    
+
     if (marketIsRealAsk && (baseCraftPrice <= 0 || baseMarket.price <= baseCraftPrice)) {
         // Real market ask is available and cheaper (or craft unavailable)
         baseItem = { ...baseMarket, name: baseItemName };
@@ -3398,7 +3365,7 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
         baseItem = { price: 0, source: 'unknown', sourceIcon: '❓', ts: null, name: baseItemName };
     }
     bundle.baseItem = baseItem;
-    
+
     // --- Sell Revenue (for successful sessions) ---
     // BUG FIX: was using prices.market directly — now uses getBuyPriceAtTimeDetailed with bid preference
     const resultLevel = opts.resultLevel || 0;
@@ -3409,11 +3376,11 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
         bundle.sellRevenue = { price: sellDetail.price, source: sellDetail.source, sourceIcon: sellDetail.sourceIcon, ts: sellDetail.ts, level: resultLevel };
         if (sellDetail.price === 0) bundle.revenuePriceMissing = true;
     }
-    
+
     // --- Estimated Sale Price ---
     const saleLvl = opts.saleLevelForEstimate || 10;
     _resolveSaleFields(bundle, itemHrid, itemData, lootTs, mode, saleLvl, opts);
-    
+
     // Cache
     cacheSessionPrices(sessionKey, bundle);
     return bundle;
@@ -3428,14 +3395,14 @@ function _resolveSaleFields(bundle, itemHrid, itemData, lootTs, mode, saleLvl, o
             bundle.estimatedSale = { price: bidDetail.price, source: 'market', side: 'bid', sourceIcon: '💰', ts: bidDetail.ts, level: saleLvl };
             return;
         }
-        
+
         // 2. Try cost to create (enhance cost estimate)
         const costToCreate = calculateCostToCreate(itemHrid, saleLvl, lootTs, mode);
         if (costToCreate > 0) {
             bundle.estimatedSale = { price: costToCreate, source: 'enhance cost', sourceIcon: '🪄', ts: lootTs, level: saleLvl };
             return;
         }
-        
+
         // 3. Fall back to bid history estimate
         const saleEstimate = estimatePrice(itemHrid, saleLvl, lootTs, mode);
         bundle.estimatedSale = { price: saleEstimate.price, source: saleEstimate.source, sourceIcon: saleEstimate.sourceIcon, ts: lootTs, level: saleLvl };
@@ -3447,18 +3414,18 @@ function _resolveSaleFields(bundle, itemHrid, itemData, lootTs, mode, saleLvl, o
 function getCraftingMaterials(itemHrid, mode, lootTs) {
     const recipe = gameData.recipes[itemHrid];
     if (!recipe || !recipe.inputs) return null;
-    
+
     const item = gameData.items[itemHrid];
     const itemName = item?.name || itemHrid.split('/').pop().replace(/_/g, ' ');
     const artisanMult = calculator?.getArtisanTeaMultiplier() || 1;
-    
+
     // Use PriceResolver for consistent min(market, craft) pricing
     const pr = new PriceResolver(gameData, typeof PRICE_TIERS !== 'undefined' ? PRICE_TIERS : []);
     const marketPrices = lootTs ? buildPricesAtTime(lootTs, _collectCraftHrids(itemHrid)).market : prices.market;
-    
+
     const materials = [];
     let total = 0;
-    
+
     // Recipe inputs (with artisan tea)
     for (const input of recipe.inputs) {
         const matItem = gameData.items[input.item];
@@ -3483,7 +3450,7 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
             ts: prices.ts || null
         });
     }
-    
+
     // Base item (the "upgrade" source) - NO artisan tea, count 1
     let baseItemHrid = null;
     let baseItemName = null;
@@ -3508,7 +3475,7 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
             ts: prices.ts || null
         });
     }
-    
+
     return { itemName, materials, total, baseItemHrid, baseItemName };
 }
 
@@ -3549,7 +3516,7 @@ function renderShoppingList(r, materials) {
     let totalOwned = 0;
     let totalNeed = 0;
     const invLoaded = hasInventory();
-    
+
     // Enhancement materials (exclude coins)
     for (const m of materials) {
         if (m.name === 'Coins') continue;
@@ -3561,8 +3528,8 @@ function renderShoppingList(r, materials) {
         totalCost += lineCost;
         totalOwned += owned;
         totalNeed += total;
-        
-        const mTip = _priceTip(m, {showPrice: true});
+
+        const mTip = _priceTip(m, { showPrice: true });
         const matDot = priceDotHtml(m.actualMode);
         rows += `<div class="shop-row">
             <span class="shop-name">${m.name}</span>
@@ -3573,7 +3540,7 @@ function renderShoppingList(r, materials) {
             <span class="shop-price${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>${formatCoins(m.price)}${matDot}</span>
         </div>`;
     }
-    
+
     // Protection item
     if (r.protectHrid && r.protectCount > 0) {
         const protItem = gameData.items[r.protectHrid];
@@ -3586,7 +3553,7 @@ function renderShoppingList(r, materials) {
         totalCost += lineCost;
         totalOwned += owned;
         totalNeed += total;
-        
+
         const protDot = priceDotHtml(r._resolvedPrices?.protectActualMode);
         rows += `<div class="shop-row prot-row">
             <span class="shop-name">${protName}</span>
@@ -3597,21 +3564,21 @@ function renderShoppingList(r, materials) {
             <span class="shop-price price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}${protDot}</span>
         </div>`;
     }
-    
+
     if (!rows) return '';
-    
+
     // Overall progress bar inline with title (0-100%), capped at 100
     const overallPct = Math.min(totalNeed > 0 ? (totalOwned / totalNeed) * 100 : 0, 100);
     const pctDisplay = `${overallPct.toFixed(0)}%`;
     const barWidth = overallPct.toFixed(1);
-    
+
     // Total cost row at bottom (no progress bar)
     rows += `<div class="shop-row total-row">
         <span class="shop-name">Total Cost</span>
         <span class="shop-qty"></span>
         <span class="shop-price">${formatCoins(totalCost)}</span>
     </div>`;
-    
+
     return `<div class="detail-section shopping-list">
         <h4>🛒 Shopping List${invLoaded ? '' : ' <span class="price-note">(no inventory)</span>'} <span class="shop-pct-bar"><span class="shop-pct-fill" style="width:${barWidth}%"></span><span class="shop-pct-text">${pctDisplay}</span></span></h4>
         <div class="shop-header">
@@ -3627,7 +3594,7 @@ function renderShoppingList(r, materials) {
 function getMaterialDetailsFromResolved(r) {
     const resolved = r._resolvedPrices;
     if (!resolved || !resolved.matPrices) return getMaterialDetails(r.item_hrid, 1, 'pessimistic');
-    
+
     const materials = [];
     for (const [count, price, detail] of resolved.matPrices) {
         const hrid = detail?.hrid;
@@ -3659,7 +3626,7 @@ function getMaterialDetailsFromResolved(r) {
 function renderDetailRow(r) {
     // Get enhancement materials from resolved prices
     const materials = getMaterialDetailsFromResolved(r);
-    
+
     // Materials HTML (per attempt, no artisan tea adjustments here)
     let matsHtml = '';
     let matsPerAttempt = 0;
@@ -3667,7 +3634,7 @@ function renderDetailRow(r) {
         const lineTotal = m.count * m.price;
         matsPerAttempt += lineTotal;
         const dot = m.name !== 'Coins' ? priceDotHtml(m.actualMode) : '';
-        const mTip = m.name !== 'Coins' ? _priceTip(m, {showPrice: true}) : '';
+        const mTip = m.name !== 'Coins' ? _priceTip(m, { showPrice: true }) : '';
         matsHtml += `<div class="mat-row">
             <span class="mat-name">${m.name}</span>
             <span class="mat-count${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>${m.count.toFixed(0)}x @ ${formatCoins(m.price)}${dot}</span>
@@ -3676,22 +3643,22 @@ function renderDetailRow(r) {
     }
     const totalEnhanceCost = matsPerAttempt * r.actions;
     const totalProtCost = r.protectPrice * r.protectCount;
-    
+
     // Protection item name (shorter version without level)
     const protItem = gameData.items[r.protectHrid];
     let protName = protItem?.name || (r.protectHrid ? r.protectHrid.split('/').pop().replace(/_/g, ' ') : 'Protection');
     // Strip "Protection" prefix for display
     protName = protName.replace(/^Protection /, '');
-    
+
     // Base item section - check for craft alternative (always pessimistic for base item)
     const marketPrice = getBuyPrice(r.item_hrid, 0, 'pessimistic');
     const craftData = getCraftingMaterials(r.item_hrid, 'pessimistic'); // WITH artisan tea
-    
+
     let baseItemHtml = '';
     if (r.baseSource === 'craft' && craftData) {
         // Craft is cheaper - show breakdown (base item now included in materials)
         const craftMatsHtml = craftData.materials.map(m => {
-            const mTip = _priceTip(m, {showPrice: true});
+            const mTip = _priceTip(m, { showPrice: true });
             return `
             <div class="mat-row">
                 <span class="mat-name">${m.name}</span>
@@ -3699,7 +3666,7 @@ function renderDetailRow(r) {
                 <span class="mat-price${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>${formatCoins(m.total)}</span>
             </div>`;
         }).join('');
-        
+
         const craftSummaryTip = _multiPriceTip(craftData.materials);
         baseItemHtml = `
             <div class="detail-line">
@@ -3734,17 +3701,17 @@ function renderDetailRow(r) {
             </div>`;
         }
     }
-    
+
     // Price history - show change if available
     const priceInfo = getPriceAge(r.item_hrid, r.target_level);
     let priceHtml = '';
-    
+
     const sp = r.sellPrices?.[priceConfig.sellMode] || {};
     const sellActualMode = sp.actualMode || 'pessimistic';
     const sellDot = priceDotHtml(sellActualMode);
     const sellBid = sp.bid || 0;
     const sellAsk = sp.ask || 0;
-    
+
     // Build label with actual tick amount
     let sellModeLabel = 'bid';
     if (sellActualMode === 'pessimistic+' && sellBid > 0) {
@@ -3758,20 +3725,20 @@ function renderDetailRow(r) {
     } else if (sellActualMode === 'optimistic') {
         sellModeLabel = 'ask';
     }
-    
+
     // Resolve display prices with the current sell mode applied
     const resolvedSellPrice = r.sellPrice;
-    
+
     if (priceInfo && priceInfo.lastPrice && priceInfo.lastPrice !== priceInfo.price) {
         // Show price change - resolve both old and new with current mode
         const bidOld = priceInfo.lastPrice;
         const bidNew = priceInfo.price;
         const askData = sellAsk;
-        
+
         // Apply sell mode to both old and new bid prices for display
         const displayNew = resolvedSellPrice;
         const displayOld = _applySellModeToPrice(bidOld, askData, sellActualMode);
-        
+
         const pctChange = ((displayNew - displayOld) / displayOld * 100).toFixed(1);
         const pctClass = pctChange > 0 ? 'positive' : 'negative';
         priceHtml = `<div class="detail-line">
@@ -3784,7 +3751,7 @@ function renderDetailRow(r) {
             <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} ${sellActualMode === 'pessimistic' ? 'bid' : 'ask'} @ ${_fmtTs(prices.ts)}">${formatCoins(resolvedSellPrice)}${sellDot}</span>
         </div>`;
     }
-    
+
     if (priceInfo) {
         const ageStr = formatAge(priceInfo.age);
         const sinceDate = new Date(priceInfo.since * 1000).toLocaleString();
@@ -3793,7 +3760,7 @@ function renderDetailRow(r) {
             <span class="value">${sinceDate} (${ageStr})</span>
         </div>`;
     }
-    
+
     return `<div class="detail-content">
         <div class="detail-section">
             <h4>📦 Base Item</h4>
@@ -3860,14 +3827,14 @@ function renderDetailRow(r) {
 // Main render
 function renderTable() {
     const data = allResults || [];
-    
+
     // Filter by level
-    let filtered = currentLevel === 'all' ? data : 
+    let filtered = currentLevel === 'all' ? data :
         data.filter(r => r.target_level == currentLevel);
-    
+
     // Filter by cost
     filtered = filtered.filter(r => costFilters[getCostBucket(r.totalCost)]);
-    
+
     // Derive sell price + profit from cached sellPrices
     const sellMode = priceConfig.sellMode;
     filtered = filtered.map(r => {
@@ -3880,20 +3847,22 @@ function renderTable() {
         const roiAfterFee = r.matCost > 0 ? (profitAfterFee / r.matCost) * 100 : 0;
         const profitPerDay = r.timeDays > 0 ? profit / r.timeDays : 0;
         const profitPerDayAfterFee = r.timeDays > 0 ? profitAfterFee / r.timeDays : 0;
-        
+
         const _profit = showFee ? profitAfterFee : profit;
         const _profit_day = showFee ? profitPerDayAfterFee : profitPerDay;
         const _roi = showFee ? roiAfterFee : roi;
-        
+
         const priceInfo = getPriceAge(r.item_hrid, r.target_level);
         const _age = priceInfo ? priceInfo.age : Infinity;
         const volData = getVolumeData(r.item_hrid, r.target_level);
         const _volume = volData ? volData.volume : 0;
-        
-        return { ...r, sellPrice, marketFee, profit, profitAfterFee, roi, roiAfterFee,
-            profitPerDay, profitPerDayAfterFee, _profit, _profit_day, _roi, _age, _volume, _volData: volData };
+
+        return {
+            ...r, sellPrice, marketFee, profit, profitAfterFee, roi, roiAfterFee,
+            profitPerDay, profitPerDayAfterFee, _profit, _profit_day, _roi, _age, _volume, _volData: volData
+        };
     }).filter(r => r.sellPrice > 0);
-    
+
     // Sort
     const sortKeys = ['item_name', 'target_level', '_age', 'basePrice', 'matCost', 'sellPrice', '_volume', '_profit', '_roi', '_profit_day', 'timeDays', 'xpPerDay'];
     filtered.sort((a, b) => {
@@ -3904,26 +3873,26 @@ function renderTable() {
         }
         return sortAsc ? va - vb : vb - va;
     });
-    
+
     // Stats (use derived fields from filtered set)
     const profitable = filtered.filter(r => r._profit > MIN_PROFIT);
     const bestProfit = profitable.length ? Math.max(...profitable.map(r => r._profit)) : 0;
     const bestRoi = profitable.length ? Math.max(...profitable.map(r => r._roi)) : 0;
     const bestProfitDay = profitable.length ? Math.max(...profitable.map(r => r._profit_day)) : 0;
     const bestXpDay = filtered.length ? Math.max(...filtered.map(r => r.xpPerDay)) : 0;
-    
+
     document.getElementById('stat-profitable').textContent = profitable.length;
     document.getElementById('stat-roi').textContent = bestRoi.toFixed(0) + '%';
     document.getElementById('stat-profit').textContent = formatCoins(bestProfit);
     document.getElementById('stat-profitday').textContent = formatCoins(bestProfitDay);
     document.getElementById('stat-xpday').textContent = formatXP(bestXpDay);
-    
+
     // Render table
     const tbody = document.getElementById('table-body');
     const displayItems = filtered.slice(0, 400);
     const maxProfitDay = Math.max(...displayItems.map(r => r._profit_day || 0), 1);
     const minProfitDay = Math.min(...displayItems.map(r => r._profit_day || 0), 0);
-    
+
     let html = '';
     displayItems.forEach(r => {
         const rowId = r.item_hrid + '_' + r.target_level;
@@ -3933,17 +3902,17 @@ function renderTable() {
         const roi = r._roi;
         const profitClass = profit > 0 ? 'positive' : profit < 0 ? 'negative' : 'neutral';
         const sourceClass = r.baseSource === 'market' ? 'source-market' : r.baseSource === 'craft' ? 'source-craft' : 'source-vendor';
-        
+
         // Get price age
         const priceInfo = getPriceAge(r.item_hrid, r.target_level);
         const ageStr = priceInfo ? formatAge(priceInfo.age) : '-';
-        const ageArrow = priceInfo?.direction === 'up' ? ' <span class="price-up">↑</span>' : 
-                         priceInfo?.direction === 'down' ? ' <span class="price-down">↓</span>' : ' <span style="visibility:hidden">↑</span>';
-        
+        const ageArrow = priceInfo?.direction === 'up' ? ' <span class="price-up">↑</span>' :
+            priceInfo?.direction === 'down' ? ' <span class="price-down">↓</span>' : ' <span style="visibility:hidden">↑</span>';
+
         // Material % bar in item name (from inventory)
         const matPct = calculateMatPercent(r);
         const matBarStyle = matPct !== null ? `width:${Math.min(matPct, 100).toFixed(1)}%` : 'display:none';
-        
+
         let barWidth = 0;
         let barClass = 'positive';
         if (profitDay > 0) {
@@ -3952,7 +3921,7 @@ function renderTable() {
             barWidth = (profitDay / minProfitDay) * 100;
             barClass = 'negative';
         }
-        
+
         html += `<tr class="data-row ${isExpanded ? 'expanded' : ''}" onclick="toggleRow('${rowId}')" data-level="${r.target_level}" data-matpct="${matPct !== null ? matPct : -1}">
             <td class="item-name"><div class="mat-pct-bar" style="${matBarStyle}"></div><span class="expand-icon">▶</span>${r.item_name}</td>
             <td><span class="level-badge">+${r.target_level}</span></td>
@@ -3973,7 +3942,7 @@ function renderTable() {
             <td class="number hide-mobile">${r.timeDays.toFixed(2)}</td>
             <td class="number hide-mobile">${formatXP(r.xpPerDay)}</td>
         </tr>`;
-        
+
         // Detail row
         html += `<tr class="detail-row ${isExpanded ? 'visible' : ''}">
             <td colspan="12">
@@ -3981,9 +3950,9 @@ function renderTable() {
             </td>
         </tr>`;
     });
-    
+
     tbody.innerHTML = html;
-    
+
     // Update sort arrows
     document.querySelectorAll('th').forEach((th, i) => {
         th.classList.toggle('sorted', i === sortCol);
