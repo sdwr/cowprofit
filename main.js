@@ -16,6 +16,8 @@ let sortCol = 9;
 let sortAsc = false;
 let showFee = true;
 let expandedRows = new Set();
+let expandedCardId = null;
+let expandedGroupLogs = {}; // groupId -> boolean
 let costFilters = { '100m': true, '500m': true, '1b': true, '2b': true, 'over2b': true };
 let allResults = [];
 
@@ -974,7 +976,6 @@ function toggleLootHistory(e) {
 }
 
 // --- Session Grouping State ---
-let expandedCardId = null;
 let showSold = true;
 let showUnsold = true;
 let showFailed = true;
@@ -1256,19 +1257,38 @@ function toggleFilter(category, event) {
     renderLootHistoryPanel();
 }
 
-function toggleCardExpand(sessionKey, event) {
+window.toggleCardExpand = function (cardId, event) {
     if (event) { event.stopPropagation(); event.preventDefault(); }
-    if (expandedCardId === sessionKey) {
+    if (String(expandedCardId) === String(cardId)) {
         expandedCardId = null;
     } else {
-        expandedCardId = sessionKey;
+        expandedCardId = String(cardId);
     }
+    renderLootHistoryPanel();
+}
+
+/** Toggle chronological sessions log visibility within an expanded group */
+window.toggleSessionLogExpand = function (groupId, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    expandedGroupLogs[groupId] = !expandedGroupLogs[groupId];
     renderLootHistoryPanel();
 }
 
 function formatSessionDate(startTime) {
     const d = new Date(startTime);
     return d.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+}
+
+function formatDurationMs(ms) {
+    if (!ms || ms <= 0) return '0m';
+    const totalSeconds = Math.floor(ms / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
 }
 
 function computeSessionDisplay(session, finalLevelOverride) {
@@ -1521,6 +1541,49 @@ function renderSessionCard(d, options) {
         </div>
         ${isExpanded ? `<div class="card-body">${renderCardBody(d, isSubCard)}</div>` : ''}
     </div>`;
+}
+
+function renderHistorySessionLog(d, opts = {}) {
+    const ep = d.enhanceProfit;
+    const startLevel = ep.currentLevel || 0;
+    const endLevel = d.isSuccess ? (d.effectiveResultLevel || '?') : (ep.highestLevel || startLevel);
+
+    const actions = ep.actionCount || 0;
+    const cost = ep.totalMatCost + d.adjustedProtCost + d.totalTeaCost;
+    const costStr = cost > 0 ? `-${formatCoins(cost)}` : '0';
+
+    // Duration
+    const durationStr = d.duration || '0m';
+
+    // Prots
+    const protsUsed = d.adjustedProtsUsed || 0;
+    const protCostStr = d.adjustedProtCost > 0 ? formatCoins(d.adjustedProtCost) : '0';
+
+    // Time of day
+    const timeOfDay = formatLootTime(d.session.startTime);
+
+    let ungroupHtml = '';
+    if (opts.showUngroup) {
+        ungroupHtml = `<div class="ungroup-handle" onclick="ungroupSession('${d.sessionKey}', event)" title="Detach session">⇕</div>`;
+    }
+
+    const bgClass = d.isSuccess ? 'success' : 'failure';
+
+    return `
+        <div class="session-log-entry ${bgClass}">
+            ${ungroupHtml}
+            <div class="session-log-line1">
+                <span>+${startLevel} → +${endLevel}</span>
+                <span>${actions} Actions</span>
+                <span class="negative">${costStr} Cost</span>
+            </div>
+            <div class="session-log-line2">
+                <span>${durationStr}</span>
+                <span>${protsUsed} Prots Used, ${protCostStr} Prot Cost</span>
+                <span>${timeOfDay}</span>
+            </div>
+        </div>
+    `;
 }
 
 // ============================================
@@ -1867,7 +1930,14 @@ function renderLootHistoryPanel() {
 
     for (const key of Object.keys(displayData)) {
         if (!groupedKeys.has(key)) {
-            renderItems.push({ type: 'standalone', sessionKey: key, sortDate: new Date(key) });
+            renderItems.push({
+                type: 'group',
+                groupId: key,
+                topKey: key,
+                subKeys: [],
+                memberKeys: [key],
+                sortDate: new Date(key)
+            });
         }
     }
 
@@ -1921,6 +1991,7 @@ function renderLootHistoryPanel() {
         return true;
     }
 
+    const CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes cache for market data
     // Clear expanded card if it no longer exists in data
     if (expandedCardId !== null && !displayData[expandedCardId]) {
         expandedCardId = null;
@@ -1998,7 +2069,9 @@ function renderLootHistoryPanel() {
         const item = filteredItems[ri];
         let keys;
         if (item.type === 'group') {
-            keys = [item.memberKeys[0], item.memberKeys[item.memberKeys.length - 1]]; // bottom edge, top edge
+            keys = item.memberKeys.length > 1
+                ? [item.memberKeys[0], item.memberKeys[item.memberKeys.length - 1]]
+                : [item.memberKeys[0]];
         } else {
             keys = [item.sessionKey];
         }
@@ -2049,47 +2122,184 @@ function renderLootHistoryPanel() {
             const topData = displayData[item.topKey];
             const subDatas = item.subKeys.map(k => displayData[k]);
 
-            // Group total profit
+            // Group total profit/cost
             let groupProfit = topData.profit;
-            for (const sd of subDatas) groupProfit += sd.profit;
-            const groupProfitClass = groupProfit > 0 ? 'positive' : (groupProfit < 0 ? 'negative' : 'neutral');
+            let totalTimeMs = topData.hours * 3600000;
+            let groupActions = topData.enhanceProfit.actionCount || 0;
+            let groupProtsUsed = topData.adjustedProtsUsed || 0;
+
+            for (const sd of subDatas) {
+                groupProfit += sd.profit;
+                totalTimeMs += sd.hours * 3600000;
+                groupActions += (sd.enhanceProfit.actionCount || 0);
+                groupProtsUsed += (sd.adjustedProtsUsed || 0);
+            }
+
+            const isGroupSuccess = topData.isSuccess;
+            const groupProfitClass = isGroupSuccess ?
+                (groupProfit > 0 ? 'positive' : 'negative') : 'negative';
+
+            // Item and Level data from top session
+            const itemName = topData.enhanceProfit.itemName || 'Unknown';
+            const highestLevel = topData.effectiveResultLevel || topData.enhanceProfit.highestLevel || 0;
+            const mockLuck = '85%'; // Stub for luck percentage
 
             entriesHtml += `<div class="group-card-wrapper">`;
 
             // Top edge: outward group handle
             if (allFiltersOn) {
-                const topItemName = topData.enhanceProfit?.itemName;
+                const topItemName = itemName;
                 const neighbor = topItemName ? findNeighbors(item.topKey, topItemName, 'up') : null;
                 if (neighbor && canConnect(item.topKey, neighbor.key)) {
                     entriesHtml += renderHandle(item.topKey, neighbor.key, 'up');
                 }
             }
 
-            let groupHtml = '<div class="session-group">';
+            // Build Group Card
+            const isExpanded = expandedCardId === item.groupId;
+            const bgClass = !isGroupSuccess ? 'session-failure' : (topData.isSold ? 'session-success' : 'session-unsold');
+            const expandIcon = '▶';
 
-            // Top card with ungroup handle
-            groupHtml += `<div class="group-card-wrapper">`;
-            groupHtml += renderSessionCard(topData, { isSubCard: false, isGrouped: true });
-            if (allFiltersOn) {
-                groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${item.topKey}', event)" title="Detach top">⇕</div>`;
-            }
-            groupHtml += `</div>`;
+            let groupHtml = `<div class="session-group session-card ${bgClass} ${isExpanded ? 'card-expanded' : 'card-collapsed'}" data-card-id="${item.groupId}">`;
 
-            // Sub-cards (failures)
-            for (let i = 0; i < subDatas.length; i++) {
-                groupHtml += `<div class="group-card-wrapper">`;
-                groupHtml += renderSessionCard(subDatas[i], { isSubCard: true, isGrouped: true });
-                if (allFiltersOn && i === subDatas.length - 1) {
-                    groupHtml += `<div class="ungroup-handle" onclick="ungroupSession('${subDatas[i].sessionKey}', event)" title="Detach bottom">⇕</div>`;
-                }
-                groupHtml += `</div>`;
-            }
-
-            // Group summary
-            groupHtml += `<div class="group-summary">
-                <span>${item.memberKeys.length} sessions</span>
-                <span class="loot-value ${groupProfitClass}">Total: ${formatCoins(groupProfit)}</span>
+            // Top card
+            groupHtml += `<div class="card-title" onclick="window.toggleCardExpand('${item.groupId}', event)">
+                <span class="card-expand-icon">${expandIcon}</span>
+                <div class="group-header-row">
+                    <span class="result-badge ${isGroupSuccess ? '' : 'fail'}">+${highestLevel}x${item.memberKeys.length}</span>
+                    <span class="group-header-text">${itemName}</span>
+                    <span class="group-header-luck">${mockLuck}</span>
+                    <span class="group-header-value ${groupProfitClass}">${groupProfit > 0 ? '+' : ''}${formatCoins(groupProfit)}</span>
+                </div>
             </div>`;
+
+            if (isExpanded) {
+                // Expanded group details
+                const durationStr = formatDurationMs(totalTimeMs);
+                const toggleIcon = isGroupSuccess ? '✓' : '✗';
+                const toggleClass = isGroupSuccess ? 'toggle-success' : 'toggle-failure';
+
+                const soldToggleHtml = isGroupSuccess
+                    ? `<button class="sold-toggle ${topData.isSold ? 'is-sold' : 'is-unsold'}" data-session="${topData.sessionKey}" title="${topData.isSold ? 'Sold' : 'Unsold'}">${topData.isSold ? '💰' : '📦'}</button>`
+                    : `<button class="sold-toggle" style="visibility:hidden; opacity:0; pointer-events:none;">📦</button>`;
+
+                // Financials aggregation
+                let totalMatCost = topData.enhanceProfit.totalMatCost || 0;
+                let totalProtCost = topData.adjustedProtCost || 0;
+                let totalTeaCost = topData.totalTeaCost || 0;
+                for (const sd of subDatas) {
+                    totalMatCost += sd.enhanceProfit.totalMatCost || 0;
+                    totalProtCost += sd.adjustedProtCost || 0;
+                    totalTeaCost += sd.totalTeaCost || 0;
+                }
+                const totalGroupCost = totalMatCost + totalProtCost + totalTeaCost + (isGroupSuccess ? (topData.baseItemCost || 0) : 0);
+
+                let cardBodyHtml = `<div class="card-body">`;
+
+                // Row 1: Toggles, Time, Actions, Prots
+                cardBodyHtml += `
+                    <div class="group-details-stats">
+                        <button class="toggle-btn ${toggleClass}" data-session="${topData.sessionKey}" title="Toggle success/failure">${toggleIcon}</button>
+                        ${soldToggleHtml}
+                        <span class="group-details-divider">|</span>
+                        <span>${durationStr}</span>
+                        <span class="group-details-divider">|</span>
+                        <span>${groupActions} acts</span>
+                        <span class="group-details-divider">|</span>
+                        <span>${groupProtsUsed} prots</span>
+                    </div>
+                `;
+
+                // Row 2: Material Costs
+                cardBodyHtml += `
+                    <div class="group-details-mats">
+                        <span>Mats:<span class="val">${formatCoins(totalMatCost)}</span></span>
+                        <span class="group-details-divider">|</span>
+                        <span>Prot:<span class="val">${formatCoins(totalProtCost)}</span></span>
+                        <span class="group-details-divider">|</span>
+                        <span>Teas:<span class="val">${formatCoins(totalTeaCost)}</span></span>
+                    </div>
+                `;
+
+                // Row 3: Financials
+                if (isGroupSuccess) {
+                    const estSaleStr = topData.estimatedSale > 0 ? formatCoins(topData.estimatedSale) : '-';
+                    const saleFormatted = topData.salePrice > 0 ? formatCoins(topData.salePrice) : '0';
+                    const feeStr = topData.fee > 0 ? `-${formatCoins(topData.fee)}` : '-';
+
+                    cardBodyHtml += `
+                        <div class="loot-costs">
+                            <span>Base: ${formatCoins(topData.baseItemCost || 0)}</span>
+                            <span>Total Cost: ${formatCoins(totalGroupCost)}</span>
+                        </div>
+                        <div class="loot-sale">
+                            <span>Est: ${estSaleStr}</span>
+                            <span>Sale:</span> <span class="sale-input-group">
+                                <button class="sale-btn sale-down" data-session="${topData.sessionKey}" data-dir="down">◀</button>
+                                <input type="text" class="sale-input" data-session="${topData.sessionKey}" value="${saleFormatted}" data-raw="${topData.salePrice}">
+                                <button class="sale-btn sale-up" data-session="${topData.sessionKey}" data-dir="up">▶</button>
+                            </span>
+                            <span class="fee">Fee: ${feeStr}</span>
+                        </div>
+                    `;
+                } else {
+                    cardBodyHtml += `
+                        <div class="loot-costs">
+                            <span>Total Cost: <span style="color:#f87171">${formatCoins(totalGroupCost)}</span></span>
+                        </div>
+                        <div class="loot-sale" style="visibility:hidden; opacity:0; pointer-events:none;">
+                            <span>Est: -</span>
+                            <span>Sale:</span> <span class="sale-input-group"></span>
+                            <span class="fee">Fee: -</span>
+                        </div>
+                    `;
+                }
+
+                // Append Sessions Log
+                cardBodyHtml += `<div class="session-log-list">`;
+
+                // Build an array of all sessions inside the group chronologically (latest at top)
+                const allGroupSessions = [topData, ...subDatas];
+
+                let toggleText = expandedGroupLogs[item.groupId] ? '▼' : '▶';
+
+                if (allGroupSessions.length === 1) {
+                    cardBodyHtml += `
+                        <div class="session-log-list">
+                            <div class="session-log-entries">
+                                ${renderHistorySessionLog(topData, { showUngroup: false, groupId: item.groupId })}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    cardBodyHtml += `
+                        <div class="session-log-list">
+                            <div class="session-log-header" onclick="window.toggleSessionLogExpand('${item.groupId}', event)">
+                                ${toggleText} Sessions: ${allGroupSessions.length}
+                            </div>
+                    `;
+
+                    if (expandedGroupLogs[item.groupId]) {
+                        cardBodyHtml += `<div class="session-log-entries">`;
+                        for (let i = 0; i < allGroupSessions.length; i++) {
+                            const sessionData = allGroupSessions[i];
+                            // If it's the top or bottom session and all filters are on, we can detach it
+                            const isTopSession = (sessionData.sessionKey === item.topKey);
+                            const isBottomSession = (sessionData.sessionKey === item.memberKeys[0]); // memberKeys[0] is the oldest session
+
+                            cardBodyHtml += renderHistorySessionLog(sessionData, {
+                                showUngroup: allFiltersOn && (isTopSession || isBottomSession),
+                                groupId: item.groupId
+                            });
+                        }
+                        cardBodyHtml += `</div>`;
+                    }
+
+                    cardBodyHtml += `</div>`; // Close session-log-list
+                }
+                cardBodyHtml += `</div>`; // Close card-body
+                groupHtml += cardBodyHtml;
+            }
 
             groupHtml += '</div>';
             entriesHtml += groupHtml;
@@ -2105,30 +2315,6 @@ function renderLootHistoryPanel() {
                 }
             }
 
-            entriesHtml += `</div>`;
-        } else {
-            // Standalone card
-            const d = displayData[item.sessionKey];
-            const myItem = d.enhanceProfit?.itemName || 'Unknown';
-
-            // Check for on-card handles in both directions (only when all filters on)
-            let handleAbove = '';
-            let handleBelow = '';
-            if (allFiltersOn) {
-                const upNeighbor = findNeighbors(d.sessionKey, myItem, 'up');
-                if (upNeighbor && canConnect(d.sessionKey, upNeighbor.key)) {
-                    handleAbove = renderHandle(d.sessionKey, upNeighbor.key, 'up');
-                }
-                const downNeighbor = findNeighbors(d.sessionKey, myItem, 'down');
-                if (downNeighbor && canConnect(d.sessionKey, downNeighbor.key)) {
-                    handleBelow = renderHandle(d.sessionKey, downNeighbor.key, 'down');
-                }
-            }
-
-            entriesHtml += `<div class="group-card-wrapper">`;
-            entriesHtml += handleAbove;
-            entriesHtml += renderSessionCard(d, { isSubCard: false, isGrouped: false });
-            entriesHtml += handleBelow;
             entriesHtml += `</div>`;
         }
     }
@@ -2163,7 +2349,7 @@ function renderLootHistoryPanel() {
         <div class="loot-entries">
             ${entriesHtml}
         </div>
-    `;
+                `;
 
     // Update session count in button
     const countEl = document.getElementById('loot-session-count');
@@ -2186,11 +2372,13 @@ function attachLootHistoryHandlers() {
             const hash = session ? getSessionHash(session) : null;
 
             let newValue;
+            const isCurrentlySuccess = btn.classList.contains('toggle-success');
+
             if (current === undefined || current === null) {
-                newValue = true;
-            } else if (current === true) {
-                newValue = false;
+                // Not overridden yet. Toggle to the opposite of the natural/current state.
+                newValue = !isCurrentlySuccess;
             } else {
+                // It IS overridden. Clicking it again clears the override.
                 newValue = undefined;
             }
 
@@ -2232,7 +2420,7 @@ function attachLootHistoryHandlers() {
             e.stopPropagation();
             const sessionKey = btn.dataset.session;
             const dir = btn.dataset.dir;
-            const input = document.querySelector(`.sale-input[data-session="${sessionKey}"]`);
+            const input = document.querySelector(`.sale - input[data - session="${sessionKey}"]`);
             if (!input) return;
 
             let rawValue = parseInt(input.dataset.raw) || 0;
@@ -2491,22 +2679,6 @@ function calculateEnhanceSessionProfit(session) {
     // Get item name
     const itemName = itemData?.name || itemHrid.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-    // Debug logging for protection calculation
-    console.log(`[Enhance] ${itemName}:`, {
-        levelDrops,
-        protsUsed,
-        protCalc: protResult,
-        isSuccessful,
-        resultLevel,
-        costs: { mats: totalMatCost, prots: totalProtCost, baseItem: baseItemCost, total: totalCost },
-        estimatedSale,
-        estimatedSaleSource,
-        revenue,
-        fee,
-        netSale,
-        profit
-    });
-
     // Tea prices from PriceBundle
     const sessionTeaPrices = {
         ultraEnhancing: pb.teas.ultra.price,
@@ -2614,9 +2786,9 @@ function calculateDuration(startTime, endTime) {
     const hours = Math.floor(ms / 3600000);
     const minutes = Math.floor((ms % 3600000) / 60000);
     if (hours > 0) {
-        return `${hours}h ${minutes}m`;
+        return `${hours}h ${minutes} m`;
     }
-    return `${minutes}m`;
+    return `${minutes} m`;
 }
 
 function formatActionName(actionHrid) {
@@ -2628,7 +2800,7 @@ function formatActionName(actionHrid) {
         const category = parts[1].replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         if (parts.length >= 3) {
             const action = parts[2].replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-            return `${category}: ${action}`;
+            return `${category}: ${action} `;
         }
         return category;
     }
