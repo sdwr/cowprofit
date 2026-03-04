@@ -286,6 +286,39 @@ const modeInfo = {
 function init() {
     console.log('[CowProfit v2] Initializing...');
     
+    // DEBUG: simulate missing prices for loot history testing
+    // ⚠️ Does NOT touch localStorage — safe for live data
+    if (true) {
+        const nukePrice = (hrid) => {
+            delete prices.market[hrid];
+            // Also wipe history so getBuyPriceAtTimeDetailed can't fall back
+            if (prices.history) {
+                delete prices.history[hrid];
+                delete prices.history[`${hrid}:0`];
+            }
+        };
+        
+        // 1. Celestial Enhancer: wipe enhance mat costs
+        nukePrice('/items/enhancing_essence');
+        nukePrice('/items/butter_of_proficiency');
+        console.log('[DEBUG] Celestial Enhancer: nuked enhancing_essence + butter_of_proficiency (market+history)');
+        
+        // 2. Tome of the Elements: wipe mirror_of_protection (prot missing test)
+        nukePrice('/items/mirror_of_protection');
+        console.log('[DEBUG] Tome of Elements: nuked mirror_of_protection (prot missing)');
+        
+        // 3. Celestial Chisel: wipe crafting_essence
+        nukePrice('/items/crafting_essence');
+        console.log('[DEBUG] Celestial Chisel: nuked crafting_essence (market+history)');
+        
+        // Force session price rebuild by clearing the in-memory cache only
+        // (NOT localStorage — that has live data we don't want to lose)
+        if (typeof sessionPriceCache !== 'undefined') {
+            for (const k of Object.keys(sessionPriceCache)) delete sessionPriceCache[k];
+        }
+        console.log('[DEBUG] Cleared in-memory session price cache');
+    }
+    
     if (!gameData.items) {
         console.error('Game data not loaded!');
         document.getElementById('status').textContent = 'Error: game-data.js not loaded';
@@ -348,10 +381,10 @@ function calculateAllProfits() {
             const hasNullMatPrice = resolved.matPrices.some(([, price]) => price === null);
             const priceMissing = resolved.basePrice === null || hasNullMatPrice;
             
-            if (resolved.protectPrice <= 0 && resolved.protectHrid === null) { dbgSkips.noProt++; continue; }
+            if (!priceMissing && resolved.protectPrice <= 0 && resolved.protectHrid === null) { dbgSkips.noProt++; continue; }
             
-            const sim = calculator.simulate(resolved, target, shopping.itemLevel);
-            if (!sim) { dbgSkips.noSim++; continue; }
+            const sim = priceMissing ? null : calculator.simulate(resolved, target, shopping.itemLevel);
+            if (!priceMissing && !sim) { dbgSkips.noSim++; continue; }
             
             // Pre-cache all 5 sell modes
             const sellModes = ['pessimistic', 'pessimistic+', 'midpoint', 'optimistic-', 'optimistic'];
@@ -363,12 +396,14 @@ function calculateAllProfits() {
             
             // Use current mode for initial display + filtering
             const sellPrice = sellPrices[modeConfig.sellMode].price;
-            if (sellPrice <= 0) { dbgSkips.noSell++; continue; }
+            if (!priceMissing && sellPrice <= 0) { dbgSkips.noSell++; continue; }
             
-            const matCost = sim.matCost;
-            const totalTimeHours = sim.actions * sim.attemptTime / 3600;
+            const matCost = sim ? sim.matCost : null;
+            const totalTimeHours = sim ? sim.actions * sim.attemptTime / 3600 : 0;
             const totalTimeDays = totalTimeHours / 24;
-            const xpPerDay = totalTimeDays > 0 ? sim.totalXp / totalTimeDays : 0;
+            const xpPerDay = totalTimeDays > 0 ? (sim ? sim.totalXp / totalTimeDays : 0) : 0;
+            
+            if (priceMissing) dbgSkips.priceMissing = (dbgSkips.priceMissing || 0) + 1;
             
             results.push({
                 item_name: item.name,
@@ -376,20 +411,20 @@ function calculateAllProfits() {
                 target_level: target,
                 itemHrid: hrid,
                 targetLevel: target,
-                basePrice: sim.basePrice,
-                baseSource: sim.baseSource,
+                basePrice: sim ? sim.basePrice : null,
+                baseSource: sim ? sim.baseSource : 'none',
                 matCost,
-                totalCost: sim.totalCost,
+                totalCost: sim ? sim.totalCost : null,
                 sellPrices,
                 xpPerDay,
-                totalXp: sim.totalXp,
-                actions: sim.actions,
+                totalXp: sim ? sim.totalXp : 0,
+                actions: sim ? sim.actions : 0,
                 timeHours: totalTimeHours,
                 timeDays: totalTimeDays,
-                protectCount: sim.protectCount,
-                protectAt: sim.protectAt,
-                protectHrid: sim.protectHrid,
-                protectPrice: sim.protectPrice,
+                protectCount: sim ? sim.protectCount : 0,
+                protectAt: sim ? sim.protectAt : 0,
+                protectHrid: sim ? sim.protectHrid : null,
+                protectPrice: sim ? sim.protectPrice : 0,
                 priceMissing,
                 _resolvedPrices: resolved,
             });
