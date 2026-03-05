@@ -3927,7 +3927,7 @@ function renderTable() {
     if (unhideBtn) {
         unhideBtn.textContent = `Unhide ${hiddenRows.size}`;
         unhideBtn.disabled = hiddenRows.size === 0;
-        unhideBtn.classList.toggle('active', hiddenRows.size > 0);
+        unhideBtn.classList.toggle('has-hidden', hiddenRows.size > 0);
     }
     document.getElementById('stat-profitable').textContent = profitable.length;
     document.getElementById('stat-roi').textContent = bestRoi.toFixed(0) + '%';
