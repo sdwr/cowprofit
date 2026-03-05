@@ -3915,7 +3915,7 @@ function renderTable() {
     });
 
     // Stats (use derived fields from filtered set)
-    const profitable = filtered.filter(r => r._profit > MIN_PROFIT);
+    const profitable = filtered.filter(r => r._profit > 0);
     const bestProfit = profitable.length ? Math.max(...profitable.map(r => r._profit)) : 0;
     const bestRoi = profitable.length ? Math.max(...profitable.map(r => r._roi)) : 0;
     const bestProfitDay = profitable.length ? Math.max(...profitable.map(r => r._profit_day)) : 0;
