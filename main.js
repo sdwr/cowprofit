@@ -288,13 +288,13 @@ function init() {
 
     if (!gameData.items) {
         console.error('Game data not loaded!');
-        document.getElementById('status').textContent = 'Error: game-data.js not loaded';
+        const _s1 = document.getElementById('status'); if (_s1) _s1.textContent = 'Error: game-data.js not loaded';
         return;
     }
 
     if (!prices.market) {
         console.error('Prices not loaded!');
-        document.getElementById('status').textContent = 'Error: prices.js not loaded';
+        const _s2 = document.getElementById('status'); if (_s2) _s2.textContent = 'Error: prices.js not loaded';
         return;
     }
 
@@ -318,7 +318,7 @@ function init() {
     // Render
     renderTable();
 
-    document.getElementById('status').textContent = '';
+    const _s = document.getElementById('status'); if (_s) _s.textContent = '';
 }
 
 function calculateAllProfits() {
