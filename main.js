@@ -12,6 +12,7 @@ const gameData = window.GAME_DATA_STATIC || {};
 // State
 let calculator = null;
 let activeLevels = new Set(); // empty = all levels shown
+let hideInstant = true; // hide items with <= 0.05 days enhance time
 let sortCol = 9;
 let sortAsc = false;
 let showFee = true;
@@ -2804,6 +2805,12 @@ function toggleFee() {
     renderTable();
 }
 
+function toggleHideInstant() {
+    hideInstant = !hideInstant;
+    document.getElementById('btn-hide-instant').classList.toggle('active', hideInstant);
+    renderTable();
+}
+
 function toggleCostFilter(cost) {
     costFilters[cost] = !costFilters[cost];
     document.querySelector(`.cost-filter[data-cost="${cost}"]`).classList.toggle('active', costFilters[cost]);
@@ -3847,6 +3854,9 @@ function renderTable() {
     
     // Filter by cost
     filtered = filtered.filter(r => costFilters[getCostBucket(r.totalCost)]);
+    
+    // Filter out instant enhances
+    if (hideInstant) filtered = filtered.filter(r => r.timeDays > 0.05);
 
     // Derive sell price + profit from cached sellPrices
     const sellMode = priceConfig.sellMode;
