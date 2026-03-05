@@ -271,7 +271,7 @@ function getVolumeData(itemHrid, level) {
     };
 }
 
-const TARGET_LEVELS = [8, 10, 12, 14];
+const TARGET_LEVELS = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 const MIN_PROFIT = 1_000_000;
 const MAX_ROI = 1000;
 
@@ -335,8 +335,6 @@ function calculateAllProfits() {
 
     for (const [hrid, item] of Object.entries(gameData.items)) {
         if (!item.enhancementCosts) continue;
-        const name = item.name?.toLowerCase() || '';
-        if (['cheese_', 'verdant_', 'wooden_', 'rough_'].some(s => name.includes(s))) continue;
 
         for (const target of TARGET_LEVELS) {
             const shopping = itemResolver.resolve(hrid, target);
@@ -403,8 +401,6 @@ function getEnhanceableItems() {
     _enhanceableItems = [];
     for (const [hrid, item] of Object.entries(gameData.items)) {
         if (!item.enhancementCosts) continue;
-        const name = item.name?.toLowerCase() || '';
-        if (['cheese_', 'verdant_', 'wooden_', 'rough_'].some(s => name.includes(s))) continue;
         _enhanceableItems.push({ hrid, item });
     }
     return _enhanceableItems;

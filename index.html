@@ -1897,18 +1897,17 @@
 
         <div class="filters">
             <span class="filter-label" style="align-self: center;">Level:</span>
-            <div class="level-filters-grid"
-                style="display: grid; grid-template-columns: auto auto auto auto; gap: 4px; align-items: center;">
-                <button class="filter-btn level-filter active" onclick="filterLevel('all')"
-                    style="grid-row: span 2; height: 100%;">All</button>
-                <button class="filter-btn level-filter" onclick="filterLevel(5)">+5</button>
-                <button class="filter-btn level-filter" onclick="filterLevel(7)">+7</button>
-                <button class="filter-btn level-filter" onclick="filterLevel(8)">+8</button>
-                <!-- Row 2 implicitly created by grid due to 4 columns -->
-                <button class="filter-btn level-filter" onclick="filterLevel(10)">+10</button>
-                <button class="filter-btn level-filter" onclick="filterLevel(12)">+12</button>
-                <button class="filter-btn level-filter" onclick="filterLevel(14)">+14</button>
-            </div>
+            <button class="filter-btn level-filter active" data-level="all" onclick="filterLevel('all')">All</button>
+            <button class="filter-btn level-filter" data-level="5" onclick="filterLevel(5)">+5</button>
+            <button class="filter-btn level-filter" data-level="6" onclick="filterLevel(6)">+6</button>
+            <button class="filter-btn level-filter" data-level="7" onclick="filterLevel(7)">+7</button>
+            <button class="filter-btn level-filter" data-level="8" onclick="filterLevel(8)">+8</button>
+            <button class="filter-btn level-filter" data-level="9" onclick="filterLevel(9)">+9</button>
+            <button class="filter-btn level-filter" data-level="10" onclick="filterLevel(10)">+10</button>
+            <button class="filter-btn level-filter" data-level="11" onclick="filterLevel(11)">+11</button>
+            <button class="filter-btn level-filter" data-level="12" onclick="filterLevel(12)">+12</button>
+            <button class="filter-btn level-filter" data-level="13" onclick="filterLevel(13)">+13</button>
+            <button class="filter-btn level-filter" data-level="14" onclick="filterLevel(14)">+14</button>
 
             <span class="filter-divider" style="align-self: center; margin: 0 8px;">|</span>
 
