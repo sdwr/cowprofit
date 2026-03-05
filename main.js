@@ -3907,7 +3907,7 @@ function renderTable() {
 
     // Render table
     const tbody = document.getElementById('table-body');
-    const displayItems = filtered.slice(0, 400);
+    const displayItems = filtered;
     const maxProfitDay = Math.max(...displayItems.map(r => r._profit_day || 0), 1);
     const minProfitDay = Math.min(...displayItems.map(r => r._profit_day || 0), 0);
 
