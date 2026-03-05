@@ -11,7 +11,7 @@ const gameData = window.GAME_DATA_STATIC || {};
 
 // State
 let calculator = null;
-let currentLevels = new Set(['all']);
+let activeLevels = new Set(); // empty = all levels shown
 let sortCol = 9;
 let sortAsc = false;
 let showFee = true;
@@ -2778,28 +2778,23 @@ async function onPriceModeChangeAsync() {
 
 function filterLevel(level) {
     if (level === 'all') {
-        currentLevels.clear();
-        currentLevels.add('all');
+        activeLevels.clear();
     } else {
-        currentLevels.delete('all');
-        if (currentLevels.has(level)) {
-            currentLevels.delete(level);
+        if (activeLevels.has(level)) {
+            activeLevels.delete(level);
         } else {
-            currentLevels.add(level);
-        }
-
-        if (currentLevels.size === 0) {
-            currentLevels.add('all');
+            activeLevels.add(level);
         }
     }
-
-    // Update active classes on buttons
+    // Update button states
     document.querySelectorAll('.level-filter').forEach(b => {
-        const btnLevel = b.textContent.replace('+', '').toLowerCase();
-        const value = btnLevel === 'all' ? 'all' : parseInt(btnLevel);
-        b.classList.toggle('active', currentLevels.has(value));
+        const btnLevel = b.getAttribute('data-level');
+        if (btnLevel === 'all') {
+            b.classList.toggle('active', activeLevels.size === 0);
+        } else {
+            b.classList.toggle('active', activeLevels.has(parseInt(btnLevel)));
+        }
     });
-
     renderTable();
 }
 
@@ -3845,11 +3840,11 @@ function renderDetailRow(r) {
 // Main render
 function renderTable() {
     const data = allResults || [];
-
-    // Filter by level
-    let filtered = currentLevels.has('all') ? data :
-        data.filter(r => currentLevels.has(Number(r.target_level)));
-
+    
+    // Filter by level (multi-select; empty set = all)
+    let filtered = activeLevels.size === 0 ? data : 
+        data.filter(r => activeLevels.has(r.target_level));
+    
     // Filter by cost
     filtered = filtered.filter(r => costFilters[getCostBucket(r.totalCost)]);
 
@@ -3898,7 +3893,7 @@ function renderTable() {
     const bestRoi = profitable.length ? Math.max(...profitable.map(r => r._roi)) : 0;
     const bestProfitDay = profitable.length ? Math.max(...profitable.map(r => r._profit_day)) : 0;
     const bestXpDay = filtered.length ? Math.max(...filtered.map(r => r.xpPerDay)) : 0;
-
+    document.getElementById('stat-total').textContent = filtered.length;
     document.getElementById('stat-profitable').textContent = profitable.length;
     document.getElementById('stat-roi').textContent = bestRoi.toFixed(0) + '%';
     document.getElementById('stat-profit').textContent = formatCoins(bestProfit);
