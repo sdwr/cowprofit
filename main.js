@@ -12,7 +12,8 @@ const gameData = window.GAME_DATA_STATIC || {};
 // State
 let calculator = null;
 let activeLevels = new Set(); // empty = all levels shown
-let hideInstant = true; // hide items with <= 0.05 days enhance time
+let hideInstant = true; // hide items with < 30min enhance time
+let hiddenRows = new Set(); // manually hidden row keys (itemHrid_targetLevel)
 let sortCol = 9;
 let sortAsc = false;
 let showFee = true;
@@ -564,6 +565,7 @@ async function onGearChangeAsync() {
     saveGearConfig(c);
     calculator = new EnhanceCalculator(gameData, c);
     updateGearComputedStats();
+    hiddenRows.clear();
 
     // Abort any in-flight recalc
     const runId = ++recalcController.runId;
@@ -2811,6 +2813,18 @@ function toggleHideInstant() {
     renderTable();
 }
 
+function hideRow(itemHrid, targetLevel, evt) {
+    if (evt) evt.stopPropagation();
+    hiddenRows.add(itemHrid + '_' + targetLevel);
+    renderTable();
+}
+
+function unhideAll() {
+    if (hiddenRows.size === 0) return;
+    hiddenRows.clear();
+    renderTable();
+}
+
 function toggleCostFilter(cost) {
     costFilters[cost] = !costFilters[cost];
     document.querySelector(`.cost-filter[data-cost="${cost}"]`).classList.toggle('active', costFilters[cost]);
@@ -3856,7 +3870,10 @@ function renderTable() {
     filtered = filtered.filter(r => costFilters[getCostBucket(r.totalCost)]);
     
     // Filter out instant enhances
-    if (hideInstant) filtered = filtered.filter(r => r.timeDays > 0.05);
+    if (hideInstant) filtered = filtered.filter(r => r.timeDays > 1/48); // > 30 min
+    
+    // Filter manually hidden rows
+    filtered = filtered.filter(r => !hiddenRows.has(r.item_hrid + '_' + r.target_level));
 
     // Derive sell price + profit from cached sellPrices
     const sellMode = priceConfig.sellMode;
@@ -3904,6 +3921,14 @@ function renderTable() {
     const bestProfitDay = profitable.length ? Math.max(...profitable.map(r => r._profit_day)) : 0;
     const bestXpDay = filtered.length ? Math.max(...filtered.map(r => r.xpPerDay)) : 0;
     document.getElementById('stat-total').textContent = filtered.length;
+    
+    // Update unhide button
+    const unhideBtn = document.getElementById('btn-unhide');
+    if (unhideBtn) {
+        unhideBtn.textContent = `Unhide ${hiddenRows.size}`;
+        unhideBtn.disabled = hiddenRows.size === 0;
+        unhideBtn.classList.toggle('active', hiddenRows.size > 0);
+    }
     document.getElementById('stat-profitable').textContent = profitable.length;
     document.getElementById('stat-roi').textContent = bestRoi.toFixed(0) + '%';
     document.getElementById('stat-profit').textContent = formatCoins(bestProfit);
@@ -3964,11 +3989,12 @@ function renderTable() {
             <td class="number profit-bar-cell ${profitClass}"><div class="profit-bar ${barClass}" style="width:${barWidth.toFixed(1)}%"></div><span class="profit-bar-value">${formatCoins(profitDay)}</span></td>
             <td class="number hide-mobile">${r.timeDays.toFixed(2)}</td>
             <td class="number hide-mobile">${formatXP(r.xpPerDay)}</td>
+            <td class="hide-cell" onclick="hideRow('${r.item_hrid}', ${r.target_level}, event)">✕</td>
         </tr>`;
 
         // Detail row
         html += `<tr class="detail-row ${isExpanded ? 'visible' : ''}">
-            <td colspan="12">
+            <td colspan="13">
                 ${renderDetailRow(r)}
             </td>
         </tr>`;
