@@ -196,19 +196,21 @@ class PriceResolver {
                     price = getNextPrice(validBid);
                 }
                 break;
-            case SellMode.MIDPOINT:
-                if (validBid > 0 && validAsk > 0) {
-                    price = (validAsk + validBid) / 2;
+            case SellMode.MIDPOINT: {
+                // 24hr avg: use volume-weighted average from recent trades
+                const volData = typeof getVolumeData === 'function' ? getVolumeData(hrid, enhLevel) : null;
+                if (volData && volData.avgPrice > 0) {
+                    price = volData.avgPrice;
                 } else if (validBid > 0) {
-                    // No ask → fall back to pessimistic (bid)
+                    // Fallback to bid (never ask)
                     price = validBid;
                     actualMode = SellMode.PESSIMISTIC;
                 } else {
-                    // No bid → can't estimate sell price
                     price = 0;
                     actualMode = SellMode.PESSIMISTIC;
                 }
                 break;
+            }
             case SellMode.OPTIMISTIC_MINUS:
                 if (isTight) {
                     price = validAsk || validBid;

@@ -280,7 +280,7 @@ const MAX_ROI = 1000;
 // Legacy modeInfo kept for reference
 const modeInfo = {
     'pessimistic': 'Buy at Ask, Sell at Bid (safest estimate)',
-    'midpoint': 'Buy/Sell at midpoint of Ask and Bid',
+    'midpoint': '24hr volume-weighted average price',
     'optimistic': 'Buy at Bid, Sell at Ask (best case)'
 };
 
@@ -2490,22 +2490,6 @@ function calculateEnhanceSessionProfit(session) {
     // Get item name
     const itemName = itemData?.name || itemHrid.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-    // Debug logging for protection calculation
-    console.log(`[Enhance] ${itemName}:`, {
-        levelDrops,
-        protsUsed,
-        protCalc: protResult,
-        isSuccessful,
-        resultLevel,
-        costs: { mats: totalMatCost, prots: totalProtCost, baseItem: baseItemCost, total: totalCost },
-        estimatedSale,
-        estimatedSaleSource,
-        revenue,
-        fee,
-        netSale,
-        profit
-    });
-
     // Tea prices from PriceBundle
     const sessionTeaPrices = {
         ultraEnhancing: pb.teas.ultra.price,
@@ -2682,6 +2666,7 @@ function priceDotHtml(actualMode) {
     const cls = {
         'pessimistic+': 'price-dot-pess-plus',
         'midpoint': 'price-dot-midpoint',
+
         'optimistic-': 'price-dot-opt-minus',
         'optimistic': 'price-dot-optimistic',
     }[actualMode];
@@ -3742,7 +3727,6 @@ function renderDetailRow(r) {
 
     const sp = r.sellPrices?.[priceConfig.sellMode] || {};
     const sellActualMode = sp.actualMode || 'pessimistic';
-    const sellDot = priceDotHtml(sellActualMode);
     const sellBid = sp.bid || 0;
     const sellAsk = sp.ask || 0;
 
@@ -3752,7 +3736,7 @@ function renderDetailRow(r) {
         const step = getNextPrice(sellBid) - sellBid;
         sellModeLabel = `bid + ${formatCoins(step)}`;
     } else if (sellActualMode === 'midpoint') {
-        sellModeLabel = 'midpoint';
+        sellModeLabel = '24hr avg';
     } else if (sellActualMode === 'optimistic-' && sellAsk > 0) {
         const step = sellAsk - getPrevPrice(sellAsk);
         sellModeLabel = `ask - ${formatCoins(step)}`;
@@ -3762,36 +3746,23 @@ function renderDetailRow(r) {
 
     // Resolve display prices with the current sell mode applied
     const resolvedSellPrice = r.sellPrice;
+    const sellTipLabel = sellActualMode === 'midpoint' ? '24hr avg' :
 
-    if (priceInfo && priceInfo.lastPrice && priceInfo.lastPrice !== priceInfo.price) {
-        // Show price change - resolve both old and new with current mode
-        const bidOld = priceInfo.lastPrice;
-        const bidNew = priceInfo.price;
-        const askData = sellAsk;
+                         sellActualMode === 'pessimistic' ? 'bid' :
+                         sellActualMode === 'pessimistic+' ? 'bid+1' :
+                         sellActualMode === 'optimistic-' ? 'ask-1' : 'ask';
 
-        // Apply sell mode to both old and new bid prices for display
-        const displayNew = resolvedSellPrice;
-        const displayOld = _applySellModeToPrice(bidOld, askData, sellActualMode);
+    priceHtml = `<div class="detail-line">
+        <span class="label">Sell price (${sellModeLabel})</span>
+        <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} ${sellTipLabel} @ ${_fmtTs(prices.ts)}">${formatCoins(resolvedSellPrice)}</span>
+    </div>`;
 
-        const pctChange = ((displayNew - displayOld) / displayOld * 100).toFixed(1);
-        const pctClass = pctChange > 0 ? 'positive' : 'negative';
-        priceHtml = `<div class="detail-line">
-            <span class="label">Sell price (${sellModeLabel})</span>
-            <span class="value ${pctClass} price-tip" data-tip="${r.item_name} +${r.target_level} ${sellActualMode === 'pessimistic' ? 'bid' : 'ask'} @ ${_fmtTs(priceInfo.since)}">${formatCoins(displayOld)}${sellDot} → ${formatCoins(displayNew)}${sellDot} (${pctChange > 0 ? '+' : ''}${pctChange}%)</span>
-        </div>`;
-    } else {
-        priceHtml = `<div class="detail-line">
-            <span class="label">Sell price (${sellModeLabel})</span>
-            <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} ${sellActualMode === 'pessimistic' ? 'bid' : 'ask'} @ ${_fmtTs(prices.ts)}">${formatCoins(resolvedSellPrice)}${sellDot}</span>
-        </div>`;
-    }
-
-    if (priceInfo) {
+    if (priceInfo && priceInfo.lastPrice && priceInfo.lastPrice !== priceInfo.price && sellActualMode === 'pessimistic') {
         const ageStr = formatAge(priceInfo.age);
-        const sinceDate = new Date(priceInfo.since * 1000).toLocaleString();
+        const displayOld = _applySellModeToPrice(priceInfo.lastPrice, sellAsk, sellActualMode);
         priceHtml += `<div class="detail-line">
-            <span class="label">Since</span>
-            <span class="value">${sinceDate} (${ageStr})</span>
+            <span class="label">Last price (${ageStr} ago)</span>
+            <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} ${sellTipLabel} @ ${_fmtTs(priceInfo.since)}">${formatCoins(displayOld)}</span>
         </div>`;
     }
 
@@ -3828,7 +3799,7 @@ function renderDetailRow(r) {
             <h4>📈 Sell & Time</h4>
             ${priceHtml}
             <div class="detail-line">
-                <span class="label">Time (${r.actions.toFixed(0)} attempts)</span>
+                <span class="label">Enhance duration (${r.actions.toFixed(0)} attempts)</span>
                 <span class="value">${r.timeHours.toFixed(1)}h (${r.timeDays.toFixed(2)}d)</span>
             </div>
             <div class="detail-line">
@@ -3977,11 +3948,10 @@ function renderTable() {
             <td class="number">${formatCoins(r.basePrice)}${craftIcon}</td>
             <td class="number hide-mobile col-center">${formatCoins(r.matCost)}</td>
             <td class="number cost-${getCostBucket(r.totalCost)}"><div class="sell-price-cell"><span>${formatCoins(r.sellPrice)}</span>${(() => {
-                if (!r._volData) return '';
-                const diff = r.sellPrice - r._volData.avgPrice;
-                if (Math.abs(diff) < 1) return '';
-                const arrow = diff > 0 ? '↑' : '↓';
-                return `<span class="price-diff">${arrow}${formatCoins(Math.abs(diff))}</span>`;
+                if (!r._volData || !r._volData.avgPrice) return '';
+                // Hide avg when sell mode is already 24hr avg (would be duplicate)
+                if (priceConfig.sellMode === 'midpoint') return '';
+                return `<span class="price-diff">${formatCoins(r._volData.avgPrice)}</span>`;
             })()}</div></td>
             <td class="number col-center">${r._volData ? r._volData.volume.toLocaleString() : '-'}</td>
             <td class="number col-center ${profitClass}">${formatCoins(profit)}</td>

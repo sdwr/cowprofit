@@ -1885,7 +1885,7 @@
                     <button class="mode-btn cat-btn" onclick="setCatMode('sell','pessimistic+')" data-cat="sell"
                         data-mode="pessimistic+">Bid+1</button>
                     <button class="mode-btn cat-btn" onclick="setCatMode('sell','midpoint')" data-cat="sell"
-                        data-mode="midpoint">Mid</button>
+                        data-mode="midpoint">24hr Avg</button>
                     <button class="mode-btn cat-btn" onclick="setCatMode('sell','optimistic-')" data-cat="sell"
                         data-mode="optimistic-">Ask-1</button>
                     <button class="mode-btn cat-btn" onclick="setCatMode('sell','optimistic')" data-cat="sell"
@@ -1966,13 +1966,14 @@
                     <th onclick="sortTable(0, 'str')">Item<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(1, 'num')">Lvl<span class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(2, 'num')" class="number header-tip"
-                        data-tip="Time since sell price changed">Age<span class="tooltip-icon">?</span><span
+                        data-tip="Time since bid price changed">Age<span class="tooltip-icon">?</span><span
                             class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(3, 'num')" class="number">Base Cost<span class="sort-arrow">&#9650;</span>
                     </th>
                     <th onclick="sortTable(4, 'num')" class="number hide-mobile col-center">Enhance Cost<span
                             class="sort-arrow">&#9650;</span></th>
-                    <th onclick="sortTable(5, 'num')" class="number col-center">Sell Price (24h Avg)<span
+                    <th onclick="sortTable(5, 'num')" class="number col-center header-tip"
+                        data-tip="Expected sell price (and 24hr average price)">Sell Price<span class="tooltip-icon">?</span><span
                             class="sort-arrow">&#9650;</span></th>
                     <th onclick="sortTable(6, 'num')" class="number col-center">Vol (24h)<span
                             class="sort-arrow">&#9650;</span></th>
