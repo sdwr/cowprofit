@@ -808,13 +808,19 @@ function readGearFromInputs() {
         achievementSuccessBonus: checked('gear-achievement') ? 0.2 : 0,
         enchantedGlovesLevel: val('gear-gloves', 10),
         enchantedGlovesEquipped: checked('gear-gloves-on'),
-        enhancerTopLevel: val('gear-top', 8),
+        enhancerTopLevel: val('gear-top', 0),
         enhancerTopEquipped: checked('gear-top-on'),
-        enhancerBotLevel: val('gear-bot', 8),
+        enhancerBotLevel: val('gear-bot', 0),
         enhancerBotEquipped: checked('gear-bot-on'),
-        philoNeckLevel: val('gear-neck', 7),
-        philoNeckEquipped: checked('gear-neck-on'),
-        guzzlingPouchLevel: val('gear-guzzling', 8),
+        neckType: checked('gear-neck-on') ? selVal('gear-neck-type', 'speed') : 'none',
+        philoNeckLevel: selVal('gear-neck-type', 'speed') === 'philo' ? val('gear-neck-level', 0) : 0,
+        philoNeckEquipped: checked('gear-neck-on') && selVal('gear-neck-type', 'speed') === 'philo',
+        speedNeckLevel: selVal('gear-neck-type', 'speed') === 'speed' ? val('gear-neck-level', 6) : 0,
+        speedNeckEquipped: checked('gear-neck-on') && selVal('gear-neck-type', 'speed') === 'speed',
+        capeLevel: val('gear-cape', 0),
+        capeEquipped: checked('gear-cape-on'),
+        capeRefined: selVal('gear-cape-type', 'normal') === 'refined',
+        guzzlingPouchLevel: val('gear-guzzling', 6),
         guzzlingPouchEquipped: checked('gear-guzzling-on'),
         teaEnhancing: teaVal === 'enhancing',
         teaSuperEnhancing: teaVal === 'super',
@@ -890,7 +896,8 @@ function renderGearPanel() {
             <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-gloves-on"${c.enchantedGlovesEquipped !== false ? ' checked' : ''}><span class="label">Gloves</span>${numInput('gear-gloves', c.enchantedGlovesLevel, 0, 20)}</div>
             <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-top-on"${c.enhancerTopEquipped !== false ? ' checked' : ''}><span class="label">Top</span>${numInput('gear-top', c.enhancerTopLevel, 0, 20)}</div>
             <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-bot-on"${c.enhancerBotEquipped !== false ? ' checked' : ''}><span class="label">Bottoms</span>${numInput('gear-bot', c.enhancerBotLevel, 0, 20)}</div>
-            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-neck-on"${c.philoNeckEquipped !== false ? ' checked' : ''}><span class="label">Neck</span>${numInput('gear-neck', c.philoNeckLevel, 0, 20)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-neck-on"${(c.neckType && c.neckType !== 'none') ? ' checked' : ''}><span class="label">Neck</span>${selectOpts('gear-neck-type', [['speed', 'Speed'], ['philo', 'Philo']], c.neckType || 'speed')}${numInput('gear-neck-level', c.neckType === 'philo' ? (c.philoNeckLevel || 0) : (c.speedNeckLevel || 0), 0, 20)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-cape-on"${c.capeEquipped ? ' checked' : ''}><span class="label">Cape</span>${selectOpts('gear-cape-type', [['normal', 'Normal'], ['refined', '(R)']], c.capeRefined ? 'refined' : 'normal')}${numInput('gear-cape', c.capeLevel || 0, 0, 20)}</div>
             <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-guzzling-on"${c.guzzlingPouchEquipped !== false ? ' checked' : ''}><span class="label">Guzzling</span>${numInput('gear-guzzling', c.guzzlingPouchLevel, 0, 20)}</div>
         </div>
         <div class="gear-section">
@@ -928,7 +935,6 @@ function renderGearPanel() {
         ['gear-gloves-on', 'gear-gloves'],
         ['gear-top-on', 'gear-top'],
         ['gear-bot-on', 'gear-bot'],
-        ['gear-neck-on', 'gear-neck'],
         ['gear-guzzling-on', 'gear-guzzling'],
         ['gear-enhancing-buff-on', 'gear-enhancing-buff-level'],
         ['gear-experience-buff-on', 'gear-experience-buff-level'],
@@ -940,6 +946,26 @@ function renderGearPanel() {
             inp.disabled = !cb.checked;
             cb.addEventListener('change', () => { inp.disabled = !cb.checked; });
         }
+    }
+    
+    // Neck toggle - disable type select + level when unchecked
+    const neckOn = document.getElementById('gear-neck-on');
+    const neckType = document.getElementById('gear-neck-type');
+    const neckLevel = document.getElementById('gear-neck-level');
+    if (neckOn && neckType && neckLevel) {
+        const updateNeck = () => { neckType.disabled = !neckOn.checked; neckLevel.disabled = !neckOn.checked; };
+        updateNeck();
+        neckOn.addEventListener('change', updateNeck);
+    }
+    
+    // Cape toggle - disable type select + level when unchecked
+    const capeOn = document.getElementById('gear-cape-on');
+    const capeType = document.getElementById('gear-cape-type');
+    const capeLevel = document.getElementById('gear-cape');
+    if (capeOn && capeType && capeLevel) {
+        const updateCape = () => { capeType.disabled = !capeOn.checked; capeLevel.disabled = !capeOn.checked; };
+        updateCape();
+        capeOn.addEventListener('change', updateCape);
     }
 
     updateGearComputedStats();

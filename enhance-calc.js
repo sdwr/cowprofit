@@ -9,17 +9,33 @@
 
 // Default player config (same as Python USER_CONFIG)
 const DEFAULT_CONFIG = {
-    enhancingLevel: 125,
-    observatoryLevel: 8,
+    enhancingLevel: 110,
+    observatoryLevel: 4,
     
     // Gear with enhancement levels
     enchantedGlovesLevel: 10,
-    guzzlingPouchLevel: 8,
-    enhancerTopLevel: 8,
-    enhancerBotLevel: 8,
-    philoNeckLevel: 7,
-    charmLevel: 6,
-    charmTier: 'advanced',
+    enchantedGlovesEquipped: true,
+    guzzlingPouchLevel: 6,
+    guzzlingPouchEquipped: true,
+    enhancerTopLevel: 0,
+    enhancerTopEquipped: false,
+    enhancerBotLevel: 0,
+    enhancerBotEquipped: false,
+    
+    // Necklace (type: 'philo' or 'speed')
+    neckType: 'speed',
+    philoNeckLevel: 0,
+    philoNeckEquipped: false,
+    speedNeckLevel: 6,
+    speedNeckEquipped: true,
+    
+    // Cape
+    capeLevel: 0,
+    capeEquipped: false,
+    capeRefined: false,
+    
+    charmLevel: 0,
+    charmTier: 'none',
     
     // Buffs (0 = disabled, 1-20 = level)
     enhancingBuffLevel: 20,
@@ -27,7 +43,7 @@ const DEFAULT_CONFIG = {
     
     // Enhancer tool
     enhancer: 'celestial_enhancer',
-    enhancerLevel: 14,
+    enhancerLevel: 8,
     
     // Teas
     teaEnhancing: false,
@@ -38,7 +54,7 @@ const DEFAULT_CONFIG = {
     artisanTea: true,
     
     // Achievement bonus
-    achievementSuccessBonus: 0.2,
+    achievementSuccessBonus: 0,
 };
 
 class EnhanceCalculator {
@@ -70,6 +86,9 @@ class EnhanceCalculator {
             '/items/enhancers_top': 'enhancerTopEquipped',
             '/items/enhancers_bottoms': 'enhancerBotEquipped',
             '/items/philosophers_necklace': 'philoNeckEquipped',
+            '/items/necklace_of_speed': 'speedNeckEquipped',
+            '/items/chance_cape': 'capeEquipped',
+            '/items/chance_cape_refined': 'capeEquipped',
             '/items/guzzling_pouch': 'guzzlingPouchEquipped',
         };
         const key = equipMap[hrid];
@@ -162,9 +181,22 @@ class EnhanceCalculator {
         if (this.config.enhancerBotLevel) {
             itemBonus += this._getNoncombatStat('/items/enhancers_bottoms', 'enhancingSpeed') * 100 * this.enhanceBonus[this.config.enhancerBotLevel];
         }
-        if (this.config.philoNeckLevel) {
+        // Necklace speed (5x scaling) - either philo or speed neck
+        if (this.config.neckType === 'speed' && this.config.speedNeckLevel) {
+            const base = this._getNoncombatStat('/items/necklace_of_speed', 'skillingSpeed');
+            itemBonus += base * 100 * (((this.enhanceBonus[this.config.speedNeckLevel] - 1) * 5) + 1);
+        } else if (this.config.philoNeckLevel) {
             const base = this._getNoncombatStat('/items/philosophers_necklace', 'skillingSpeed');
             itemBonus += base * 100 * (((this.enhanceBonus[this.config.philoNeckLevel] - 1) * 5) + 1);
+        }
+        
+        // Chance cape speed (5x scaling)
+        if (this.config.capeLevel) {
+            const capeHrid = this.config.capeRefined ? '/items/chance_cape_refined' : '/items/chance_cape';
+            const base = this._getNoncombatStat(capeHrid, 'enhancingSpeed');
+            if (base) {
+                itemBonus += base * 100 * (((this.enhanceBonus[this.config.capeLevel] - 1) * 5) + 1);
+            }
         }
         
         // Enhancing buff
@@ -209,10 +241,19 @@ class EnhanceCalculator {
             xpBonus += base * this.enhanceBonus[this.config.enhancerBotLevel];
         }
         
-        // Philosopher's necklace (5x scaling)
-        if (this.config.philoNeckLevel) {
+        // Philosopher's necklace XP (5x scaling) - only if using philo neck
+        if (this.config.neckType !== 'speed' && this.config.philoNeckLevel) {
             const base = this._getNoncombatStat('/items/philosophers_necklace', 'skillingExperience');
             xpBonus += base * (((this.enhanceBonus[this.config.philoNeckLevel] - 1) * 5) + 1);
+        }
+        
+        // Chance cape XP (5x scaling)
+        if (this.config.capeLevel) {
+            const capeHrid = this.config.capeRefined ? '/items/chance_cape_refined' : '/items/chance_cape';
+            const base = this._getNoncombatStat(capeHrid, 'enhancingExperience');
+            if (base) {
+                xpBonus += base * (((this.enhanceBonus[this.config.capeLevel] - 1) * 5) + 1);
+            }
         }
         
         // Enhancing charm XP bonus (5x scaling, like philosopher's necklace)
