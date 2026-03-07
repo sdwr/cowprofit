@@ -840,8 +840,8 @@
 
         .shop-row {
             display: grid;
-            grid-template-columns: 2fr 1.2fr 0.8fr;
-            gap: 8px;
+            grid-template-columns: 1.5fr 1fr auto auto;
+            gap: 4px 8px;
             padding: 4px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             font-size: 0.8rem;
@@ -913,6 +913,14 @@
 
         .shop-row.total-row .shop-qty {
             background: transparent;
+        }
+
+        .shop-unit {
+            text-align: right;
+            font-family: 'SF Mono', Monaco, monospace;
+            color: #888;
+            font-size: 0.72rem;
+            white-space: nowrap;
         }
 
         .shop-price {

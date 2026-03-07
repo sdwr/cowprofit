@@ -3538,7 +3538,8 @@ function renderShoppingList(r, materials) {
                 <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
                 <span class="shop-qty-text"><span class="shop-need-num">${formatWithCommas(need)}</span> <span class="shop-total-num">/ ${formatWithCommas(total)}</span></span>
             </span>
-            <span class="shop-price${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>${formatCoins(m.price)}${matDot}</span>
+            <span class="shop-unit${mTip ? ' price-tip' : ''}" ${mTip ? `data-tip="${mTip}"` : ''}>@ ${formatCoins(m.price)}${matDot}</span>
+            <span class="shop-price">${formatCoins(lineCost)}</span>
         </div>`;
     }
 
@@ -3562,7 +3563,8 @@ function renderShoppingList(r, materials) {
                 <span class="shop-progress" style="width:${pct.toFixed(0)}%"></span>
                 <span class="shop-qty-text"><span class="shop-need-num">${formatWithCommas(need)}</span> <span class="shop-total-num">/ ${formatWithCommas(total)}</span></span>
             </span>
-            <span class="shop-price price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}${protDot}</span>
+            <span class="shop-unit price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">@ ${formatCoins(r.protectPrice)}${protDot}</span>
+            <span class="shop-price">${formatCoins(lineCost)}</span>
         </div>`;
     }
 
@@ -3577,6 +3579,7 @@ function renderShoppingList(r, materials) {
     rows += `<div class="shop-row total-row">
         <span class="shop-name">Total Cost</span>
         <span class="shop-qty"></span>
+        <span class="shop-unit"></span>
         <span class="shop-price">${formatCoins(totalCost)}</span>
     </div>`;
 
@@ -3791,13 +3794,13 @@ function renderDetailRow(r) {
                 <span class="protect-price price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}${priceDotHtml(r._resolvedPrices?.protectActualMode)}</span>
             </div>
             <div class="enhance-mats">
-                <div class="enhance-mats-label">Cost per click:</div>
+                <div class="enhance-mats-label">Cost per attempt:</div>
                 ${matsHtml || '<div class="detail-line"><span class="label">None</span></div>'}
             </div>
             <div class="mat-row total-row">
-                <span class="mat-name">${r.actions.toFixed(0)} enhances</span>
+                <span class="mat-name">${r.actions.toFixed(0)} attempts</span>
                 <span class="mat-count"></span>
-                <span class="mat-price">${formatCoins(matsPerAttempt)} / click</span>
+                <span class="mat-price">${formatCoins(matsPerAttempt)} / attempt</span>
                 <span class="mat-icon"></span>
             </div>
         </div>
@@ -3806,8 +3809,13 @@ function renderDetailRow(r) {
             <h4>📈 Sell & Time</h4>
             ${priceHtml}
             <div class="detail-line">
-                <span class="label">Enhance duration (${r.actions.toFixed(0)} attempts)</span>
+                <span class="label">Duration</span>
                 <span class="value">${r.timeHours.toFixed(1)}h (${r.timeDays.toFixed(2)}d)</span>
+                <span class="detail-icon"></span>
+            </div>
+            <div class="detail-line">
+                <span class="label">Attempts</span>
+                <span class="value">${r.actions.toFixed(0)}</span>
                 <span class="detail-icon"></span>
             </div>
             <div class="detail-line">
@@ -3823,7 +3831,7 @@ function renderDetailRow(r) {
                 <span class="detail-icon">${r.baseSource === 'craft' ? '🔨' : ''}</span>
             </div>
             <div class="detail-line">
-                <span class="label">Materials (${r.actions.toFixed(0)} × ${formatCoins(matsPerAttempt)})</span>
+                <span class="label">Materials (${r.actions.toFixed(0)} att × ${formatCoins(matsPerAttempt)})</span>
                 <span class="value price-tip" data-tip="${_multiPriceTip(materials)}">${formatCoins(totalEnhanceCost)}</span>
                 <span class="detail-icon">${priceDotHtml(priceConfig.matMode)}</span>
             </div>
