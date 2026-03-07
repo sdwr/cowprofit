@@ -3584,7 +3584,7 @@ function renderShoppingList(r, materials) {
     </div>`;
 
     return `<div class="detail-section shopping-list">
-        <h4>🛒 Shopping List${invLoaded ? '' : ' <span class="price-note">(no inventory)</span>'} <span class="shop-pct-bar"><span class="shop-pct-fill" style="width:${barWidth}%"></span><span class="shop-pct-text">${pctDisplay}</span></span></h4>
+        <h4>🛒 Shopping List${invLoaded ? '' : ' <span class="price-note">(inventory not synced)</span>'} <span class="shop-pct-bar"><span class="shop-pct-fill" style="width:${barWidth}%"></span><span class="shop-pct-text">${pctDisplay}</span></span></h4>
         <div class="shop-header">
             <span class="shop-col">Item</span>
             <span class="shop-col">Need / Total</span>
