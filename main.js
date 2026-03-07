@@ -3658,6 +3658,8 @@ function renderDetailRow(r) {
 
     // Base item section - check for craft alternative (always pessimistic for base item)
     const marketPrice = getBuyPrice(r.item_hrid, 0, 'pessimistic');
+    const baseMarketData = prices.market[r.item_hrid]?.['0'] || {};
+    const marketPriceLabel = (baseMarketData.a && baseMarketData.a > 0) ? 'ask' : 'bid';
     const craftData = getCraftingMaterials(r.item_hrid, 'pessimistic'); // WITH artisan tea
 
     let baseItemHtml = '';
@@ -3679,7 +3681,7 @@ function renderDetailRow(r) {
         baseItemHtml = `
             <div class="detail-line">
                 <span class="label">Market price</span>
-                <span class="value alt price-tip" data-tip="${r.item_name} ${marketPrice > 0 ? formatCoins(marketPrice) : '--'} ask @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
+                <span class="value alt price-tip" data-tip="${r.item_name} ${marketPrice > 0 ? formatCoins(marketPrice) : '--'} ${marketPriceLabel} @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
                 <span class="detail-icon"></span>
             </div>
             <div class="detail-line">
@@ -3701,7 +3703,7 @@ function renderDetailRow(r) {
         baseItemHtml = `
             <div class="detail-line">
                 <span class="label">Market price</span>
-                <span class="value price-tip" data-tip="${r.item_name} ${marketPrice > 0 ? formatCoins(marketPrice) : '--'} ask @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
+                <span class="value price-tip" data-tip="${r.item_name} ${marketPrice > 0 ? formatCoins(marketPrice) : '--'} ${marketPriceLabel} @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
                 <span class="detail-icon"></span>
             </div>`;
         if (craftData) {
