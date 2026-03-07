@@ -3807,7 +3807,7 @@ function renderDetailRow(r) {
             <h4>💰 Cost Summary</h4>
             <div class="detail-line">
                 <span class="label">Base item</span>
-                <span class="value price-tip" data-tip="${r.item_name} ${r.baseSource === 'craft' ? 'craft' : 'ask'} @ ${_fmtTs(prices.ts)}">${formatCoins(r.basePrice)}${r.baseSource === 'craft' ? ' 🔨' : ''}</span>
+                <span class="value price-tip" data-tip="${r.item_name} ${formatCoins(r.basePrice)} ${r.baseSource === 'craft' ? 'craft' : 'ask'} @ ${_fmtTs(prices.ts)}">${formatCoins(r.basePrice)}${r.baseSource === 'craft' ? ' 🔨' : ''}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Materials (${r.actions.toFixed(0)} × ${formatCoins(matsPerAttempt)})</span>
