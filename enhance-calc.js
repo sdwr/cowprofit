@@ -44,6 +44,7 @@ const DEFAULT_CONFIG = {
     // Enhancer tool
     enhancer: 'celestial_enhancer',
     enhancerLevel: 8,
+    enhancerEquipped: true,
     
     // Teas
     teaEnhancing: false,
@@ -121,6 +122,7 @@ class EnhanceCalculator {
     
     // Calculate enhancer tool success bonus
     getEnhancerBonus() {
+        if (this.config.enhancerEquipped === false) return 0;
         const enhancerHrid = `/items/${this.config.enhancer}`;
         const base = this._getNoncombatStat(enhancerHrid, 'enhancingSuccess');
         const level = this.config.enhancerLevel;

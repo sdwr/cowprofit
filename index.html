@@ -119,10 +119,30 @@
         }
 
         .gear-row {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 24px 80px 100px 60px;
+            align-items: center;
+            gap: 4px;
             font-size: 0.75rem;
             padding: 2px 0;
+        }
+
+        .gear-row > .gear-check,
+        .gear-row > .gear-cb-spacer {
+            grid-column: 1;
+        }
+
+        .gear-row > .label {
+            grid-column: 2;
+        }
+
+        .gear-row > .gear-select,
+        .gear-row > .gear-note {
+            grid-column: 3;
+        }
+
+        .gear-row > .gear-input {
+            grid-column: 4;
         }
 
         .gear-row .label {

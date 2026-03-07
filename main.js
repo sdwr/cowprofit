@@ -796,15 +796,16 @@ function readGearFromInputs() {
         return el ? el.value : fallback;
     };
 
-    // Enhancing tea radio
-    const teaRadio = document.querySelector('input[name="gear-enh-tea"]:checked');
-    const teaVal = teaRadio ? teaRadio.value : 'none';
+    // Enhancing tea - checkbox + dropdown
+    const enhTeaOn = checked('gear-enh-tea-on');
+    const enhTeaType = selVal('gear-enh-tea-type', 'ultra');
 
     return {
-        enhancingLevel: val('gear-enhancing-level', 125),
-        observatoryLevel: val('gear-observatory', 8),
+        enhancingLevel: val('gear-enhancing-level', 110),
+        observatoryLevel: val('gear-observatory', 4),
         enhancer: selVal('gear-enhancer', 'celestial_enhancer'),
-        enhancerLevel: val('gear-enhancer-level', 14),
+        enhancerLevel: val('gear-enhancer-level', 8),
+        enhancerEquipped: checked('gear-enhancer-on'),
         achievementSuccessBonus: checked('gear-achievement') ? 0.2 : 0,
         enchantedGlovesLevel: val('gear-gloves', 10),
         enchantedGlovesEquipped: checked('gear-gloves-on'),
@@ -822,14 +823,14 @@ function readGearFromInputs() {
         capeRefined: selVal('gear-cape-type', 'normal') === 'refined',
         guzzlingPouchLevel: val('gear-guzzling', 6),
         guzzlingPouchEquipped: checked('gear-guzzling-on'),
-        teaEnhancing: teaVal === 'enhancing',
-        teaSuperEnhancing: teaVal === 'super',
-        teaUltraEnhancing: teaVal === 'ultra',
+        teaEnhancing: enhTeaOn && enhTeaType === 'enhancing',
+        teaSuperEnhancing: enhTeaOn && enhTeaType === 'super',
+        teaUltraEnhancing: enhTeaOn && enhTeaType === 'ultra',
         teaBlessed: checked('gear-tea-blessed'),
         teaWisdom: checked('gear-tea-wisdom'),
         artisanTea: checked('gear-tea-artisan'),
-        charmTier: selVal('gear-charm-tier', 'advanced'),
-        charmLevel: val('gear-charm-level', 6),
+        charmTier: checked('gear-charm-on') ? selVal('gear-charm-tier', 'advanced') : 'none',
+        charmLevel: val('gear-charm-level', 0),
         // Global buffs (0 = disabled)
         enhancingBuffLevel: checked('gear-enhancing-buff-on') ? val('gear-enhancing-buff-level', 20) : 0,
         experienceBuffLevel: checked('gear-experience-buff-on') ? val('gear-experience-buff-level', 20) : 0,
@@ -879,49 +880,41 @@ function renderGearPanel() {
     const radio = (name, value, label, checked) =>
         `<label><input type="radio" name="${name}" value="${value}"${checked ? ' checked' : ''}><span>${label}</span></label>`;
 
+    const enhTeaTypes = [['none', 'None'], ['enhancing', 'Normal'], ['super', 'Super'], ['ultra', 'Ultra']];
+    const capeTypes = [['normal', 'Normal'], ['refined', '(R)']];
+    const neckTypes = [['speed', 'Speed'], ['philo', 'Philo']];
+
     document.getElementById('gear-panel').innerHTML = `
         <div class="gear-section">
             <h5>🎯 Enhancing</h5>
-            <div class="gear-row"><span class="label">Level</span>${numInput('gear-enhancing-level', c.enhancingLevel, 1, 200)}</div>
-            <div class="gear-row"><span class="label">Observatory</span>${numInput('gear-observatory', c.observatoryLevel, 0, 8)}</div>
-        </div>
-        <div class="gear-section">
-            <h5>🔧 Tool & Success</h5>
-            <div class="gear-row"><span class="label">Enhancer</span>${selectOpts('gear-enhancer', enhancerTypes, c.enhancer)}</div>
-            <div class="gear-row"><span class="label">Tool Level</span>${numInput('gear-enhancer-level', c.enhancerLevel, 0, 20)}</div>
-            <div class="gear-row">${checkbox('gear-achievement', 'Achievement (0.2%)', c.achievementSuccessBonus > 0)}</div>
+            <div class="gear-row"><span class="gear-cb-spacer"></span><span class="label">Level</span>${numInput('gear-enhancing-level', c.enhancingLevel, 1, 200)}</div>
+            <div class="gear-row"><span class="gear-cb-spacer"></span><span class="label">Observatory</span>${numInput('gear-observatory', c.observatoryLevel, 0, 8)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-achievement"${c.achievementSuccessBonus > 0 ? ' checked' : ''}><span class="label">Achievement</span><span class="gear-note">+0.2%</span></div>
         </div>
         <div class="gear-section">
             <h5>⚡ Gear</h5>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-enhancer-on"${c.enhancerEquipped !== false ? ' checked' : ''}><span class="label">Enhancer</span>${selectOpts('gear-enhancer', enhancerTypes, c.enhancer)}${numInput('gear-enhancer-level', c.enhancerLevel, 0, 20)}</div>
             <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-gloves-on"${c.enchantedGlovesEquipped !== false ? ' checked' : ''}><span class="label">Gloves</span>${numInput('gear-gloves', c.enchantedGlovesLevel, 0, 20)}</div>
             <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-top-on"${c.enhancerTopEquipped !== false ? ' checked' : ''}><span class="label">Top</span>${numInput('gear-top', c.enhancerTopLevel, 0, 20)}</div>
             <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-bot-on"${c.enhancerBotEquipped !== false ? ' checked' : ''}><span class="label">Bottoms</span>${numInput('gear-bot', c.enhancerBotLevel, 0, 20)}</div>
-            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-neck-on"${(c.neckType && c.neckType !== 'none') ? ' checked' : ''}><span class="label">Neck</span>${selectOpts('gear-neck-type', [['speed', 'Speed'], ['philo', 'Philo']], c.neckType || 'speed')}${numInput('gear-neck-level', c.neckType === 'philo' ? (c.philoNeckLevel || 0) : (c.speedNeckLevel || 0), 0, 20)}</div>
-            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-cape-on"${c.capeEquipped ? ' checked' : ''}><span class="label">Cape</span>${selectOpts('gear-cape-type', [['normal', 'Normal'], ['refined', '(R)']], c.capeRefined ? 'refined' : 'normal')}${numInput('gear-cape', c.capeLevel || 0, 0, 20)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-neck-on"${(c.neckType && c.neckType !== 'none') ? ' checked' : ''}><span class="label">Neck</span>${selectOpts('gear-neck-type', neckTypes, c.neckType || 'speed')}${numInput('gear-neck-level', c.neckType === 'philo' ? (c.philoNeckLevel || 0) : (c.speedNeckLevel || 0), 0, 20)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-cape-on"${c.capeEquipped ? ' checked' : ''}><span class="label">Cape</span>${selectOpts('gear-cape-type', capeTypes, c.capeRefined ? 'refined' : 'normal')}${numInput('gear-cape', c.capeLevel || 0, 0, 20)}</div>
             <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-guzzling-on"${c.guzzlingPouchEquipped !== false ? ' checked' : ''}><span class="label">Guzzling</span>${numInput('gear-guzzling', c.guzzlingPouchLevel, 0, 20)}</div>
         </div>
         <div class="gear-section">
             <h5>🍵 Teas</h5>
-            <div class="gear-row"><span class="label">Enhancing</span>
-                <div class="gear-radio-group">
-                    ${radio('gear-enh-tea', 'none', 'None', enhTeaVal === 'none')}
-                    ${radio('gear-enh-tea', 'enhancing', 'Enh', enhTeaVal === 'enhancing')}
-                    ${radio('gear-enh-tea', 'super', 'Super', enhTeaVal === 'super')}
-                    ${radio('gear-enh-tea', 'ultra', 'Ultra', enhTeaVal === 'ultra')}
-                </div>
-            </div>
-            <div class="gear-row">${checkbox('gear-tea-blessed', 'Blessed Tea', c.teaBlessed)}</div>
-            <div class="gear-row">${checkbox('gear-tea-wisdom', 'Wisdom Tea', c.teaWisdom)}</div>
-            <div class="gear-row">${checkbox('gear-tea-artisan', 'Artisan Tea', c.artisanTea)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-enh-tea-on"${enhTeaVal !== 'none' ? ' checked' : ''}><span class="label">Enhancing</span>${selectOpts('gear-enh-tea-type', enhTeaTypes.slice(1), enhTeaVal === 'none' ? 'ultra' : enhTeaVal)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-tea-blessed"${c.teaBlessed ? ' checked' : ''}><span class="label">Blessed</span></div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-tea-wisdom"${c.teaWisdom ? ' checked' : ''}><span class="label">Wisdom</span></div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-tea-artisan"${c.artisanTea ? ' checked' : ''}><span class="label">Artisan</span></div>
         </div>
         <div class="gear-section">
             <h5>💎 Charm</h5>
-            <div class="gear-row"><span class="label">Tier</span>${selectOpts('gear-charm-tier', charmTiers.map(t => [t, t.charAt(0).toUpperCase() + t.slice(1)]), c.charmTier)}</div>
-            <div class="gear-row"><span class="label">Level</span>${numInput('gear-charm-level', c.charmLevel, 0, 20)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-charm-on"${c.charmTier && c.charmTier !== 'none' ? ' checked' : ''}><span class="label">Charm</span>${selectOpts('gear-charm-tier', charmTiers.filter(t=>t!=='none').map(t => [t, t.charAt(0).toUpperCase() + t.slice(1)]), c.charmTier === 'none' ? 'advanced' : c.charmTier)}${numInput('gear-charm-level', c.charmLevel, 0, 20)}</div>
         </div>
         <div class="gear-section">
             <h5>📈 Global Buffs</h5>
-            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-enhancing-buff-on"${c.enhancingBuffLevel ? ' checked' : ''}><span class="label">Enhancing</span>${numInput('gear-enhancing-buff-level', c.enhancingBuffLevel || 20, 1, 20)}</div>
+            <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-enhancing-buff-on"${c.enhancingBuffLevel ? ' checked' : ''}><span class="label">Enh. Speed</span>${numInput('gear-enhancing-buff-level', c.enhancingBuffLevel || 20, 1, 20)}</div>
             <div class="gear-row"><input type="checkbox" class="gear-check" id="gear-experience-buff-on"${c.experienceBuffLevel ? ' checked' : ''}><span class="label">Experience</span>${numInput('gear-experience-buff-level', c.experienceBuffLevel || 20, 1, 20)}</div>
         </div>
     `;
@@ -930,43 +923,8 @@ function renderGearPanel() {
     document.getElementById('gear-panel').addEventListener('input', onGearChange);
     document.getElementById('gear-panel').addEventListener('change', onGearChange);
 
-    // Disable level inputs when gear unchecked
-    const gearToggles = [
-        ['gear-gloves-on', 'gear-gloves'],
-        ['gear-top-on', 'gear-top'],
-        ['gear-bot-on', 'gear-bot'],
-        ['gear-guzzling-on', 'gear-guzzling'],
-        ['gear-enhancing-buff-on', 'gear-enhancing-buff-level'],
-        ['gear-experience-buff-on', 'gear-experience-buff-level'],
-    ];
-    for (const [cbId, inputId] of gearToggles) {
-        const cb = document.getElementById(cbId);
-        const inp = document.getElementById(inputId);
-        if (cb && inp) {
-            inp.disabled = !cb.checked;
-            cb.addEventListener('change', () => { inp.disabled = !cb.checked; });
-        }
-    }
-    
-    // Neck toggle - disable type select + level when unchecked
-    const neckOn = document.getElementById('gear-neck-on');
-    const neckType = document.getElementById('gear-neck-type');
-    const neckLevel = document.getElementById('gear-neck-level');
-    if (neckOn && neckType && neckLevel) {
-        const updateNeck = () => { neckType.disabled = !neckOn.checked; neckLevel.disabled = !neckOn.checked; };
-        updateNeck();
-        neckOn.addEventListener('change', updateNeck);
-    }
-    
-    // Cape toggle - disable type select + level when unchecked
-    const capeOn = document.getElementById('gear-cape-on');
-    const capeType = document.getElementById('gear-cape-type');
-    const capeLevel = document.getElementById('gear-cape');
-    if (capeOn && capeType && capeLevel) {
-        const updateCape = () => { capeType.disabled = !capeOn.checked; capeLevel.disabled = !capeOn.checked; };
-        updateCape();
-        capeOn.addEventListener('change', updateCape);
-    }
+    // No disabling — allow editing dropdowns/levels while unchecked
+    // The checkbox state is read at recalc time to determine if the gear is "equipped"
 
     updateGearComputedStats();
 }
