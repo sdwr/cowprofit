@@ -9,6 +9,9 @@
 const prices = window.PRICES || {};
 const gameData = window.GAME_DATA_STATIC || {};
 
+// Shared PriceResolver instance (stateless, reusable)
+const priceRes = new PriceResolver(gameData, typeof PRICE_TIERS !== 'undefined' ? PRICE_TIERS : []);
+
 // State
 let calculator = null;
 let activeLevels = new Set(); // empty = all levels shown
@@ -2822,18 +2825,7 @@ function toggleRow(rowId) {
 }
 
 // Get buy price for an item based on mode
-function getBuyPrice(hrid, level, mode) {
-    const itemPrices = prices.market[hrid]?.[String(level)] || {};
-    if (mode === 'pessimistic') {
-        return itemPrices.a || itemPrices.b || 0;
-    } else if (mode === 'optimistic') {
-        return itemPrices.b || itemPrices.a || 0;
-    } else {
-        const ask = itemPrices.a || 0;
-        const bid = itemPrices.b || 0;
-        return (ask && bid) ? (ask + bid) / 2 : (ask || bid);
-    }
-}
+// getBuyPrice removed — all buy price resolution goes through priceRes._resolveBuyPrice()
 
 // Get buy price at a specific timestamp using history, falling back to current market
 // Returns { price, source, sourceIcon, ts } with full provenance tracking
@@ -2994,13 +2986,13 @@ function findHistoricalPrice(histList, lootTs) {
  *   - optimistic mode  → bid history (cheapest possible buy)
  *   - midpoint mode    → average of bid and ask if both available
  * 
- * Fallback: current market price via getBuyPrice().
+ * Fallback: current market price via priceRes._resolveBuyPrice().
  */
 function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
     if (!lootTs) {
+        const resolved = priceRes._resolveBuyPrice(hrid, level, prices.market, mode);
         const side = (mode === 'optimistic') ? 'bid' : 'ask';
-        const p = getBuyPrice(hrid, level, mode);
-        return { price: p, source: 'market', side, fallback: false, sourceIcon: '💰', ts: prices.ts || null };
+        return { price: resolved.price, source: 'market', side, fallback: false, sourceIcon: '💰', ts: prices.ts || null };
     }
 
     const key = `${hrid}:${level}`;
@@ -3008,7 +3000,6 @@ function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
     // Determine which history list to use based on mode
     // Pessimistic = ask (worst case buy price), Optimistic = bid (best case buy price)
     const primarySide = (mode === 'optimistic') ? 'bid' : 'ask';
-    const fallbackSide = (mode === 'optimistic') ? 'ask' : 'bid';
 
     // Try primary side first
     const primaryList = getHistoryList(key, primarySide);
@@ -3028,21 +3019,14 @@ function getBuyPriceAtTimeDetailed(hrid, level, lootTs, mode) {
         return { price: primaryResult.entry.p, source: 'history', side: primarySide, fallback: false, sourceIcon: '📈', ts: primaryResult.entry.t };
     }
 
-    // Primary side history empty — prefer current market over wrong-side history
-    // (e.g. no ask history yet, use current market ask instead of historical bid)
-    const currentMarket = getBuyPrice(hrid, level, mode);
-    if (currentMarket > 0) {
+    // Primary side history empty — prefer current market (same side, no cross-side fallback)
+    const resolved = priceRes._resolveBuyPrice(hrid, level, prices.market, mode);
+    if (resolved.price > 0) {
         const side = (mode === 'optimistic') ? 'bid' : 'ask';
-        return { price: currentMarket, source: 'market', side, fallback: false, sourceIcon: '💰', ts: prices.ts || null };
+        return { price: resolved.price, source: 'market', side, fallback: false, sourceIcon: '💰', ts: prices.ts || null };
     }
 
-    // No current market — fall back to wrong-side history as last resort
-    const fallbackList = getHistoryList(key, fallbackSide);
-    const fallbackResult = findHistoricalPrice(fallbackList, lootTs);
-    if (fallbackResult) {
-        return { price: fallbackResult.entry.p, source: 'history', side: fallbackSide, fallback: true, sourceIcon: '📈', ts: fallbackResult.entry.t };
-    }
-
+    // No price available — return unknown (never fall back to wrong side)
     return { price: 0, source: 'unknown', side: null, fallback: true, sourceIcon: '❓', ts: null };
 }
 
@@ -3082,7 +3066,7 @@ function getMaterialDetails(itemHrid, actions, mode, lootTs) {
             const matItem = gameData.items[cost.item];
             const matName = matItem?.name || cost.item.split('/').pop().replace(/_/g, ' ');
             const detail = lootTs ? getBuyPriceAtTimeDetailed(cost.item, 0, lootTs, mode) : null;
-            const price = detail ? detail.price : getBuyPrice(cost.item, 0, mode);
+            const price = detail ? detail.price : priceRes._resolveBuyPrice(cost.item, 0, prices.market, mode).price;
             materials.push({
                 hrid: cost.item,
                 name: matName,
@@ -3657,9 +3641,9 @@ function renderDetailRow(r) {
     protName = protName.replace(/^Protection /, '');
 
     // Base item section - check for craft alternative (always pessimistic for base item)
-    const marketPrice = getBuyPrice(r.item_hrid, 0, 'pessimistic');
-    const baseMarketData = prices.market[r.item_hrid]?.['0'] || {};
-    const marketPriceLabel = (baseMarketData.a && baseMarketData.a > 0) ? 'ask' : 'bid';
+    const baseMarketResolved = priceRes._resolveBuyPrice(r.item_hrid, 0, prices.market, 'pessimistic');
+    const marketPrice = baseMarketResolved.price;
+    const marketPriceLabel = 'ask'; // pessimistic buy = always ask, no bid fallback
     const craftData = getCraftingMaterials(r.item_hrid, 'pessimistic'); // WITH artisan tea
 
     let baseItemHtml = '';
