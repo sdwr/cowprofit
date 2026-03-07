@@ -356,9 +356,9 @@ function calculateAllProfits() {
                 sellPrices[sm] = { price: sd.price, actualMode: sd.actualMode, bid: sd.bid, ask: sd.ask };
             }
 
-            // Use current mode for initial display + filtering
-            const sellPrice = sellPrices[modeConfig.sellMode].price;
-            if (sellPrice <= 0) { dbgSkips.noSell++; continue; }
+            // Include item if ANY sell mode has a price (filter by toggle at render time)
+            const hasAnySellPrice = sellModes.some(sm => sellPrices[sm].price > 0);
+            if (!hasAnySellPrice) { dbgSkips.noSell++; continue; }
 
             const matCost = sim.matCost;
             const totalTimeHours = sim.actions * sim.attemptTime / 3600;
@@ -445,8 +445,8 @@ async function calculateAllProfitsAsync(runId, onChunkDone) {
                     sellPrices[sm] = { price: sd.price, actualMode: sd.actualMode, bid: sd.bid, ask: sd.ask };
                 }
 
-                const sellPrice = sellPrices[modeConfig.sellMode].price;
-                if (sellPrice <= 0) continue;
+                const hasAnySellPrice = sellModes.some(sm => sellPrices[sm].price > 0);
+                if (!hasAnySellPrice) continue;
 
                 const matCost = sim.matCost;
                 const totalTimeHours = sim.actions * sim.attemptTime / 3600;
@@ -3856,7 +3856,27 @@ function renderTable() {
             ...r, sellPrice, marketFee, profit, profitAfterFee, roi, roiAfterFee,
             profitPerDay, profitPerDayAfterFee, _profit, _profit_day, _roi, _age, _volume, _volData: volData
         };
-    }).filter(r => r.sellPrice > 0);
+    });
+
+    // Count total items before sell-price filtering (items with any sell price)
+    const totalWithAnySell = filtered.length;
+
+    // Filter to only rows that have a genuine sell price for the current mode
+    // (not a fallback — e.g. ask modes falling back to bid doesn't count)
+    filtered = filtered.filter(r => {
+        if (r.sellPrice <= 0) return false;
+        const sp = r.sellPrices?.[sellMode];
+        if (!sp) return false;
+        // If actualMode differs from requested mode, it fell back (e.g. ask→bid)
+        // Bid modes: pessimistic/pessimistic+ — fallback is still bid-family, always valid if price > 0
+        // Ask modes: optimistic/optimistic- — only valid if didn't fall back to pessimistic
+        // Avg mode: midpoint — only valid if didn't fall back to pessimistic
+        if (sellMode === 'pessimistic' || sellMode === 'pessimistic+') {
+            return true; // bid-based, no misleading fallback
+        }
+        // For ask/avg modes, reject if it fell back to a bid mode
+        return sp.actualMode !== 'pessimistic';
+    });
 
     // Sort
     const sortKeys = ['item_name', 'target_level', '_age', 'basePrice', 'matCost', 'sellPrice', '_volume', '_profit', '_roi', '_profit_day', 'timeDays', 'xpPerDay'];
@@ -3875,7 +3895,8 @@ function renderTable() {
     const bestRoi = profitable.length ? Math.max(...profitable.map(r => r._roi)) : 0;
     const bestProfitDay = profitable.length ? Math.max(...profitable.map(r => r._profit_day)) : 0;
     const bestXpDay = filtered.length ? Math.max(...filtered.map(r => r.xpPerDay)) : 0;
-    document.getElementById('stat-total').textContent = filtered.length;
+    document.getElementById('stat-total').textContent = totalWithAnySell;
+    document.getElementById('stat-matching').textContent = filtered.length;
     
     // Update unhide button
     const unhideBtn = document.getElementById('btn-unhide');
