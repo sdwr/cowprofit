@@ -3788,10 +3788,10 @@ function renderDetailRow(r) {
                 <h4>⚡ Enhance</h4>
             </div>
             <div class="enhance-prot-row">
-                <span class="protect-badge">Prot @ ${r.protectAt}</span>
-                <span class="protect-count">${r.protectCount.toFixed(1)}</span>
-                <span class="protect-name">${protName}</span>
-                <span class="protect-price price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}${priceDotHtml(r._resolvedPrices?.protectActualMode)}</span>
+                <span class="protect-label"><span class="protect-badge">Prot @ ${r.protectAt}</span><span class="protect-count">${r.protectCount.toFixed(1)}</span><span class="protect-name">${protName}</span></span>
+                <span></span>
+                <span class="protect-price price-tip" data-tip="${protName} ${formatCoins(r.protectPrice)} ask @ ${_fmtTs(prices.ts)}">${formatCoins(r.protectPrice)}</span>
+                <span class="mat-icon">${priceDotHtml(r._resolvedPrices?.protectActualMode)}</span>
             </div>
             <div class="enhance-mats">
                 <div class="enhance-mats-label">Cost per attempt:</div>
