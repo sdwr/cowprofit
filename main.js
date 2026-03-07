@@ -3696,7 +3696,7 @@ function renderDetailRow(r) {
             <div class="detail-line">
                 <span class="label">Craft price</span>
                 <span class="value alt price-tip" data-tip="${craftAltTip}">${formatCoins(craftData.total)}</span>
-                <span class="detail-icon">🔨</span>
+                <span class="detail-icon"></span>
             </div>`;
         }
     }
