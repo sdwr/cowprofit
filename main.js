@@ -3674,7 +3674,7 @@ function renderDetailRow(r) {
         baseItemHtml = `
             <div class="detail-line">
                 <span class="label">Market price</span>
-                <span class="value alt price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
+                <span class="value alt price-tip" data-tip="${r.item_name} ${marketPrice > 0 ? formatCoins(marketPrice) : '--'} ask @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
             </div>
             <div class="detail-line">
                 <span class="label">Craft price</span>
@@ -3693,7 +3693,7 @@ function renderDetailRow(r) {
         baseItemHtml = `
             <div class="detail-line">
                 <span class="label">Market price</span>
-                <span class="value price-tip" data-tip="ask @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
+                <span class="value price-tip" data-tip="${r.item_name} ${marketPrice > 0 ? formatCoins(marketPrice) : '--'} ask @ ${_fmtTs(prices.ts)}">${marketPrice > 0 ? formatCoins(marketPrice) : '--'}</span>
             </div>`;
         if (craftData) {
             const craftAltTip = _multiPriceTip(craftData.materials);
@@ -3730,15 +3730,28 @@ function renderDetailRow(r) {
 
     // Resolve display prices with the current sell mode applied
     const resolvedSellPrice = r.sellPrice;
-    const sellTipLabel = sellActualMode === 'midpoint' ? '24hr avg' :
-
-                         sellActualMode === 'pessimistic' ? 'bid' :
-                         sellActualMode === 'pessimistic+' ? 'bid+1' :
-                         sellActualMode === 'optimistic-' ? 'ask-1' : 'ask';
+    // Tooltip: show underlying price for +1/-1 modes, otherwise show resolved price
+    let sellTipLabel, sellTipPrice;
+    if (sellActualMode === 'pessimistic+') {
+        sellTipLabel = 'bid';
+        sellTipPrice = formatCoins(sellBid);
+    } else if (sellActualMode === 'optimistic-') {
+        sellTipLabel = 'ask';
+        sellTipPrice = formatCoins(sellAsk);
+    } else if (sellActualMode === 'midpoint') {
+        sellTipLabel = '24hr avg';
+        sellTipPrice = formatCoins(resolvedSellPrice);
+    } else if (sellActualMode === 'optimistic') {
+        sellTipLabel = 'ask';
+        sellTipPrice = formatCoins(resolvedSellPrice);
+    } else {
+        sellTipLabel = 'bid';
+        sellTipPrice = formatCoins(resolvedSellPrice);
+    }
 
     priceHtml = `<div class="detail-line">
         <span class="label">Sell price (${sellModeLabel})</span>
-        <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} ${sellTipLabel} @ ${_fmtTs(prices.ts)}">${formatCoins(resolvedSellPrice)}</span>
+        <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} ${sellTipPrice} ${sellTipLabel} @ ${_fmtTs(prices.ts)}">${formatCoins(resolvedSellPrice)}</span>
     </div>`;
 
     if (priceInfo && priceInfo.lastPrice && priceInfo.lastPrice !== priceInfo.price && sellActualMode === 'pessimistic') {
@@ -3746,7 +3759,7 @@ function renderDetailRow(r) {
         const displayOld = _applySellModeToPrice(priceInfo.lastPrice, sellAsk, sellActualMode);
         priceHtml += `<div class="detail-line">
             <span class="label">Last price (${ageStr} ago)</span>
-            <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} ${sellTipLabel} @ ${_fmtTs(priceInfo.since)}">${formatCoins(displayOld)}</span>
+            <span class="value price-tip" data-tip="${r.item_name} +${r.target_level} ${formatCoins(displayOld)} ${sellTipLabel} @ ${_fmtTs(priceInfo.since)}">${formatCoins(displayOld)}</span>
         </div>`;
     }
 
