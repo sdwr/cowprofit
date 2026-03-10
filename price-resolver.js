@@ -280,9 +280,9 @@ class PriceResolver {
             } else if (inputPrice <= 0 && inputCraft > 0) {
                 inputPrice = inputCraft;
             }
-            if (inputPrice <= 0) {
-                inputPrice = this._getVendorPrice(input.item);
-            }
+            // No vendor fallback inside craft cost — if we can't price an input,
+            // the entire craft cost is invalid (return 0)
+            if (inputPrice <= 0) return 0;
             cost += count * inputPrice;
         }
 
@@ -295,9 +295,7 @@ class PriceResolver {
             } else if (upgradePrice <= 0 && upgradeCraft > 0) {
                 upgradePrice = upgradeCraft;
             }
-            if (upgradePrice <= 0) {
-                upgradePrice = this._getVendorPrice(recipe.upgrade);
-            }
+            if (upgradePrice <= 0) return 0;
             cost += upgradePrice;
         }
 
