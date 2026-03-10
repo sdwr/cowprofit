@@ -272,9 +272,13 @@ class PriceResolver {
 
         for (const input of (recipe.inputs || [])) {
             const count = input.count * artisanMult;
+            // Min(market, craft) for each input — matches legacy behavior
             let inputPrice = this._resolveBuyPrice(input.item, 0, marketPrices, BuyMode.PESSIMISTIC).price;
-            if (inputPrice <= 0) {
-                inputPrice = this._getCraftingCost(input.item, marketPrices, artisanMult, depth + 1);
+            const inputCraft = this._getCraftingCost(input.item, marketPrices, artisanMult, depth + 1);
+            if (inputPrice > 0 && inputCraft > 0) {
+                inputPrice = Math.min(inputPrice, inputCraft);
+            } else if (inputPrice <= 0 && inputCraft > 0) {
+                inputPrice = inputCraft;
             }
             if (inputPrice <= 0) {
                 inputPrice = this._getVendorPrice(input.item);
@@ -283,9 +287,13 @@ class PriceResolver {
         }
 
         if (recipe.upgrade) {
+            // Min(market, craft) for upgrade item too
             let upgradePrice = this._resolveBuyPrice(recipe.upgrade, 0, marketPrices, BuyMode.PESSIMISTIC).price;
-            if (upgradePrice <= 0) {
-                upgradePrice = this._getCraftingCost(recipe.upgrade, marketPrices, artisanMult, depth + 1);
+            const upgradeCraft = this._getCraftingCost(recipe.upgrade, marketPrices, artisanMult, depth + 1);
+            if (upgradePrice > 0 && upgradeCraft > 0) {
+                upgradePrice = Math.min(upgradePrice, upgradeCraft);
+            } else if (upgradePrice <= 0 && upgradeCraft > 0) {
+                upgradePrice = upgradeCraft;
             }
             if (upgradePrice <= 0) {
                 upgradePrice = this._getVendorPrice(recipe.upgrade);
@@ -350,18 +358,21 @@ class PriceResolver {
             const detail = this._resolveBuyPrice(mat.hrid, 0, marketPrices, matMode);
             let price = detail.price;
             let source = 'market';
-            // Vendor/craft fallback for materials with no market price
+            // Min(market, craft) for materials — matches legacy getItemPrice behavior
+            const craftCost = this._getCraftingCost(mat.hrid, marketPrices, artisanMult);
+            if (price > 0 && craftCost > 0 && craftCost < price) {
+                price = craftCost;
+                source = 'craft';
+            } else if (price <= 0 && craftCost > 0) {
+                price = craftCost;
+                source = 'craft';
+            }
+            // Vendor fallback
             if (price <= 0) {
                 const itemDef = this.items[mat.hrid];
                 if (itemDef?.sellPrice > 0) {
                     price = itemDef.sellPrice;
                     source = 'vendor';
-                } else {
-                    const craftCost = this._getCraftingCost(mat.hrid, marketPrices, artisanMult);
-                    if (craftCost > 0) {
-                        price = craftCost;
-                        source = 'craft';
-                    }
                 }
             }
             matPrices.push([mat.count, price, {
