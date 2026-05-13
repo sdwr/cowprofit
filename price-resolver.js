@@ -270,15 +270,19 @@ class PriceResolver {
 
         let cost = 0;
 
+        const craftSubsAllowed = window.allowCraftSubcomponents !== false;
+
         for (const input of (recipe.inputs || [])) {
             const count = input.count * artisanMult;
-            // Min(market, craft) for each input — matches legacy behavior
+            // Min(market, craft) for each input — respects allowCraftSubcomponents toggle
             let inputPrice = this._resolveBuyPrice(input.item, 0, marketPrices, BuyMode.PESSIMISTIC).price;
-            const inputCraft = this._getCraftingCost(input.item, marketPrices, artisanMult, depth + 1);
-            if (inputPrice > 0 && inputCraft > 0) {
-                inputPrice = Math.min(inputPrice, inputCraft);
-            } else if (inputPrice <= 0 && inputCraft > 0) {
-                inputPrice = inputCraft;
+            if (craftSubsAllowed) {
+                const inputCraft = this._getCraftingCost(input.item, marketPrices, artisanMult, depth + 1);
+                if (inputPrice > 0 && inputCraft > 0) {
+                    inputPrice = Math.min(inputPrice, inputCraft);
+                } else if (inputPrice <= 0 && inputCraft > 0) {
+                    inputPrice = inputCraft;
+                }
             }
             // No vendor fallback inside craft cost — if we can't price an input,
             // the entire craft cost is invalid (return 0)
@@ -287,13 +291,15 @@ class PriceResolver {
         }
 
         if (recipe.upgrade) {
-            // Min(market, craft) for upgrade item too
+            // Min(market, craft) for upgrade item too — respects allowCraftSubcomponents toggle
             let upgradePrice = this._resolveBuyPrice(recipe.upgrade, 0, marketPrices, BuyMode.PESSIMISTIC).price;
-            const upgradeCraft = this._getCraftingCost(recipe.upgrade, marketPrices, artisanMult, depth + 1);
-            if (upgradePrice > 0 && upgradeCraft > 0) {
-                upgradePrice = Math.min(upgradePrice, upgradeCraft);
-            } else if (upgradePrice <= 0 && upgradeCraft > 0) {
-                upgradePrice = upgradeCraft;
+            if (craftSubsAllowed) {
+                const upgradeCraft = this._getCraftingCost(recipe.upgrade, marketPrices, artisanMult, depth + 1);
+                if (upgradePrice > 0 && upgradeCraft > 0) {
+                    upgradePrice = Math.min(upgradePrice, upgradeCraft);
+                } else if (upgradePrice <= 0 && upgradeCraft > 0) {
+                    upgradePrice = upgradeCraft;
+                }
             }
             if (upgradePrice <= 0) return 0;
             cost += upgradePrice;
@@ -352,18 +358,21 @@ class PriceResolver {
         const matPrices = [];
         const priceDetails = new Map();
 
+        const matsCraftAllowed = window.allowCraftSubcomponents !== false;
         for (const mat of shoppingList.materials) {
             const detail = this._resolveBuyPrice(mat.hrid, 0, marketPrices, matMode);
             let price = detail.price;
             let source = 'market';
-            // Min(market, craft) for materials — matches legacy getItemPrice behavior
-            const craftCost = this._getCraftingCost(mat.hrid, marketPrices, artisanMult);
-            if (price > 0 && craftCost > 0 && craftCost < price) {
-                price = craftCost;
-                source = 'craft';
-            } else if (price <= 0 && craftCost > 0) {
-                price = craftCost;
-                source = 'craft';
+            // Min(market, craft) for materials — respects allowCraftSubcomponents toggle
+            if (matsCraftAllowed) {
+                const craftCost = this._getCraftingCost(mat.hrid, marketPrices, artisanMult);
+                if (price > 0 && craftCost > 0 && craftCost < price) {
+                    price = craftCost;
+                    source = 'craft';
+                } else if (price <= 0 && craftCost > 0) {
+                    price = craftCost;
+                    source = 'craft';
+                }
             }
             // Vendor fallback
             if (price <= 0) {
@@ -384,10 +393,17 @@ class PriceResolver {
             priceDetails.set(mat.hrid, { ...detail, price, source });
         }
 
-        // Base item — always pessimistic with craft fallback
-        const { price: basePrice, source: baseSource } = this._getItemPrice(
-            shoppingList.itemHrid, 0, marketPrices, artisanMult
-        );
+        // Base item — pessimistic with craft fallback (respects allowCraftItems toggle)
+        let basePrice, baseSource;
+        if (window.allowCraftItems !== false) {
+            const bp = this._getItemPrice(shoppingList.itemHrid, 0, marketPrices, artisanMult);
+            basePrice = bp.price;
+            baseSource = bp.source;
+        } else {
+            const bp = this._resolveBuyPrice(shoppingList.itemHrid, 0, marketPrices, BuyMode.PESSIMISTIC);
+            basePrice = bp.price || 0;
+            baseSource = 'market';
+        }
 
         // Protection — resolve ALL options, pick cheapest
         let protectPrice = 0;

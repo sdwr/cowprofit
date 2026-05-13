@@ -2022,6 +2022,11 @@
 
             <button class="filter-btn active" id="btn-hide-instant" onclick="toggleHideInstant()">Hide Instant</button>
             <button class="filter-btn" id="btn-unhide" onclick="unhideAll()" disabled>Unhide 0</button>
+
+            <span class="filter-divider" style="align-self: center; margin: 0 8px;">|</span>
+
+            <button class="filter-btn active" id="btn-craft-items" onclick="toggleCraftItems()" title="When active, the base item can be sourced via crafting if cheaper than market">Craft Items</button>
+            <button class="filter-btn active" id="btn-craft-subs" onclick="toggleCraftSubcomponents()" title="When active, crafting ingredients are priced as min(market, craft cost)">Craft Mats</button>
         </div>
 
         <table id="results">

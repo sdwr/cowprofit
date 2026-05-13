@@ -16,6 +16,8 @@ const priceRes = new PriceResolver(gameData, typeof PRICE_TIERS !== 'undefined' 
 let calculator = null;
 let activeLevels = new Set(); // empty = all levels shown
 let hideInstant = true; // hide items with < 30min enhance time
+let allowCraftItems = true;         // allow base item to be sourced via crafting
+let allowCraftSubcomponents = true; // allow crafting ingredients to use min(market, craft) pricing
 let hiddenRows = new Set(); // manually hidden row keys (itemHrid_targetLevel)
 let sortCol = 9;
 let sortAsc = false;
@@ -330,13 +332,17 @@ function calculateAllProfits() {
     console.log('[CowProfit v2] Calculating profits...');
     const startTime = performance.now();
 
+    // Sync craft toggle flags to window so price-resolver.js can read them
+    window.allowCraftItems = allowCraftItems;
+    window.allowCraftSubcomponents = allowCraftSubcomponents;
+
     const itemResolver = new ItemResolver(gameData);
     const priceResolver = new PriceResolver(gameData, typeof PRICE_TIERS !== 'undefined' ? PRICE_TIERS : []);
     const artisanMult = calculator.getArtisanTeaMultiplier();
     const modeConfig = { matMode: priceConfig.matMode, protMode: priceConfig.protMode, sellMode: priceConfig.sellMode };
 
     const results = [];
-    let dbgSkips = { noShop: 0, noProt: 0, noSim: 0, noSell: 0 };
+    let dbgSkips = { noShop: 0, noProt: 0, noSim: 0, noSell: 0, noBase: 0, noMat: 0 };
 
     for (const [hrid, item] of Object.entries(gameData.items)) {
         if (!item.enhancementCosts) continue;
@@ -347,6 +353,10 @@ function calculateAllProfits() {
 
             const resolved = priceResolver.resolve(shopping, prices.market, modeConfig, artisanMult);
             if (resolved.protectPrice <= 0 && resolved.protectHrid === null) { dbgSkips.noProt++; continue; }
+            // When craft items is OFF, skip items with no market buy price
+            if (!allowCraftItems && resolved.basePrice <= 0) { dbgSkips.noBase++; continue; }
+            // When craft mats is OFF, skip items where any enhancement material has no price
+            if (!allowCraftSubcomponents && resolved.matPrices.some(mp => mp[1] <= 0)) { dbgSkips.noMat++; continue; }
 
             const sim = calculator.simulate(resolved, target, shopping.itemLevel);
             if (!sim) { dbgSkips.noSim++; continue; }
@@ -2785,6 +2795,22 @@ function toggleHideInstant() {
     renderTable();
 }
 
+function toggleCraftItems() {
+    allowCraftItems = !allowCraftItems;
+    window.allowCraftItems = allowCraftItems;
+    document.getElementById('btn-craft-items').classList.toggle('active', allowCraftItems);
+    calculateAllProfits();
+    renderTable();
+}
+
+function toggleCraftSubcomponents() {
+    allowCraftSubcomponents = !allowCraftSubcomponents;
+    window.allowCraftSubcomponents = allowCraftSubcomponents;
+    document.getElementById('btn-craft-subs').classList.toggle('active', allowCraftSubcomponents);
+    calculateAllProfits();
+    renderTable();
+}
+
 function hideRow(itemHrid, targetLevel, evt) {
     if (evt) evt.stopPropagation();
     hiddenRows.add(itemHrid + '_' + targetLevel);
@@ -3313,7 +3339,7 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
     // --- Base Item (cheapest of: market ask, craft cost from bid prices) ---
     // Never use raw bid price — base item is something you BUY or CRAFT
     const baseMarket = getBuyPriceAtTimeDetailed(itemHrid, 0, lootTs, mode);
-    const baseCraft = getCraftingMaterials(itemHrid, mode, lootTs);
+    const baseCraft = allowCraftItems ? getCraftingMaterials(itemHrid, mode, lootTs) : null;
     const baseCraftPrice = baseCraft?.total || 0;
 
     let baseItem;
@@ -3321,8 +3347,8 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
     // Only trust market price if it's a real ask (not a bid fallback)
     const marketIsRealAsk = baseMarket.price > 0 && !baseMarket.fallback;
 
-    if (marketIsRealAsk && (baseCraftPrice <= 0 || baseMarket.price <= baseCraftPrice)) {
-        // Real market ask is available and cheaper (or craft unavailable)
+    if (!allowCraftItems || (marketIsRealAsk && (baseCraftPrice <= 0 || baseMarket.price <= baseCraftPrice))) {
+        // Craft disabled, or real market ask is available and cheaper (or craft unavailable)
         baseItem = { ...baseMarket, name: baseItemName };
     } else if (baseCraftPrice > 0) {
         // Craft is cheaper, or market was bid fallback — use craft
@@ -3334,7 +3360,7 @@ function resolveSessionPrices(session, itemHrid, itemData, lootTs, mode, opts = 
         baseItem = { price: baseCraftPrice, source: 'craft', sourceIcon: '🔨', ts: lootTs, name: baseItemName, _craftTip: craftMatTip };
     } else if (baseMarket.price > 0) {
         // Only bid fallback available, no craft — craft from bid prices
-        const craftFromBid = getCraftingMaterials(itemHrid, 'optimistic', lootTs);
+        const craftFromBid = allowCraftItems ? getCraftingMaterials(itemHrid, 'optimistic', lootTs) : null;
         const craftBidPrice = craftFromBid?.total || 0;
         if (craftBidPrice > 0) {
             const craftBidItems = (craftFromBid.materials || []).map(m => ({
@@ -3411,11 +3437,20 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
     const materials = [];
     let total = 0;
 
+    // Helper: price an ingredient — market-only when allowCraftSubcomponents is off
+    const resolveIngredientPrice = (hrid) => {
+        if (allowCraftSubcomponents) {
+            return pr._getItemPrice(hrid, 0, marketPrices, artisanMult);
+        }
+        const mkt = pr._resolveBuyPrice(hrid, 0, marketPrices, 'pessimistic');
+        return { price: mkt.price || 0, source: 'market' };
+    };
+
     // Recipe inputs (with artisan tea)
     for (const input of recipe.inputs) {
         const matItem = gameData.items[input.item];
         const matName = matItem?.name || input.item.split('/').pop().replace(/_/g, ' ');
-        const resolved = pr._getItemPrice(input.item, 0, marketPrices, artisanMult);
+        const resolved = resolveIngredientPrice(input.item);
         const price = resolved.price;
         const source = resolved.source;
         // Apply artisan tea to crafting inputs
@@ -3443,7 +3478,7 @@ function getCraftingMaterials(itemHrid, mode, lootTs) {
         baseItemHrid = recipe.upgrade;
         const baseItem = gameData.items[baseItemHrid];
         baseItemName = baseItem?.name || baseItemHrid.split('/').pop().replace(/_/g, ' ');
-        const resolved = pr._getItemPrice(baseItemHrid, 0, marketPrices, artisanMult);
+        const resolved = resolveIngredientPrice(baseItemHrid);
         const basePrice = resolved.price;
         const source = resolved.source;
         total += basePrice;
